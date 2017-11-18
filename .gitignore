@@ -1,5 +1,6 @@
 *.sample
 
 *.iml
-.idea/*
-src/test/*
+.idea/**
+src/test/**
+target/**
