@@ -6,5 +6,4 @@ package com.qiuyj.tools;
  */
 public abstract class ReflectionUtils {
 
-
 }

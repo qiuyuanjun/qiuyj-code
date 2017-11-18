@@ -6,4 +6,5 @@ package com.qiuyj.tools;
  */
 public abstract class ClassUtils {
 
+
 }
