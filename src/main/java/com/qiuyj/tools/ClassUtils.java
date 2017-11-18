@@ -71,6 +71,8 @@ public abstract class ClassUtils {
       cls = classForName(className.substring(2, className.length() - 1), cl);
       return Array.newInstance(cls, 0).getClass();
     } else {
+      if (Objects.isNull(cl))
+        cl = getDefaultClassLoader();
       try {
         return Objects.isNull(cl) ? Class.forName(className) : cl.loadClass(className);
       } catch (ClassNotFoundException e) {
