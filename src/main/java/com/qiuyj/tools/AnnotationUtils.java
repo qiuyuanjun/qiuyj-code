@@ -59,8 +59,9 @@ public abstract class AnnotationUtils {
         if (Objects.nonNull(finded))
           return finded;
       }
-      while (Objects.nonNull(cls) && Object.class != cls) {
-        cls = cls.getSuperclass();
+      for (Class<?> superclass = cls.getSuperclass();
+           ClassUtils.superclassCondition(superclass);
+           superclass = superclass.getSuperclass()) {
         finded = findAnnotation(cls, anno, visited);
         if (Objects.nonNull(finded))
           return finded;

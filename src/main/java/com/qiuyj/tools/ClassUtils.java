@@ -2,6 +2,7 @@ package com.qiuyj.tools;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.*;
 
 /**
@@ -143,6 +144,92 @@ public abstract class ClassUtils {
       cls = cls.getSuperclass();
     }
     return fields;
+  }
+
+  /**
+   * 得到一个Class的所有接口，包括父类的所有接口，以及当前Class的接口的父接口
+   */
+  public static Class<?>[] getAllInterfacesIncludingAncestorInterfaces(Class<?> cls) {
+    Set<Class<?>> interfaces = getAllInterfacesIncludingAncestorInterfacesAsSet(cls);
+    return interfaces.toArray(new Class<?>[interfaces.size()]);
+  }
+
+  /**
+   * 得到一个Class的所有接口，包括父类的所有接口，以及当前Class的接口的父接口
+   */
+  public static Set<Class<?>> getAllInterfacesIncludingAncestorInterfacesAsSet(Class<?> cls) {
+    Objects.requireNonNull(cls);
+    Set<Class<?>> interfaces = new LinkedHashSet<>();
+    Class<?>[] superInterfaces = cls.getInterfaces();
+    // 首先直接添加当前Class的所有接口
+    interfaces.addAll(Arrays.asList(superInterfaces));
+    // 遍历当前Class的所有接口，得到这些接口的所有接口
+    for (Class<?> superInterface : superInterfaces) {
+      interfaces.addAll(getAllInterfacesIncludingAncestorInterfacesAsSet(superInterface));
+    }
+    // 如果是类，那么遍历所有的父类的所有接口
+    for (Class<?> superclass = cls.getSuperclass();
+         superclassCondition(superclass);
+         superclass = superclass.getSuperclass()) {
+      interfaces.addAll(getAllInterfacesIncludingAncestorInterfacesAsSet(superclass));
+    }
+    return interfaces;
+  }
+
+  /**
+   * 得到一个Object对象的所有接口，包括所有父类的接口，但是如果当前Class代表的是一个接口，那么直接返回
+   * <note> 每一层的Class仅仅得到当前Class的一层接口，不会得到当前Class的接口的接口 </note>
+   */
+  public static Class<?>[] getAllInterfaces(Object obj) {
+    Objects.requireNonNull(obj);
+    return getAllInterfaces(obj.getClass());
+  }
+
+  /**
+   * 得到一个Class的所有接口，包括所有父类的接口，但是如果当前Class代表的是一个接口，那么直接返回
+   * <note> 每一层的Class仅仅得到当前Class的一层接口，不会得到当前Class的接口的接口 </note>
+   */
+  public static Class<?>[] getAllInterfaces(Class<?> cls) {
+    Set<Class<?>> interfaces = getAllInterfacesAsSet(cls);
+    return interfaces.toArray(new Class<?>[interfaces.size()]);
+  }
+
+  /**
+   * 得到一个Class的所有接口，包括所有父类的接口，但是如果当前Class代表的是一个接口，那么直接返回
+   * <note> 每一层的Class仅仅得到当前Class的一层接口，不会得到当前Class的接口的接口 </note>
+   */
+  public static Set<Class<?>> getAllInterfacesAsSet(Class<?> cls) {
+    Objects.requireNonNull(cls);
+    if (cls.isInterface())
+      return Collections.singleton(cls);
+    else {
+      Set<Class<?>> interfaces = new LinkedHashSet<>();
+      while (superclassCondition(cls)) {
+        interfaces.addAll(Arrays.asList(cls.getInterfaces()));
+        cls = cls.getSuperclass();
+      }
+      return interfaces;
+    }
+  }
+
+  static boolean superclassCondition(Class<?> superclass) {
+    return Optional.ofNullable(superclass).map(cls -> Object.class != cls).orElse(false);
+  }
+
+  /**
+   * 得到给定的方法Method对象，该方法会遍历所有的父类的方法
+   * 如果在父类里面仍然没有得到Method对象，那么抛出异常
+   */
+  public static Method getDeclaredMethod(Class<?> cls, String methodName, Class<?>... paramTypes) {
+    while (Objects.nonNull(cls)) {
+      try {
+        return cls.getDeclaredMethod(methodName, paramTypes);
+      } catch (NoSuchMethodException e) {
+        // ignore;
+      }
+      cls = cls.getSuperclass();
+    }
+    throw new IllegalStateException("Cannot find method: " + methodName + " with parameter: " + Arrays.toString(paramTypes));
   }
 
 }

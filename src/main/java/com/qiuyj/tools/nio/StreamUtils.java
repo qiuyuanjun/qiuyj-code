@@ -7,4 +7,5 @@ package com.qiuyj.tools.nio;
  */
 public abstract class StreamUtils {
 
+
 }
