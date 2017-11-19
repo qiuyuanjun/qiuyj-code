@@ -33,9 +33,7 @@ public abstract class StringUtils {
       int len = pathContents.length,
           lastInsertIdx = 0;
       String[] pathBuilder = new String[len];
-      String content;
-      for (int i = 0; i < len; i++) {
-        content = pathContents[i];
+      for (String content : pathContents) {
         if ("..".equals(content))
           lastInsertIdx--;
         else if (!".".equals(content)) {
