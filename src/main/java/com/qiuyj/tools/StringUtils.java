@@ -1,5 +1,6 @@
 package com.qiuyj.tools;
 
+import java.beans.Introspector;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Objects;
@@ -106,4 +107,57 @@ public abstract class StringUtils {
   public static boolean isNotBlank(String str) {
     return Objects.nonNull(str) && !"".equals(str.trim());
   }
+
+  /**
+   * 将驼峰名称转换成对应的下划线名称（符合java规范）
+   */
+  public static String camelCaseToUnderscore(String name) {
+    Objects.requireNonNull(name);
+    char[] chs = name.toCharArray();
+    int len = chs.length;
+    if (len > 1) {
+      int start = 0;
+      char c = chs[start];
+      StringBuilder sb = new StringBuilder();
+      // 处理头部
+      if (Character.isUpperCase(c) && Character.isUpperCase(chs[start + 1])) {
+        start = 2;
+        while (start < len && Character.isUpperCase(chs[start])) {
+          start++;
+        }
+        if (start == len)
+          return new String(chs);
+        sb.append(chs, 0, --start);
+        sb.append("_");
+        chs[start] = Character.toLowerCase(chs[start]);
+      } else {
+        sb.append(Character.toLowerCase(c));
+        start++;
+      }
+      // 处理尾部
+      int end = len - 1;
+      if (Character.isUpperCase(chs[end]) && Character.isUpperCase(chs[end - 1])) {
+        end -= 2;
+        while (end > 0 && Character.isUpperCase(chs[end])) {
+          --end;
+        }
+      }
+      for (; start <= end; start++) {
+        c = chs[start];
+        if (Character.isUpperCase(c) && Character.isLowerCase(chs[start - 1])) {
+          sb.append("_");
+          sb.append(Character.toLowerCase(c));
+        } else
+          sb.append(c);
+      }
+      int suffixLen = len - 1 - end;
+      if (suffixLen > 0) {
+        sb.append("_");
+        sb.append(chs, end + 1, suffixLen);
+      }
+      return sb.toString();
+    } else
+      return Introspector.decapitalize(name);
+  }
+
 }
