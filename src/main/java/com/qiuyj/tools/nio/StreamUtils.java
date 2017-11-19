@@ -21,9 +21,13 @@ import java.util.Objects;
  * @since 2017/11/18
  */
 public abstract class StreamUtils {
-  private static final int BUF_SIZE = 8192;
+  private static final int BUF_SIZE = 8192; // 8Kb
 
-  public static byte[] getBytes(String path) throws IOException {
+  /**
+   * 获取指定文件的字节数组
+   * @throws IOException 当读取文件或打开文件失败的时候
+   */
+  public static byte[] getBytesFromFile(String path) throws IOException {
     path = StringUtils.cleanPath(path);
     if (Objects.isNull(path))
       throw new IllegalArgumentException("Parameter 'path' cannot be null");
@@ -61,7 +65,14 @@ public abstract class StreamUtils {
     return b;
   }
 
-  public static byte[] getBytes(InputStream in, boolean close) throws IOException {
+  /**
+   * 获取输入流的字节数组
+   * @param in 输入流
+   * @param close 是否需要关闭输入流
+   * @return 字节数组
+   * @throws IOException 当读取输入流报错的时候
+   */
+  public static byte[] getBytesFromStream(InputStream in, boolean close) throws IOException {
     ReadableByteChannel inChannel = Channels.newChannel(in);
     ByteArrayOutputStream out = null;
     byte[] b;
@@ -83,6 +94,9 @@ public abstract class StreamUtils {
     return b;
   }
 
+  /**
+   * 安静的关闭一个流（输入流或输出流），如果关闭流的时候抛出异常，那么忽略该异常
+   */
   public static void closeQuietly(Closeable stream) {
     if (Objects.nonNull(stream)) {
       try {
