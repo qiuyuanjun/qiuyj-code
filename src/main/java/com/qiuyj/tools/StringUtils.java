@@ -119,10 +119,8 @@ public abstract class StringUtils {
       StringBuilder sb = new StringBuilder();
       // 处理头部
       if (Character.isUpperCase(c) && Character.isUpperCase(chs[start + 1])) {
-        start = 2;
-        while (start < len && Character.isUpperCase(chs[start])) {
-          start++;
-        }
+        // 循环跳过所有的大写字母
+        for (start = 2; start < len && Character.isUpperCase(chs[start]); start++);
         if (start == len)
           return new String(chs);
         sb.append(chs, 0, --start);
@@ -134,12 +132,9 @@ public abstract class StringUtils {
       }
       // 处理尾部
       int end = len - 1;
-      if (Character.isUpperCase(chs[end]) && Character.isUpperCase(chs[end - 1])) {
-        end -= 2;
-        while (end > 0 && Character.isUpperCase(chs[end])) {
-          --end;
-        }
-      }
+      // 循环跳过所有的大写字母
+      if (Character.isUpperCase(chs[end]) && Character.isUpperCase(chs[end - 1]))
+        for (end -= 2; end > 0 && Character.isUpperCase(chs[end]); end--);
       for (; start <= end; start++) {
         c = chs[start];
         if (Character.isUpperCase(c) && Character.isLowerCase(chs[start - 1])) {
