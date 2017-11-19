@@ -117,11 +117,9 @@ public final class SqlInfo {
   private String fieldToGetterName(Field field) {
     char[] chs = field.getName().toCharArray();
     chs[0] = Character.toUpperCase(chs[0]);
-    StringBuilder sb;
-    if (field.getType() == Boolean.TYPE || field.getType() == Boolean.class)
-      sb = new StringBuilder("is");
-    else
-      sb = new StringBuilder("get");
+    StringBuilder sb =
+        (field.getType() == Boolean.TYPE || field.getType() == Boolean.class)
+            ? new StringBuilder("is") : new StringBuilder("get");
     sb.append(chs);
     return sb.toString();
   }
