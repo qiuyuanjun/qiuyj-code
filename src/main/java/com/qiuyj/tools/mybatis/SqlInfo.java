@@ -3,12 +3,12 @@ package com.qiuyj.tools.mybatis;
 import com.qiuyj.tools.AnnotationUtils;
 import com.qiuyj.tools.ClassUtils;
 import com.qiuyj.tools.ReflectionUtils;
+import com.qiuyj.tools.StringUtils;
 import com.qiuyj.tools.mybatis.annotation.Column;
 import com.qiuyj.tools.mybatis.annotation.PrimaryKey;
 import com.qiuyj.tools.mybatis.annotation.Table;
 import com.qiuyj.tools.mybatis.mapper.Mapper;
 
-import java.beans.Introspector;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -25,14 +25,15 @@ public final class SqlInfo {
   private PropertyColumnMapping primaryKey;
 
   public SqlInfo(Class<? extends Mapper> mapperClass) {
-    // 得到泛型
-    Class<?> beanType = ReflectionUtils.getParameterizedTypesAsClass(mapperClass)[0];
+    // 得到泛型，这里Mapper会有两个泛型，第一个表示主键，第二个才是正真运行时候的实体类
+    // public interface Mapper<ID, T> {}
+    Class<?> beanType = ReflectionUtils.getParameterizedTypesAsClass(mapperClass)[1];
     // 首先得到表名
     Table table = AnnotationUtils.findAnnotation(beanType, Table.class);
     if (Objects.nonNull(table))
       tableName = table.value();
     if (Objects.isNull(tableName))
-      tableName = toUnderscoreName(beanType.getSimpleName());
+      tableName = StringUtils.camelCaseToUnderscore(beanType.getSimpleName());
     // 接着得到主键名和其他列名
     Field[] allDeclaredFields = ClassUtils.getAllDeclaredFields(beanType);
     for (Field field : allDeclaredFields) {
@@ -44,7 +45,7 @@ public final class SqlInfo {
         } else {
           try {
             // 得到对应的get方法
-            Method getter = ReflectionUtils.getDeclaredMethod(beanType, fieldToGetterName(field.getName()), field.getType());
+            Method getter = ReflectionUtils.getDeclaredMethod(beanType, fieldToGetterName(field), field.getType());
             // 判断在getter方法上是否有PrimaryKey注解
             if (AnnotationUtils.hasAnnotation(getter, PrimaryKey.class)) {
               primaryKey = new PropertyColumnMapping();
@@ -63,7 +64,7 @@ public final class SqlInfo {
       if (Objects.isNull(columnName)) {
         // 此时去看对应的getter方法上面是否有Column注解
         try {
-          Method getter = ReflectionUtils.getDeclaredMethod(beanType, fieldToGetterName(field.getName()), field.getType());
+          Method getter = ReflectionUtils.getDeclaredMethod(beanType, fieldToGetterName(field), field.getType());
           Column methodCol = AnnotationUtils.findAnnotation(getter, Column.class);
           if (Objects.nonNull(methodCol))
             columnName = methodCol.value();
@@ -72,7 +73,7 @@ public final class SqlInfo {
         }
       }
       if (Objects.isNull(columnName))
-        columnName = toUnderscoreName(field.getName());
+        columnName = StringUtils.camelCaseToUnderscore(field.getName());
       if (primaryKeyFlag) {
         // 主键
         primaryKey.setDatabaseColumnName(columnName);
@@ -84,50 +85,18 @@ public final class SqlInfo {
     }
   }
 
-  private String fieldToGetterName(String fieldName) {
-    char[] chs = fieldName.toCharArray();
+  /**
+   * 将一个属性按照javabean规范转换成对应的getter方法名
+   */
+  private String fieldToGetterName(Field field) {
+    char[] chs = field.getName().toCharArray();
     chs[0] = Character.toUpperCase(chs[0]);
-    StringBuilder sb = new StringBuilder("get");
+    StringBuilder sb;
+    if (field.getType() == Boolean.TYPE || field.getType() == Boolean.class)
+      sb = new StringBuilder("is");
+    else
+      sb = new StringBuilder("get");
     sb.append(chs);
-    return sb.toString();
-  }
-
-  private String toUnderscoreName(String originName) {
-    int len = originName.length();
-    StringBuilder sb = new StringBuilder();
-    if (len > 1) {
-      char[] chs = originName.toCharArray();
-      int i = 0;
-      char c = chs[i];
-      if (Character.isUpperCase(c) && Character.isUpperCase(chs[i + 1])) {
-        i = 1;
-        do {
-          if (++i >= len)
-            break;
-          c = chs[i];
-        } while (Character.isUpperCase(c));
-        if (i == len) {
-          sb.append(chs);
-          return sb.toString();
-        } else {
-          sb.append(chs, 0, --i);
-          sb.append("_");
-          chs[i] = Character.toLowerCase(chs[i]);
-        }
-      } else {
-        sb.append(Character.toLowerCase(c));
-        i++;
-      }
-      for (; i < len; i++) {
-        c = chs[i];
-        if (Character.isUpperCase(c) && Character.isLowerCase(chs[i - 1])) {
-          sb.append("_");
-          sb.append(Character.toLowerCase(c));
-        } else
-          sb.append(c);
-      }
-    } else
-      sb.append(Introspector.decapitalize(originName));
     return sb.toString();
   }
 
