@@ -33,11 +33,10 @@ public class SqlGenerator implements Interceptor {
      * 才会自动生成sql
      */
     if (ms.getSqlSource() instanceof ProviderSqlSource && resolver.isMapperMethod(invocation.getMethod())) {
-      Object args = invocation.getArgs()[1]; // 得到参数列表
       // 解析mapper方法，得到对应的sql信息
       engine.analysis(invocation.getMethod());
       // 生成对应的sql
-      engine.generateSql(ms, invocation.getMethod(), args);
+      engine.generateSql(ms, invocation.getMethod(), invocation.getArgs()[1]);
     }
     return invocation.proceed();
   }
@@ -45,10 +44,7 @@ public class SqlGenerator implements Interceptor {
   @Override
   public Object plugin(Object obj) {
     // 生成Executor的代理对象
-    if (obj instanceof Executor)
-      return Plugin.wrap(obj, this);
-    else
-      return obj;
+    return obj instanceof Executor ? Plugin.wrap(obj, this) : obj;
   }
 
   @Override
