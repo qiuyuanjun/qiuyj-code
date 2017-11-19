@@ -2,7 +2,6 @@ package com.qiuyj.tools;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.*;
 
 /**
@@ -215,21 +214,4 @@ public abstract class ClassUtils {
   static boolean superclassCondition(Class<?> superclass) {
     return Optional.ofNullable(superclass).map(cls -> Object.class != cls).orElse(false);
   }
-
-  /**
-   * 得到给定的方法Method对象，该方法会遍历所有的父类的方法
-   * 如果在父类里面仍然没有得到Method对象，那么抛出异常
-   */
-  public static Method getDeclaredMethod(Class<?> cls, String methodName, Class<?>... paramTypes) {
-    while (Objects.nonNull(cls)) {
-      try {
-        return cls.getDeclaredMethod(methodName, paramTypes);
-      } catch (NoSuchMethodException e) {
-        // ignore;
-      }
-      cls = cls.getSuperclass();
-    }
-    throw new IllegalStateException("Cannot find method: " + methodName + " with parameter: " + Arrays.toString(paramTypes));
-  }
-
 }
