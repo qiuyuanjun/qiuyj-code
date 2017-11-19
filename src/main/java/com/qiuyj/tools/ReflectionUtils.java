@@ -1,9 +1,6 @@
 package com.qiuyj.tools;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
+import java.lang.reflect.*;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Objects;
@@ -117,5 +114,53 @@ public abstract class ReflectionUtils {
       cls = cls.getSuperclass();
     }
     throw new IllegalStateException("Cannot find method: " + methodName + " with parameter: " + Arrays.toString(paramTypes));
+  }
+
+  /**
+   * 执行方法
+   * @param objectTarget 方法所属对象
+   * @param methodToInvoke 要执行的方法
+   * @param args 方法的参数对象
+   * @return 执行方法的结果
+   */
+  public static Object invokeMethod(Object objectTarget, Method methodToInvoke, Object... args) {
+    if (Objects.isNull(objectTarget) || Objects.isNull(methodToInvoke))
+      throw new NullPointerException();
+    try {
+      return methodToInvoke.invoke(objectTarget, args);
+    } catch (Exception e) {
+      handleReflectionException(e);
+    }
+    throw new IllegalStateException("Should never get here");
+  }
+
+  /**
+   * 处理反射的异常
+   */
+  public static void handleReflectionException(Exception e) {
+    // 根据异常发生的频率做判断的顺序
+    if (e instanceof InvocationTargetException)
+      handleInvocationTargetException((InvocationTargetException) e);
+    else if (e instanceof IllegalAccessException)
+      throw new IllegalStateException("Private or protected?");
+    else if (e instanceof NoSuchMethodException)
+      throw new IllegalStateException("Can not find specificate method to execute");
+    else if (e instanceof NoSuchFieldException)
+      throw new IllegalStateException("Can not find specificate field to execute");
+    else
+      throw new UndeclaredThrowableException(e);
+  }
+
+  /**
+   * 处理InvacationTargetException异常，由于该异常发生频率较大，故单独封装一个函数
+   */
+  public static void handleInvocationTargetException(InvocationTargetException e) {
+    Throwable t = e.getTargetException();
+    if (t instanceof RuntimeException)
+      throw (RuntimeException) t;
+    else if (t instanceof Error)
+      throw (Error) t;
+    else
+      throw new UndeclaredThrowableException(t);
   }
 }
