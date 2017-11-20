@@ -1,6 +1,6 @@
 package com.qiuyj.tools.mybatis.engine;
 
-import com.qiuyj.tools.mybatis.config.Database;
+import com.qiuyj.tools.mybatis.config.SqlGeneratorConfig;
 import org.apache.ibatis.mapping.MappedStatement;
 
 import java.lang.reflect.Method;
@@ -11,13 +11,13 @@ import java.lang.reflect.Method;
  */
 public interface SqlGeneratorEngine {
 
-  static SqlGeneratorEngine determineSqlGenerator(Database database) {
-    switch (database) {
+  static SqlGeneratorEngine determineSqlGenerator(SqlGeneratorConfig config) {
+    switch (config.getDatabaseType()) {
       case ORACLE:
-        return new OracleSqlGeneratorEngine();
+        return new OracleSqlGeneratorEngine(config.getCheckerChain());
       case MYSQL:
       default:
-        return new MySQLSqlGeneratorEngine();
+        return new MySQLSqlGeneratorEngine(config.getCheckerChain());
     }
   }
 

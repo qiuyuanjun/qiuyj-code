@@ -1,6 +1,7 @@
 package com.qiuyj.tools.mybatis.engine;
 
 import com.qiuyj.tools.mybatis.SqlInfo;
+import com.qiuyj.tools.mybatis.checker.CheckerChain;
 import com.qiuyj.tools.mybatis.mapper.Mapper;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.reflection.MetaObject;
@@ -19,6 +20,11 @@ public abstract class AbstractSqlGeneratorEngine implements SqlGeneratorEngine {
   private final Object mappedStatementMetaObjectLock = new Object();
   private final Map<Class<? extends Mapper>, SqlInfo> sqlInfos = new HashMap<>();
   private final Map<String, MetaObject> mappedStatementMetaObjects = new HashMap<>();
+  private final CheckerChain chain;
+
+  protected AbstractSqlGeneratorEngine(CheckerChain chain) {
+    this.chain = chain;
+  }
 
   @SuppressWarnings("unchecked")
   @Override
@@ -27,7 +33,7 @@ public abstract class AbstractSqlGeneratorEngine implements SqlGeneratorEngine {
     if (!sqlInfos.containsKey(actualMapperClass)) {
       synchronized (sqlInfoLock) {
         if (!sqlInfos.containsKey(actualMapperClass)) {
-          SqlInfo mapperSqlInfo = new SqlInfo(actualMapperClass);
+          SqlInfo mapperSqlInfo = new SqlInfo(actualMapperClass, chain);
           sqlInfos.put(actualMapperClass, mapperSqlInfo);
         }
       }

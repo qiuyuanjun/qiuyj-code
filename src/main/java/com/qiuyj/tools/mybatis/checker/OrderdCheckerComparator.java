@@ -1,0 +1,27 @@
+package com.qiuyj.tools.mybatis.checker;
+
+import com.qiuyj.tools.AnnotationUtils;
+
+import java.util.Comparator;
+import java.util.Objects;
+
+/**
+ * @author qiuyj
+ * @since 2017/11/20
+ */
+public class OrderdCheckerComparator implements Comparator<ConditionChecker> {
+
+  @Override
+  public int compare(ConditionChecker o1, ConditionChecker o2) {
+    Orderd order1 = AnnotationUtils.findAnnotation(o1.getClass(), Orderd.class);
+    Orderd order2 = AnnotationUtils.findAnnotation(o2.getClass(), Orderd.class);
+    if (Objects.isNull(order1) && Objects.isNull(order2))
+      return 0;
+    else if (Objects.isNull(order1))
+      return -1;
+    else if (Objects.isNull(order2))
+      return 1;
+    else
+      return Integer.compare(order1.value(), order2.value());
+  }
+}
