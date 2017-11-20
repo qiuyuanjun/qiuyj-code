@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
  * @author qiuyj
  * @since 2017/11/18
  */
+@SuppressWarnings("unchecked")
 public abstract class ReflectionUtils {
 
   /**
@@ -145,6 +146,8 @@ public abstract class ReflectionUtils {
       throw new IllegalStateException("Private or protected?");
     else if (e instanceof NoSuchMethodException)
       throw new IllegalStateException("Can not find specificate method to execute");
+    else if (e instanceof InstantiationException)
+      throw new IllegalStateException("Can not instanitate class");
     else if (e instanceof NoSuchFieldException)
       throw new IllegalStateException("Can not find specificate field to execute");
     else
@@ -164,5 +167,14 @@ public abstract class ReflectionUtils {
       throw new UndeclaredThrowableException(t);
   }
 
-
+  public static<T> T instantiate(String className) {
+    Class<T> clz = (Class<T>) ClassUtils.resolveClassName(className, Thread.currentThread().getContextClassLoader());
+    Constructor<T> ctor = (Constructor<T>) getDefaultConstructor(clz);
+    try {
+      return ctor.newInstance();
+    } catch (Exception e) {
+      handleReflectionException(e);
+    }
+    throw new IllegalStateException("Should never get here");
+  }
 }
