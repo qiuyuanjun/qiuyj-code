@@ -31,13 +31,13 @@ public abstract class AnnotationUtils {
    * 该Class的父类是否有对应的注解，递归所有的父类，直到Object，如果还是没有找到，那么返回null
    * @return null 如果按照查找算法没有找到，否则返回找到的注解的Annotation对象
    */
-  public static <A> A findAnnotation(AnnotatedElement ae, Class<A> anno) {
+  public static <A extends Annotation> A findAnnotation(AnnotatedElement ae, Class<A> anno) {
     Objects.requireNonNull(ae);
     return Optional.ofNullable(anno).map(ano -> findAnnotation(ae, ano, new HashSet<>())).orElse(null);
   }
 
   @SuppressWarnings("unchecked")
-  private static <A> A findAnnotation(AnnotatedElement ae, Class<A> anno, Set<Annotation> visited) {
+  private static <A extends Annotation> A findAnnotation(AnnotatedElement ae, Class<A> anno, Set<Annotation> visited) {
     Annotation[] annos = anno.getDeclaredAnnotations();
     for (Annotation a : annos) {
       if (a.annotationType() == anno)
