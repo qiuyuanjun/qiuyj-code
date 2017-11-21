@@ -5,7 +5,7 @@ import com.qiuyj.tools.mybatis.SqlInfo;
 import java.lang.reflect.Field;
 
 /**
- * 属性检查器
+ * 检查器
  * @author qiuyj
  * @since 2017/11/20
  */
@@ -15,7 +15,9 @@ public interface ConditionChecker {
    * 检查对应的javabean的属性是否满足对应的关系
    * @param field 属性的Field对象
    * @param sqlInfo 当前bean的sqlInfo对象
-   * @return {boolean} 如果返回true，那么当前属性会接着执行检查器链，如果返回false，那么就不会执行剩下的检查器
+   * @return {int} 如果返回-1，那么就不会继续执行剩下的检查器了，
+   *    如果返回0，那么就继续执行剩下的检查器
+   *    如果返回大于0的整数，那么表示跳过后面的几个检查器继续执行剩下的检查器（可能会发生异常，如果返回的n大于剩下的检查器的个数）
    */
   int doCheck(Field field, SqlInfo sqlInfo);
 
