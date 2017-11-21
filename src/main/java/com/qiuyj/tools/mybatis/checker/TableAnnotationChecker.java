@@ -21,7 +21,7 @@ public class TableAnnotationChecker implements ConditionChecker {
     Table table = AnnotationUtils.findAnnotation(beanType, Table.class);
     if (Objects.nonNull(table))
       sqlInfo.setTableName(table.value());
-    if (Objects.isNull(sqlInfo.getTableName()))
+    if (StringUtils.isBlank(sqlInfo.getTableName()))
       sqlInfo.setTableName(StringUtils.camelCaseToUnderscore(beanType.getSimpleName()));
     return 0;
   }

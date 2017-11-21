@@ -50,7 +50,7 @@ public class PrimaryKeyAnnotationChecker implements ConditionChecker {
           }
         }
       }
-      if (Objects.isNull(columnName))
+      if (StringUtils.isBlank(columnName))
         columnName = StringUtils.camelCaseToUnderscore(field.getName());
       sqlInfo.setPrimaryKey(new PropertyColumnMapping(field.getName(), columnName));
       return 1;

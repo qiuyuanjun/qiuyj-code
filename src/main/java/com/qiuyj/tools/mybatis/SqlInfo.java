@@ -59,4 +59,9 @@ public final class SqlInfo {
   public void setPrimaryKey(PropertyColumnMapping primaryKey) {
     this.primaryKey = primaryKey;
   }
+
+  public void addPropertyColumn(PropertyColumnMapping column) {
+    Objects.requireNonNull(column);
+    withoutPrimaryKey.add(column);
+  }
 }

@@ -20,6 +20,7 @@ public final class CheckerChain {
     chain.add(new StaticConditionChecker());
     chain.add(new IgnoreAnnotationChecker());
     chain.add(new PrimaryKeyAnnotationChecker());
+    chain.add(new ColumnAnnotationChecker());
   }
 
   /**
