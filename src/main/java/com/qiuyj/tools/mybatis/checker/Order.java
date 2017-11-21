@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface Orderd {
+public @interface Order {
 
   /**
    * 优先级，数字越大优先级越高

@@ -13,8 +13,8 @@ public class OrderdCheckerComparator implements Comparator<ConditionChecker> {
 
   @Override
   public int compare(ConditionChecker o1, ConditionChecker o2) {
-    Orderd order1 = AnnotationUtils.findAnnotation(o1.getClass(), Orderd.class);
-    Orderd order2 = AnnotationUtils.findAnnotation(o2.getClass(), Orderd.class);
+    Order order1 = AnnotationUtils.findAnnotation(o1.getClass(), Order.class);
+    Order order2 = AnnotationUtils.findAnnotation(o2.getClass(), Order.class);
     if (Objects.isNull(order1) && Objects.isNull(order2))
       return 0;
     else if (Objects.isNull(order1))
