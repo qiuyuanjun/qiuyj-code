@@ -22,9 +22,21 @@ public final class SqlGeneratorConfig {
   private SqlGeneratorConfig() {
   }
 
-  @SuppressWarnings("unchecked")
+  /**
+   * 初始化配置信息
+   */
   public static SqlGeneratorConfig init(Properties prop) {
     SqlGeneratorConfig config = new SqlGeneratorConfig();
+    parseDatabaseType(config, prop);
+    parseBaseMapperClass(config, prop);
+    parseConditionCheckers(config, prop);
+    return config;
+  }
+
+  /**
+   * 解析数据库类型
+   */
+  private static void parseDatabaseType(SqlGeneratorConfig config, Properties prop) {
     String db = prop.getProperty("databaseType");
     if (Objects.nonNull(db)) {
       try {
@@ -33,9 +45,22 @@ public final class SqlGeneratorConfig {
         throw new IllegalArgumentException("Unsupported database type yet", e);
       }
     }
+  }
+
+  /**
+   * 解析baseMapperClass
+   */
+  @SuppressWarnings("unchecked")
+  private static void parseBaseMapperClass(SqlGeneratorConfig config, Properties prop) {
     String baseMapperClassName = prop.getProperty("baseMapperClass", BASE_MAPPER_CLASS_NAME);
     if (!BASE_MAPPER_CLASS_NAME.equals(baseMapperClassName))
       config.baseMapperClass = (Class<? extends Mapper>) ClassUtils.resolveClassName(baseMapperClassName, null);
+  }
+
+  /**
+   * 解析检查器配置
+   */
+  private static void parseConditionCheckers(SqlGeneratorConfig config, Properties prop) {
     String checkers = prop.getProperty("conditionCheckers");
     if (Objects.nonNull(checkers)) {
       String[] checkerArr = StringUtils.delimiteToStringArray(checkers, ", \t:");
@@ -47,7 +72,6 @@ public final class SqlGeneratorConfig {
         config.chain.addCheckerUnsorted(unsortedChecker);
       }
     }
-    return config;
   }
 
   public Database getDatabaseType() {

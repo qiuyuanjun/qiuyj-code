@@ -1,10 +1,13 @@
 package com.qiuyj.tools.mybatis.mapper;
 
+import com.qiuyj.tools.mybatis.SqlProvider;
+
 /**
  * 通用Mapper接口
  * @author qiuyj
  * @since 2017/11/11
  */
+@SqlProvider("com.qiuyj.tools.mybatis.build.SqlProvider")
 public interface Mapper<ID, T> extends CrudMapper<ID, T>, BatchMapper<T> {
 
   final class SqlProvider {
