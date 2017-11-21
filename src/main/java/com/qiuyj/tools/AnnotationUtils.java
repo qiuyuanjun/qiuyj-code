@@ -38,7 +38,7 @@ public abstract class AnnotationUtils {
 
   @SuppressWarnings("unchecked")
   private static <A extends Annotation> A findAnnotation(AnnotatedElement ae, Class<A> anno, Set<Annotation> visited) {
-    Annotation[] annos = anno.getDeclaredAnnotations();
+    Annotation[] annos = ae.getDeclaredAnnotations();
     for (Annotation a : annos) {
       if (a.annotationType() == anno)
         return (A) a;

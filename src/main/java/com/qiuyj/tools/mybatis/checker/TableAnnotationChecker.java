@@ -17,12 +17,17 @@ public class TableAnnotationChecker implements ConditionChecker {
 
   @Override
   public int doCheck(Field field, SqlInfo sqlInfo) {
-    Class<?> beanType = sqlInfo.getBeanType();
-    Table table = AnnotationUtils.findAnnotation(beanType, Table.class);
-    if (Objects.nonNull(table))
-      sqlInfo.setTableName(table.value());
-    if (StringUtils.isBlank(sqlInfo.getTableName()))
-      sqlInfo.setTableName(StringUtils.camelCaseToUnderscore(beanType.getSimpleName()));
+    /*
+     * 这么判断是为了防止在循环所有的Field的时候都要执行下面的代码
+     */
+    if (StringUtils.isBlank(sqlInfo.getTableName())) {
+      Class<?> beanType = sqlInfo.getBeanType();
+      Table table = AnnotationUtils.findAnnotation(beanType, Table.class);
+      if (Objects.nonNull(table))
+        sqlInfo.setTableName(table.value());
+      if (StringUtils.isBlank(sqlInfo.getTableName()))
+        sqlInfo.setTableName(StringUtils.camelCaseToUnderscore(beanType.getSimpleName()));
+    }
     return 0;
   }
 }
