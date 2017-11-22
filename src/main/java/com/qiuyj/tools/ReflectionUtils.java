@@ -1,10 +1,7 @@
 package com.qiuyj.tools;
 
 import java.lang.reflect.*;
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -167,14 +164,53 @@ public abstract class ReflectionUtils {
       throw new UndeclaredThrowableException(t);
   }
 
-  public static<T> T instantiate(String className) {
-    Class<T> clz = (Class<T>) ClassUtils.resolveClassName(className, Thread.currentThread().getContextClassLoader());
-    Constructor<T> ctor = (Constructor<T>) getDefaultConstructor(clz);
+  /**
+   * 通过默认构造函数实例化给定的类全名
+   * @param className 要实例化的类全名
+   * @param <T> 类类型
+   * @return 实例化的对象
+   */
+  public static<T> T instantiateClass(String className) {
+    return instantiateClass(
+        (Class<T>) ClassUtils.resolveClassName(className, Thread.currentThread().getContextClassLoader()), null, null
+    );
+  }
+
+  /**
+   * 实例化给定参数个数的构造函数
+   * @param cls 要实例化的Class对象
+   * @return 实例化的对象
+   */
+  public static<T> T instantiateClass(Class<T> cls) {
+    return instantiateClass(cls, null, null);
+  }
+
+  /**
+   * 实例化给定参数个数的构造函数
+   * @param cls 要实例化的Class对象
+   * @param ctorArgs 构造函数参数列表
+   * @param ctorArgsType 构造函数参数类型列表
+   * @return 实例化的对象
+   */
+  public static<T> T instantiateClass(Class<T> cls, Object[] ctorArgs, Class<?>[] ctorArgsType) {
+    cls = (Class<T>) ClassUtils.resolveCollectionInterfaces(Objects.requireNonNull(cls));
+    Constructor<T> ctor;
+    if (Objects.isNull(ctorArgsType)) {
+      // 如果使用默认构造函数但是却传入了参数，那么抛出异常
+      if (Objects.nonNull(ctorArgs))
+        throw new IllegalArgumentException("Wrong number of arguments");
+      // 使用默认构造函数创建对象
+      ctor = (Constructor<T>) getDefaultConstructor(cls);
+    } else {
+      // 否则就根据构造函数的参数列表的Class类型获取对应的构造函数
+      ctor = (Constructor<T>) getConstructor(cls, ctorArgsType);
+    }
     try {
-      return ctor.newInstance();
+      return ctor.newInstance(ctorArgs);
     } catch (Exception e) {
       handleReflectionException(e);
     }
     throw new IllegalStateException("Should never get here");
   }
+
 }

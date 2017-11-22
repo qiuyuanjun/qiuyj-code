@@ -214,4 +214,22 @@ public abstract class ClassUtils {
   static boolean superclassCondition(Class<?> superclass) {
     return Optional.ofNullable(superclass).map(cls -> Object.class != cls).orElse(false);
   }
+
+  /**
+   * 处理集合类型的特殊接口
+   */
+  static Class<?> resolveCollectionInterfaces(Class<?> cls) {
+    Class<?> clsToUse = cls;
+    if (cls == List.class || cls == Collection.class)
+      clsToUse = ArrayList.class;
+    else if (cls == Map.class)
+      clsToUse = HashMap.class;
+    else if (cls == Set.class)
+      clsToUse = HashSet.class;
+    else if (cls == SortedMap.class)
+      clsToUse = TreeMap.class;
+    else if (cls == SortedSet.class)
+      clsToUse = TreeSet.class;
+    return clsToUse;
+  }
 }
