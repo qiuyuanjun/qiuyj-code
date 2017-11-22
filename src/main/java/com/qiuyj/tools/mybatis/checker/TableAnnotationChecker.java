@@ -28,6 +28,6 @@ public class TableAnnotationChecker implements ConditionChecker {
       if (StringUtils.isBlank(sqlInfo.getTableName()))
         sqlInfo.setTableName(StringUtils.camelCaseToUnderscore(beanType.getSimpleName()));
     }
-    return 0;
+    return ConditionChecker.CONTINUE_EXECUTION;
   }
 }

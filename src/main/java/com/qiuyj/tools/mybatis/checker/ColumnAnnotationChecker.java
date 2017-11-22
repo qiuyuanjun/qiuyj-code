@@ -38,6 +38,6 @@ public class ColumnAnnotationChecker implements ConditionChecker {
     if (StringUtils.isBlank(columnName))
       columnName = StringUtils.camelCaseToUnderscore(field.getName());
     sqlInfo.addPropertyColumn(new PropertyColumnMapping(field.getName(), columnName));
-    return 0;
+    return ConditionChecker.CONTINUE_EXECUTION;
   }
 }

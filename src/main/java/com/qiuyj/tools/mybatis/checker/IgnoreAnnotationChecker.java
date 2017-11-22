@@ -27,6 +27,6 @@ public class IgnoreAnnotationChecker implements ConditionChecker {
         // ignore
       }
     }
-    return hasIgnoreAnnotation ? -1 : 0;
+    return hasIgnoreAnnotation ? ConditionChecker.BREAK_CURRENT : ConditionChecker.CONTINUE_EXECUTION;
   }
 }

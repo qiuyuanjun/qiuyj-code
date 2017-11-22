@@ -14,6 +14,7 @@ public class StaticConditionChecker implements ConditionChecker {
 
   @Override
   public int doCheck(Field field, SqlInfo sqlInfo) {
-    return Modifier.isStatic(field.getModifiers()) ? -1 : 0;
+    return Modifier.isStatic(field.getModifiers()) //
+        ? ConditionChecker.BREAK_CURRENT : ConditionChecker.CONTINUE_EXECUTION;
   }
 }

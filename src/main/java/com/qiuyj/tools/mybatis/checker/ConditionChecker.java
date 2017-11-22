@@ -12,6 +12,36 @@ import java.lang.reflect.Field;
 public interface ConditionChecker {
 
   /**
+   * 当前检查的Field跳出剩余所有的检查器
+   */
+  int BREAK_CURRENT = -1;
+
+  /**
+   * 当前检查的Field继续剩下的检查器
+   */
+  int CONTINUE_EXECUTION = 0;
+
+  /**
+   * 当前检查的Field跳过接下来的一个检查器
+   */
+  int SKIP_ONE = 1;
+
+  /**
+   * 当前检查的Field跳过接下来的两个检查器
+   */
+  int SKIP_TWO = 2;
+
+  /**
+   * 当前检查的Field跳过接下来的三个检查器
+   */
+  int SKIP_THREE = 3;
+
+  /**
+   * 当前检查的Field跳过接下来的四个检查器
+   */
+  int SKIP_FOUR = 4;
+
+  /**
    * 检查对应的javabean的属性是否满足对应的关系
    * @param field 属性的Field对象
    * @param sqlInfo 当前bean的sqlInfo对象
