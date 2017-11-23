@@ -193,7 +193,21 @@ public abstract class ReflectionUtils {
    * @return 实例化的对象
    */
   public static<T> T instantiateClass(Class<T> cls, Object[] ctorArgs, Class<?>[] ctorArgsType) {
-    cls = (Class<T>) ClassUtils.resolveCollectionInterfaces(Objects.requireNonNull(cls));
+    Objects.requireNonNull(cls);
+    // 如果是数组，那么先处理数组
+    if (cls.isArray()) {
+      if (Objects.isNull(ctorArgs) || ctorArgs.length == 0)
+        return (T) Array.newInstance(cls.getComponentType(), 0);
+      else {
+        int len = ctorArgs.length;
+        T arr = (T) Array.newInstance(cls.getComponentType(), len);
+        for (int i = 0; i < len; i++) {
+          Array.set(arr, i, ctorArgs[i]);
+        }
+        return arr;
+      }
+    }
+    cls = (Class<T>) ClassUtils.resolveCollectionInterfaces(cls);
     Constructor<T> ctor;
     if (Objects.isNull(ctorArgsType)) {
       // 如果使用默认构造函数但是却传入了参数，那么抛出异常
@@ -202,6 +216,15 @@ public abstract class ReflectionUtils {
       // 使用默认构造函数创建对象
       ctor = (Constructor<T>) getDefaultConstructor(cls);
     } else {
+      if (Objects.isNull(ctorArgs))
+        throw new IllegalArgumentException("Wrong number of arguments");
+      int argsTypeLen = ctorArgsType.length,
+          argsLen = ctorArgs.length;
+      // 调整参数个数
+      if (argsTypeLen > argsLen)
+        ctorArgsType = Arrays.copyOf(ctorArgsType, argsLen);
+      else if (argsTypeLen < argsLen)
+        ctorArgs = Arrays.copyOf(ctorArgs, argsTypeLen);
       // 否则就根据构造函数的参数列表的Class类型获取对应的构造函数
       ctor = (Constructor<T>) getConstructor(cls, ctorArgsType);
     }
