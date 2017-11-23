@@ -30,4 +30,9 @@ public class PropertyColumnMapping {
   public void setDatabaseColumnName(String databaseColumnName) {
     this.databaseColumnName = databaseColumnName;
   }
+
+  @Override
+  public String toString() {
+    return databaseColumnName + " AS " + javaClassPropertyName;
+  }
 }

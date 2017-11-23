@@ -14,10 +14,10 @@ public interface SqlGeneratorEngine {
   static SqlGeneratorEngine determineSqlGenerator(SqlGeneratorConfig config) {
     switch (config.getDatabaseType()) {
       case ORACLE:
-        return new OracleSqlGeneratorEngine(config.getCheckerChain());
+        return new OracleSqlGeneratorEngine(config.getCheckerChain(), config.getBaseSqlProvider());
       case MYSQL:
       default:
-        return new MySQLSqlGeneratorEngine(config.getCheckerChain());
+        return new MySQLSqlGeneratorEngine(config.getCheckerChain(), config.getBaseSqlProvider());
     }
   }
 

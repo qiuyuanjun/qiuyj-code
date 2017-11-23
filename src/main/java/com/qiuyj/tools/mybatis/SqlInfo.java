@@ -9,6 +9,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author qiuyj
@@ -19,6 +20,14 @@ public final class SqlInfo {
   private final List<PropertyColumnMapping> withoutPrimaryKey = new ArrayList<>();
   private PropertyColumnMapping primaryKey;
   private final Class<?> beanType;
+
+  /*
+   * 接下来的所有属性均为辅助属性
+   */
+  private String primaryKeyCondition;
+  private String[] allColumnsWithAlias;
+  private String[] allColumnsWithoutAlias;
+  private String[] allColumnValues;
 
   public SqlInfo(Class<? extends Mapper> mapperClass, final CheckerChain chain) {
     // 得到泛型，这里Mapper会有两个泛型，第一个表示主键，第二个才是正真运行时候的实体类
@@ -31,6 +40,43 @@ public final class SqlInfo {
     for (Field field : allDeclaredFields) {
       chain.checkAll(field, this);
     }
+    /*
+     * 辅助属性，主键作为唯一一个条件的字符串
+     */
+    PrimaryKeyCondition();
+    AllColumnsWithAlias();
+    AllColumnsWithoutAlias();
+    AllColumnValues();
+  }
+
+  private void AllColumnValues() {
+    String[] rs = new String[withoutPrimaryKey.size() + 1];
+    rs[0] = "#{" + getPrimaryKey().getJavaClassPropertyName() + "}";
+    int i = 1;
+    for (PropertyColumnMapping pcm : withoutPrimaryKey) {
+      rs[i++] = "#{" + pcm.getJavaClassPropertyName() + "}";
+    }
+    allColumnValues = rs;
+  }
+
+  private void PrimaryKeyCondition() {
+    primaryKeyCondition = primaryKey.getDatabaseColumnName() + " = #{param1}";
+  }
+
+  private void AllColumnsWithoutAlias() {
+    List<String> list = withoutPrimaryKey.parallelStream()
+        .map(PropertyColumnMapping::getDatabaseColumnName)
+        .collect(Collectors.toList());
+    list.add(0, primaryKey.getDatabaseColumnName());
+    allColumnsWithAlias = list.toArray(new String[list.size()]);
+  }
+
+  private void AllColumnsWithAlias() {
+    List<String> list = withoutPrimaryKey.parallelStream()
+        .map(PropertyColumnMapping::toString)
+        .collect(Collectors.toList());
+    list.add(0, primaryKey.toString());
+    allColumnsWithAlias = list.toArray(new String[list.size()]);
   }
 
   /**
@@ -63,5 +109,25 @@ public final class SqlInfo {
   public void addPropertyColumn(PropertyColumnMapping column) {
     Objects.requireNonNull(column);
     withoutPrimaryKey.add(column);
+  }
+
+  public String[] getAllColumnsWithAlias() {
+    return allColumnsWithAlias;
+  }
+
+  public String[] getAllColumnsWithoutAlias() {
+    return allColumnsWithoutAlias;
+  }
+
+  public List<PropertyColumnMapping> getWithoutPrimaryKey() {
+    return withoutPrimaryKey;
+  }
+
+  public String getPrimaryKeyCondition() {
+    return primaryKeyCondition;
+  }
+
+  public String[] getAllColumnValues() {
+    return allColumnValues;
   }
 }

@@ -1,5 +1,6 @@
 package com.qiuyj.tools.mybatis.engine;
 
+import com.qiuyj.tools.mybatis.build.SqlProvider;
 import com.qiuyj.tools.mybatis.checker.CheckerChain;
 
 /**
@@ -8,7 +9,7 @@ import com.qiuyj.tools.mybatis.checker.CheckerChain;
  */
 public class OracleSqlGeneratorEngine extends AbstractSqlGeneratorEngine {
 
-  protected OracleSqlGeneratorEngine(CheckerChain chain) {
-    super(chain);
+  protected OracleSqlGeneratorEngine(CheckerChain chain, SqlProvider sqlProvider) {
+    super(chain, sqlProvider);
   }
 }
