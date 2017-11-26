@@ -33,7 +33,7 @@ public class ParameterResolver {
       // 这种情况是有多个参数的情况
       if (MapperMethod.ParamMap.class.isInstance(parameterObject)) {
         MapperMethod.ParamMap<?> pMap = (MapperMethod.ParamMap<?>) parameterObject;
-        // 按照param1,param2,param3...下标为5的字符从小到达排序
+        // 按照param1,param2,param3...下标为5的字符从小到大排序
         List<String> paramList = pMap.keySet()
                                      .stream()
                                      .filter(str -> str.startsWith("param"))
@@ -57,7 +57,7 @@ public class ParameterResolver {
           parameterType = new Class<?>[] {arr.getClass()};
           parameterObjects = new Object[] {arr};
         }
-          // 如果不是数组，那么一定是集合类型
+        // 如果不是数组，那么一定是集合类型
         else {
           Object collection = sMap.get("collection");
           parameterType = new Class<?>[] {collection.getClass()};

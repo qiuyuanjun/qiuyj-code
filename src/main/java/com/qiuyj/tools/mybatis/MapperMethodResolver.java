@@ -115,25 +115,29 @@ class MapperMethodResolver {
       List<Method> targetMethods = Arrays.stream(cls.getMethods())
                                          .filter(m -> methodStr.equals(m.getName()))
                                          .collect(Collectors.toList());
-      // 然后对方法遍历，得到最符合要求的方法
-      // 首先解析参数对象
-      Class<?>[] parameterTypeMeta = (Class<?>[]) ParameterResolver.resolveParameter(args)[0];
-      int paramLen = parameterTypeMeta.length;
-      for (Method m : targetMethods) {
-        int paramCount = m.getParameterCount();
-        // 参数个数必须一致
-        if (paramLen == paramCount) {
-          Class<?>[] paramTypes = m.getParameterTypes();
-          boolean isSame = true;
-          for (int i = 0; i < paramCount; i++) {
-            if (!paramTypes[i].isAssignableFrom(parameterTypeMeta[i])) {
-              isSame = false;
+      if (targetMethods.size() == 1)
+        mapperMethod = targetMethods.get(0);
+      else if (targetMethods.size() > 1) {
+        // 然后对方法遍历，得到最符合要求的方法
+        // 首先解析参数对象
+        Class<?>[] parameterTypeMeta = (Class<?>[]) ParameterResolver.resolveParameter(args)[0];
+        int paramLen = parameterTypeMeta.length;
+        for (Method m : targetMethods) {
+          int paramCount = m.getParameterCount();
+          // 参数个数必须一致
+          if (paramLen == paramCount) {
+            Class<?>[] paramTypes = m.getParameterTypes();
+            boolean isSame = true;
+            for (int i = 0; i < paramCount; i++) {
+              if (!paramTypes[i].isAssignableFrom(parameterTypeMeta[i])) {
+                isSame = false;
+                break;
+              }
+            }
+            if (isSame) {
+              mapperMethod = m;
               break;
             }
-          }
-          if (isSame) {
-            mapperMethod = m;
-            break;
           }
         }
       }
