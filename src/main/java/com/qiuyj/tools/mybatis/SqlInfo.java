@@ -64,11 +64,11 @@ public final class SqlInfo {
   }
 
   private void AllColumnsWithoutAlias() {
-    List<String> list = withoutPrimaryKey.parallelStream()
+    List<String> list = withoutPrimaryKey.stream()
         .map(PropertyColumnMapping::getDatabaseColumnName)
         .collect(Collectors.toList());
     list.add(0, primaryKey.getDatabaseColumnName());
-    allColumnsWithAlias = list.toArray(new String[list.size()]);
+    allColumnsWithoutAlias = list.toArray(new String[list.size()]);
   }
 
   private void AllColumnsWithAlias() {

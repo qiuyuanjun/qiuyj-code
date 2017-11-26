@@ -8,7 +8,7 @@ import com.qiuyj.tools.mybatis.SqlProvider;
  * @since 2017/11/11
  */
 @SqlProvider("com.qiuyj.tools.mybatis.build.SqlProvider")
-public interface Mapper<ID, T> extends CrudMapper<ID, T>, BatchMapper<T> {
+public interface Mapper<ID, T> extends CrudMapper<ID, T>, BatchMapper<ID, T> {
 
   final class SqlProvider {
 

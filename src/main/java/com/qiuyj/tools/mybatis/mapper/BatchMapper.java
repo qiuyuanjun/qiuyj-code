@@ -1,5 +1,6 @@
 package com.qiuyj.tools.mybatis.mapper;
 
+import org.apache.ibatis.annotations.DeleteProvider;
 import org.apache.ibatis.annotations.InsertProvider;
 import org.apache.ibatis.annotations.UpdateProvider;
 
@@ -10,7 +11,7 @@ import java.util.List;
  * @author qiuyj
  * @since 2017/11/11
  */
-public interface BatchMapper<T> {
+public interface BatchMapper<ID, T> {
 
   /**
    * 批量插入
@@ -23,4 +24,10 @@ public interface BatchMapper<T> {
    */
   @UpdateProvider(type = Mapper.SqlProvider.class, method = "dynamicSql")
   void batchUpdate(List<T> updationList);
+
+  /**
+   * 批量删除
+   */
+  @DeleteProvider(type = Mapper.SqlProvider.class, method = "dynamicSql")
+  void batchDelete(ID[] ids);
 }

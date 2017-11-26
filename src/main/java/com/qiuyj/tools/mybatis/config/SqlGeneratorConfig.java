@@ -49,7 +49,8 @@ public final class SqlGeneratorConfig {
       } catch (IllegalArgumentException e) {
         throw new IllegalArgumentException("Unsupported database type yet", e);
       }
-    }
+    } else
+      config.databaseType = Database.MYSQL;
   }
 
   /**

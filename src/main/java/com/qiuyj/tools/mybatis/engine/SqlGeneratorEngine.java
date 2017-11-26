@@ -1,6 +1,7 @@
 package com.qiuyj.tools.mybatis.engine;
 
 import com.qiuyj.tools.mybatis.config.SqlGeneratorConfig;
+import com.qiuyj.tools.mybatis.mapper.Mapper;
 import org.apache.ibatis.mapping.MappedStatement;
 
 import java.lang.reflect.Method;
@@ -24,14 +25,17 @@ public interface SqlGeneratorEngine {
   /**
    * 生成对应的sql
    * @param ms mappedStatement
+   * @param mapperClass Mapper接口的Class对象
    * @param method mapper方法
    * @param args 参数
    */
-  void generateSql(MappedStatement ms, Method method, Object args);
+  void generateSql(MappedStatement ms,
+                   Class<? extends Mapper<?, ?>> mapperClass,
+                   Method method,
+                   Object args);
 
   /**
-   * 分析mapper方法
-   * @param method mapper方法
+   * 分析mapper
    */
-  void analysis(Method method);
+  void analysis(Class<? extends Mapper<?, ?>> actualMapperClass);
 }
