@@ -2,6 +2,7 @@ package com.qiuyj.tools.mybatis;
 
 import com.qiuyj.tools.AnnotationUtils;
 import com.qiuyj.tools.ClassUtils;
+import com.qiuyj.tools.mybatis.build.ParameterResolver;
 import com.qiuyj.tools.mybatis.mapper.Mapper;
 import org.apache.ibatis.annotations.DeleteProvider;
 import org.apache.ibatis.annotations.InsertProvider;
@@ -10,33 +11,44 @@ import org.apache.ibatis.annotations.UpdateProvider;
 
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author qiuyj
  * @since 2017/11/13
  */
 class MapperMethodResolver {
+  private final Class<? extends Mapper> baseMapperClass;
   private final Set<String> mapperMethodSignatures;
-  private final Map<String, Method> mapperMethods = new HashMap<>();
+  private final Set<Method> conditionMapperMethods = Collections.newSetFromMap(new HashMap<>());
 
   MapperMethodResolver(Class<? extends Mapper> baseMapperClass) {
     if (!baseMapperClass.isInterface())
       throw new IllegalArgumentException("interface only");
-    Class<?>[] mapperMethods = ClassUtils.getAllInterfacesIncludingAncestorInterfaces(baseMapperClass);
-    Class<?>[] allMapperMethods = new Class<?>[mapperMethods.length + 1];
-    System.arraycopy(mapperMethods, 0, allMapperMethods, 1, mapperMethods.length);
-    allMapperMethods[0] = baseMapperClass;
+    this.baseMapperClass = baseMapperClass;
+    Class<?>[] allMapperInterfaces = getAllMapperInterfaces(baseMapperClass);
     Set<String> sets = new HashSet<>(32);
-    for (Class<?> mapperMethod : allMapperMethods) {
-      Method[] methods = mapperMethod.getDeclaredMethods();
+    for (Class<?> mapperInterface : allMapperInterfaces) {
+      Method[] methods = mapperInterface.getDeclaredMethods();
       for (Method method : methods) {
-        if (hasProviderAnnotation(method)) {
-          sets.add(buildUniqueName(mapperMethod, getMethodSignature(method)));
-          this.mapperMethods.put("__BASE_MAPPER__" + method.getName(), method);
-        }
+        if (hasProviderAnnotation(method))
+          sets.add(buildUniqueName(mapperInterface, getMethodSignature(method)));
       }
     }
     this.mapperMethodSignatures = Collections.unmodifiableSet(sets);
+    // 解析所有的Mapper方法
+
+  }
+
+  /**
+   * 得到所有的Mapper接口的Class对象
+   */
+  private Class<?>[] getAllMapperInterfaces(Class<? extends Mapper> baseMapperClass) {
+    Class<?>[] inters = ClassUtils.getAllInterfacesIncludingAncestorInterfaces(baseMapperClass);
+    Class<?>[] allMapperInterfaces = new Class<?>[inters.length + 1];
+    System.arraycopy(inters, 0, allMapperInterfaces, 1, inters.length);
+    allMapperInterfaces[0] = baseMapperClass;
+    return allMapperInterfaces;
   }
 
   private String getMethodSignature(Method method) {
@@ -62,6 +74,9 @@ class MapperMethodResolver {
    */
   public boolean isMapperMethod(Method currMethod) {
     if (Objects.isNull(currMethod))
+      return false;
+    // 如果当前执行的方法不是baseMapperClass的父接口或者就是baseMapperClass，那么表明当前执行的方法不是通用Mapper提供的方法
+    if (!currMethod.getDeclaringClass().isAssignableFrom(baseMapperClass))
       return false;
     if (!hasProviderAnnotation(currMethod))
       return false;
@@ -89,19 +104,38 @@ class MapperMethodResolver {
    * @param methodStr 方法名
    * @return 如果有，那么得到对应的Method对象，否则返回null
    */
-  public Method getMapperDeclaredMethod(Class<?> cls, String methodStr) {
-    // 首先从缓存中获取，如果缓存没有查到，那么就遍历当前接口的所有方法
+  public Method getMapperDeclaredMethod(Class<?> cls, String methodStr, Object args) {
     // 根据mybatis的规则，这里只要比较名字一样即可
     // mybatis定义的一个Mapper里面的同名方法只能有一个
     Method mapperMethod = null;
-    if (Mapper.class.isAssignableFrom(cls)) {
-      mapperMethod = mapperMethods.get("__BASE_MAPPER__" + methodStr);
-      if (Objects.isNull(mapperMethod)) {
-        mapperMethod
-            = Arrays.stream(cls.getMethods())
-                    .filter(m -> methodStr.equals(m.getName()) && hasProviderAnnotation(m))
-                    .findFirst()
-                    .orElse(null);
+    // 如果当前mapper接口没有继承baseMapperClass（通常是Mapper.class）
+    // 那么表明当前方法不是通用Mapper定义的方法
+    if (baseMapperClass.isAssignableFrom(cls)) {
+      // 首先遍历所有的方法，查找出同名的方法
+      List<Method> targetMethods = Arrays.stream(cls.getMethods())
+                                         .filter(m -> methodStr.equals(m.getName()))
+                                         .collect(Collectors.toList());
+      // 然后对方法遍历，得到最符合要求的方法
+      // 首先解析参数对象
+      Class<?>[] parameterTypeMeta = (Class<?>[]) ParameterResolver.resolveParameter(args)[0];
+      int paramLen = parameterTypeMeta.length;
+      for (Method m : targetMethods) {
+        int paramCount = m.getParameterCount();
+        // 参数个数必须一致
+        if (paramLen == paramCount) {
+          Class<?>[] paramTypes = m.getParameterTypes();
+          boolean isSame = true;
+          for (int i = 0; i < paramCount; i++) {
+            if (!paramTypes[i].isAssignableFrom(parameterTypeMeta[i])) {
+              isSame = false;
+              break;
+            }
+          }
+          if (isSame) {
+            mapperMethod = m;
+            break;
+          }
+        }
       }
     }
     return mapperMethod;

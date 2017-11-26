@@ -26,6 +26,8 @@ public class SqlProvider {
   }
 
   public SqlNode selectOne(MappedStatement ms, SqlInfo sqlInfo) {
+    // 首先判断是否有主键，如果没有主键，那么抛出异常
+    checkPrimaryKey(sqlInfo);
     SQL sql = new SQL() {
       {
         SELECT(sqlInfo.getAllColumnsWithAlias());
@@ -37,6 +39,7 @@ public class SqlProvider {
   }
 
   public SqlNode delete(MappedStatement ms, SqlInfo sqlInfo) {
+    checkPrimaryKey(sqlInfo);
     SQL sql = new SQL() {
       {
         DELETE_FROM(sqlInfo.getTableName());
@@ -47,6 +50,7 @@ public class SqlProvider {
   }
 
   public SqlNode batchDelete(MappedStatement ms, SqlInfo sqlInfo) {
+    checkPrimaryKey(sqlInfo);
     List<SqlNode> contents = new ArrayList<>();
     contents.add(new StaticTextSqlNode("DELETE FROM"));
     contents.add(new StaticTextSqlNode(sqlInfo.getTableName()));
@@ -63,5 +67,13 @@ public class SqlProvider {
                                                 ",");
     contents.add(forEach);
     return new MixedSqlNode(contents);
+  }
+
+  /**
+   * 检查如果没有主键，那么就抛出异常
+   */
+  private void checkPrimaryKey(SqlInfo sqlInfo) {
+    if (!sqlInfo.hasPrimaryKey())
+      throw new NoPrimaryKeyException();
   }
 }

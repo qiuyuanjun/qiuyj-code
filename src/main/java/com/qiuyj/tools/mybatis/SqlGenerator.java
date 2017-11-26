@@ -40,13 +40,14 @@ public class SqlGenerator implements Interceptor {
       Class<? extends Mapper<?, ?>> mapperClass//
           = (Class<? extends Mapper<?, ?>>) ClassUtils.resolveClassName(ms.getId().substring(0, lastDot), Thread.currentThread().getContextClassLoader());
       String methodStr = ms.getId().substring(lastDot + 1);
+      Object parameterObject = invocation.getArgs()[1];
       // 得到对应的mapper方法
-      Method mapperMethod = resolver.getMapperDeclaredMethod(mapperClass, methodStr);
+      Method mapperMethod = resolver.getMapperDeclaredMethod(mapperClass, methodStr, parameterObject);
       if (resolver.isMapperMethod(mapperMethod)) {
         // 解析mapper接口，得到对应的sql信息
         engine.analysis(mapperClass);
         // 生成对应的sql
-        engine.generateSql(ms, mapperClass, mapperMethod, invocation.getArgs()[1]);
+        engine.generateSql(ms, mapperClass, mapperMethod, parameterObject);
       }
     }
     return invocation.proceed();

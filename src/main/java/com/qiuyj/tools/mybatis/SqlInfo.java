@@ -51,12 +51,19 @@ public final class SqlInfo {
 
   private void AllColumnValues() {
     String[] rs = new String[withoutPrimaryKey.size() + 1];
-    rs[0] = "#{" + getPrimaryKey().getJavaClassPropertyName() + "}";
+    rs[0] = buildColumnValues(getPrimaryKey());
     int i = 1;
     for (PropertyColumnMapping pcm : withoutPrimaryKey) {
-      rs[i++] = "#{" + pcm.getJavaClassPropertyName() + "}";
+      rs[i++] = buildColumnValues(pcm);
     }
     allColumnValues = rs;
+  }
+
+  private String buildColumnValues(PropertyColumnMapping mapping) {
+    return new StringBuilder("#{")
+        .append(mapping.getJavaClassPropertyName())
+        .append("}")
+        .toString();
   }
 
   private void PrimaryKeyCondition() {
@@ -64,7 +71,7 @@ public final class SqlInfo {
   }
 
   private void AllColumnsWithoutAlias() {
-    List<String> list = withoutPrimaryKey.stream()
+    List<String> list = withoutPrimaryKey.parallelStream()
         .map(PropertyColumnMapping::getDatabaseColumnName)
         .collect(Collectors.toList());
     list.add(0, primaryKey.getDatabaseColumnName());

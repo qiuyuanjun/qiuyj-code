@@ -17,7 +17,6 @@ import org.apache.ibatis.scripting.xmltags.SqlNode;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * @author qiuyj
@@ -25,17 +24,13 @@ import java.util.Objects;
  */
 public abstract class AbstractSqlGeneratorEngine implements SqlGeneratorEngine {
   private final Object sqlInfoLock = new Object();
-  private final Object mappedStatementMetaObjectLock = new Object();
   private final Map<Class<? extends Mapper>, SqlInfo> sqlInfos = new HashMap<>();
-  private final Map<String, MetaObject> mappedStatementMetaObjects = new HashMap<>();
   private final CheckerChain chain;
   private final SqlProvider baseSqlProvider;
-  private final Class<? extends SqlProvider> baseSqlProviderClass;
 
   protected AbstractSqlGeneratorEngine(CheckerChain chain, SqlProvider sqlProvider) {
     this.chain = chain;
     baseSqlProvider = sqlProvider;
-    baseSqlProviderClass = baseSqlProvider.getClass();
   }
 
   @Override
@@ -50,15 +45,20 @@ public abstract class AbstractSqlGeneratorEngine implements SqlGeneratorEngine {
     }
   }
 
+  /**
+   * 该方法无需同步处理，因为当执行该方法的时候，执行顺序可以保证缓存中一定有SqlInfo
+   */
   private SqlInfo getSqlInfo(Class<? extends Mapper<?, ?>> mapperClass) {
     return sqlInfos.get(mapperClass);
   }
 
   @Override
   public void generateSql(MappedStatement ms, Class<? extends Mapper<?, ?>> mapperClass, Method mapperMethod, Object args) {
-    MetaObject msMetaObject = getMetaObject(ms);
+    MetaObject msMetaObject = ms.getConfiguration().newMetaObject(ms);
+    SqlInfo sqlInf = getSqlInfo(mapperClass);
+
     // 首先得到对应的SqlNode
-    Method sqlNodeMethod = ReflectionUtils.getDeclaredMethod(baseSqlProviderClass, mapperMethod.getName(), ms.getClass(), SqlInfo.class);
+    Method sqlNodeMethod = ReflectionUtils.getDeclaredMethod(baseSqlProvider.getClass(), mapperMethod.getName(), ms.getClass(), SqlInfo.class);
     SqlNode sqlNode = (SqlNode) ReflectionUtils.invokeMethod(baseSqlProvider, sqlNodeMethod, ms, getSqlInfo(mapperClass));
     SqlSource sqlSource;
     if (sqlNode instanceof MixedSqlNode)
@@ -76,20 +76,5 @@ public abstract class AbstractSqlGeneratorEngine implements SqlGeneratorEngine {
     }
     // 重新设置sqlSource，即可生成sql语句
     msMetaObject.setValue("sqlSource", sqlSource);
-  }
-
-  private MetaObject getMetaObject(MappedStatement ms) {
-    String msId = ms.getId();
-    MetaObject msMetaObject = mappedStatementMetaObjects.get(msId);
-    if (Objects.isNull(msMetaObject)) {
-      synchronized (mappedStatementMetaObjectLock) {
-        msMetaObject = mappedStatementMetaObjects.get(msId);
-        if (Objects.isNull(msMetaObject)) {
-          msMetaObject = ms.getConfiguration().newMetaObject(ms);
-          mappedStatementMetaObjects.put(msId, msMetaObject);
-        }
-      }
-    }
-    return msMetaObject;
   }
 }
