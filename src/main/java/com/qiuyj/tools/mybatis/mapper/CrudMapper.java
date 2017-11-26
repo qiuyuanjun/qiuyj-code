@@ -1,5 +1,6 @@
 package com.qiuyj.tools.mybatis.mapper;
 
+import com.qiuyj.tools.mybatis.Example;
 import org.apache.ibatis.annotations.DeleteProvider;
 import org.apache.ibatis.annotations.InsertProvider;
 import org.apache.ibatis.annotations.SelectProvider;
@@ -34,14 +35,14 @@ public interface CrudMapper<ID, T> {
    * @param example 查询条件，这里仅仅操作不为null的引用数据类型
    */
   @SelectProvider(type = Mapper.SqlProvider.class, method = "dynamicSql")
-  List<T> selectList(T example);
+  List<T> selectList(@Example T example);
 
   /**
    * 根据主键更新，注意，该方法仅仅更新引用类型，对于基本数据类型不做处理
    * @param updated 要更新的对象
    */
   @UpdateProvider(type = Mapper.SqlProvider.class, method = "dynamicSql")
-  void update(T updated);
+  void update(@Example T updated);
 
   /**
    * 根据主键删除

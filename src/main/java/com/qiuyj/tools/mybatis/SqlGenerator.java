@@ -66,6 +66,6 @@ public class SqlGenerator implements Interceptor {
     // 得到所有的mapper方法名
     resolver = new MapperMethodResolver(config.getBaseMapperClass());
     // 得到对应的Sql生成引擎
-    engine = SqlGeneratorEngine.determineSqlGenerator(config);
+    engine = SqlGeneratorEngine.determineSqlGenerator(config, resolver);
   }
 }

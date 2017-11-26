@@ -10,6 +10,7 @@ import org.apache.ibatis.annotations.SelectProvider;
 import org.apache.ibatis.annotations.UpdateProvider;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -17,10 +18,10 @@ import java.util.stream.Collectors;
  * @author qiuyj
  * @since 2017/11/13
  */
-class MapperMethodResolver {
+public class MapperMethodResolver {
   private final Class<? extends Mapper> baseMapperClass;
   private final Set<String> mapperMethodSignatures;
-  private final Set<Method> conditionMapperMethods = Collections.newSetFromMap(new HashMap<>());
+  private final Set<Method> exampleMapperMethods = Collections.newSetFromMap(new HashMap<>());
 
   MapperMethodResolver(Class<? extends Mapper> baseMapperClass) {
     if (!baseMapperClass.isInterface())
@@ -31,13 +32,26 @@ class MapperMethodResolver {
     for (Class<?> mapperInterface : allMapperInterfaces) {
       Method[] methods = mapperInterface.getDeclaredMethods();
       for (Method method : methods) {
-        if (hasProviderAnnotation(method))
+        if (hasProviderAnnotation(method)) {
           sets.add(buildUniqueName(mapperInterface, getMethodSignature(method)));
+          resolveExampleParameter(method);
+        }
       }
     }
     this.mapperMethodSignatures = Collections.unmodifiableSet(sets);
-    // 解析所有的Mapper方法
+  }
 
+  private void resolveExampleParameter(Method method) {
+    Parameter[] parameters = method.getParameters();
+    boolean exampleMethod = false;
+    for (Parameter parameter : parameters) {
+      if (AnnotationUtils.hasAnnotation(parameter, Example.class)) {
+        exampleMethod = true;
+        break;
+      }
+    }
+    if (exampleMethod)
+      exampleMapperMethods.add(method);
   }
 
   /**
@@ -143,5 +157,9 @@ class MapperMethodResolver {
       }
     }
     return mapperMethod;
+  }
+
+  public boolean isExampleMethod(Method method) {
+    return exampleMapperMethods.contains(method);
   }
 }

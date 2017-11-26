@@ -69,11 +69,33 @@ public class SqlProvider {
     return new MixedSqlNode(contents);
   }
 
+  public SqlNode update(MappedStatement ms, SqlInfo sqlInfo, Object args) {
+    checkPrimaryKey(sqlInfo);
+    checkBeanType(sqlInfo.getBeanType(), args);
+
+    List<SqlNode> contents = new ArrayList<>();
+    SQL sql = new SQL() {
+      {
+        UPDATE(sqlInfo.getTableName());
+        WHERE(sqlInfo.getPrimaryKey().getDatabaseColumnName() + " = " + "#{" + sqlInfo.getPrimaryKey().getJavaClassPropertyName() + "}");
+      }
+    };
+    return new TextSqlNode(sql.toString());
+  }
+
   /**
    * 检查如果没有主键，那么就抛出异常
    */
   private void checkPrimaryKey(SqlInfo sqlInfo) {
     if (!sqlInfo.hasPrimaryKey())
       throw new NoPrimaryKeyException();
+  }
+
+  /**
+   * 检查参数的类型是否和当前Mapper的实体类一致，如果不一致，那么抛出异常
+   */
+  private void checkBeanType(Class<?> beanType, Object args) {
+    if (beanType != args.getClass())
+      throw new IllegalArgumentException("Parameter must be " + beanType + " only");
   }
 }

@@ -1,5 +1,6 @@
 package com.qiuyj.tools.mybatis.engine;
 
+import com.qiuyj.tools.mybatis.MapperMethodResolver;
 import com.qiuyj.tools.mybatis.config.SqlGeneratorConfig;
 import com.qiuyj.tools.mybatis.mapper.Mapper;
 import org.apache.ibatis.mapping.MappedStatement;
@@ -12,13 +13,13 @@ import java.lang.reflect.Method;
  */
 public interface SqlGeneratorEngine {
 
-  static SqlGeneratorEngine determineSqlGenerator(SqlGeneratorConfig config) {
+  static SqlGeneratorEngine determineSqlGenerator(SqlGeneratorConfig config, MapperMethodResolver resolver) {
     switch (config.getDatabaseType()) {
       case ORACLE:
-        return new OracleSqlGeneratorEngine(config.getCheckerChain(), config.getBaseSqlProvider());
+        return new OracleSqlGeneratorEngine(config.getCheckerChain(), config.getBaseSqlProvider(), resolver);
       case MYSQL:
       default:
-        return new MySQLSqlGeneratorEngine(config.getCheckerChain(), config.getBaseSqlProvider());
+        return new MySQLSqlGeneratorEngine(config.getCheckerChain(), config.getBaseSqlProvider(), resolver);
     }
   }
 
