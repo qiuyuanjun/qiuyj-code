@@ -236,4 +236,26 @@ public abstract class ReflectionUtils {
     throw new IllegalStateException("Should never get here");
   }
 
+  public static Field getDeclaredField(Class<?> cls, String attrName) {
+    while (Objects.nonNull(cls) && cls != Object.class) {
+      try {
+        return cls.getDeclaredField(attrName);
+      } catch (NoSuchFieldException e) {
+        // ignore
+      }
+      cls = cls.getSuperclass();
+    }
+    throw new IllegalStateException("Can not find field: " + attrName + " in: " + cls + " and all its superclass");
+  }
+
+  public static Object invokeField(Object obj, Field f) {
+    if (!f.isAccessible())
+      f.setAccessible(true);
+    try {
+      return f.get(obj);
+    } catch (IllegalAccessException e) {
+      // ignore;
+    }
+    throw new IllegalStateException("Should never get here");
+  }
 }

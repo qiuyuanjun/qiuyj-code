@@ -1,5 +1,6 @@
 package com.qiuyj.tools.mybatis.build;
 
+import com.qiuyj.tools.mybatis.BeanExampleResolver;
 import com.qiuyj.tools.mybatis.SqlInfo;
 import org.apache.ibatis.jdbc.SQL;
 import org.apache.ibatis.mapping.MappedStatement;
@@ -72,11 +73,12 @@ public class SqlProvider {
   public SqlNode update(MappedStatement ms, SqlInfo sqlInfo, Object args) {
     checkPrimaryKey(sqlInfo);
     checkBeanType(sqlInfo.getBeanType(), args);
-
+    BeanExampleResolver exampleResolver = new BeanExampleResolver(args, sqlInfo.getJavaProperties(), sqlInfo.getDatabaseColumns());
     List<SqlNode> contents = new ArrayList<>();
     SQL sql = new SQL() {
       {
         UPDATE(sqlInfo.getTableName());
+        SET(exampleResolver.toUpdateSetString());
         WHERE(sqlInfo.getPrimaryKey().getDatabaseColumnName() + " = " + "#{" + sqlInfo.getPrimaryKey().getJavaClassPropertyName() + "}");
       }
     };

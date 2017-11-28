@@ -137,4 +137,22 @@ public final class SqlInfo {
   public String[] getAllColumnValues() {
     return allColumnValues;
   }
+
+  /**
+   * 得到当前所有的java属性名称
+   */
+  public List<String> getJavaProperties() {
+    List<String> rt = withoutPrimaryKey.stream().map(PropertyColumnMapping::getJavaClassPropertyName).collect(Collectors.toList());
+    rt.add(0, primaryKey.getJavaClassPropertyName());
+    return rt;
+  }
+
+  /**
+   * 得到当前所有的数据库名称
+   */
+  public List<String> getDatabaseColumns() {
+    List<String> rt = withoutPrimaryKey.stream().map(PropertyColumnMapping::getDatabaseColumnName).collect(Collectors.toList());
+    rt.add(0, primaryKey.getDatabaseColumnName());
+    return rt;
+  }
 }
