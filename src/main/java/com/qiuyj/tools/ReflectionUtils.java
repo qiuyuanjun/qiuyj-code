@@ -1,7 +1,10 @@
 package com.qiuyj.tools;
 
 import java.lang.reflect.*;
-import java.util.*;
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -236,26 +239,22 @@ public abstract class ReflectionUtils {
     throw new IllegalStateException("Should never get here");
   }
 
-  public static Field getDeclaredField(Class<?> cls, String attrName) {
+  /**
+   * 得到指定的字段，该方法会递归所有的父类，如果到Objecgt还没有找到，那么抛出异常
+   * @param cls 要查找字段的类
+   * @param fieldName 字段名
+   * @return 找到的Field字段对象
+   */
+  public static Field getDeclaredField(Class<?> cls, String fieldName) {
     while (Objects.nonNull(cls) && cls != Object.class) {
       try {
-        return cls.getDeclaredField(attrName);
+        return cls.getDeclaredField(fieldName);
       } catch (NoSuchFieldException e) {
         // ignore
       }
       cls = cls.getSuperclass();
     }
-    throw new IllegalStateException("Can not find field: " + attrName + " in: " + cls + " and all its superclass");
+    throw new IllegalStateException("Can not find field: " + fieldName + " in: " + cls + " and all its superclass");
   }
 
-  public static Object invokeField(Object obj, Field f) {
-    if (!f.isAccessible())
-      f.setAccessible(true);
-    try {
-      return f.get(obj);
-    } catch (IllegalAccessException e) {
-      // ignore;
-    }
-    throw new IllegalStateException("Should never get here");
-  }
 }
