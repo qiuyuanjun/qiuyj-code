@@ -9,6 +9,7 @@ import com.qiuyj.tools.mybatis.mapper.Mapper;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.mapping.SqlSource;
 import org.apache.ibatis.reflection.MetaObject;
+import org.apache.ibatis.scripting.xmltags.DynamicSqlSource;
 import org.apache.ibatis.scripting.xmltags.SqlNode;
 
 import java.lang.reflect.Method;
@@ -59,8 +60,12 @@ public abstract class AbstractSqlGeneratorEngine implements SqlGeneratorEngine {
     // 得到SqlNode
     SqlNode sqlNode = getSqlNode(sqlInfo, ms, mapperClass, mapperMethod, args);
     // 根据sqlNode生成对应的SqlSource
-    SqlSource sqlSource = generateSqlSourceBySqlNode(sqlNode);
+    SqlSource sqlSource = generateSqlSourceBySqlNode(ms, sqlNode);
     // 重新设置sqlSource，即可生成sql语句
+    // 这里需要注意，有些mapper方法只需要生成一次即可，不用每次都生成
+    // 需要每次都生成sql的mapper方法是那些参数带了@Example注解的方法
+    // 所以这里需要分开讨论，判断mapper方法是否是第一次调用
+
     msMetaObject.setValue("sqlSource", sqlSource);
   }
 
@@ -80,7 +85,7 @@ public abstract class AbstractSqlGeneratorEngine implements SqlGeneratorEngine {
     return sqlNode;
   }
 
-  private SqlSource generateSqlSourceBySqlNode(SqlNode sqlNode) {
-    return null;
+  private SqlSource generateSqlSourceBySqlNode(MappedStatement ms, SqlNode sqlNode) {
+    return new DynamicSqlSource(ms.getConfiguration(), sqlNode);
   }
 }

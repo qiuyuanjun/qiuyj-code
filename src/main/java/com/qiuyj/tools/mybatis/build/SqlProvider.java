@@ -74,15 +74,33 @@ public class SqlProvider {
     checkPrimaryKey(sqlInfo);
     checkBeanType(sqlInfo.getBeanType(), args);
     BeanExampleResolver exampleResolver = new BeanExampleResolver(args, sqlInfo.getJavaProperties(), sqlInfo.getDatabaseColumns());
+    List<String> nonNullColumns = exampleResolver.getNonNullDatabaseColumns();
+    if (nonNullColumns.size() == 1)
+      throw new IllegalStateException("Please update at least one column");
+    List<SqlNode> updateSets = new ArrayList<>();
+    for (int idx = 1; idx < nonNullColumns.size(); idx++) {
+      updateSets.add(new StaticTextSqlNode(buildUpdateSet(exampleResolver.getNonNullJavaProperties().get(idx), nonNullColumns.get(idx))));
+    }
     List<SqlNode> contents = new ArrayList<>();
-    SQL sql = new SQL() {
-      {
-        UPDATE(sqlInfo.getTableName());
-        SET(exampleResolver.toUpdateSetString());
-        WHERE(sqlInfo.getPrimaryKey().getDatabaseColumnName() + " = " + "#{" + sqlInfo.getPrimaryKey().getJavaClassPropertyName() + "}");
-      }
-    };
-    return new TextSqlNode(sql.toString());
+    contents.add(new StaticTextSqlNode("UPDATE"));
+    contents.add(new StaticTextSqlNode(sqlInfo.getTableName()));
+    contents.add(new SetSqlNode(ms.getConfiguration(), new MixedSqlNode(updateSets)));
+    contents.add(new StaticTextSqlNode(" WHERE "));
+    contents.add(new StaticTextSqlNode(sqlInfo.getPrimaryKey().getDatabaseColumnName()));
+    contents.add(new StaticTextSqlNode(" = "));
+    contents.add(new StaticTextSqlNode(" #{"));
+    contents.add(new StaticTextSqlNode(sqlInfo.getPrimaryKey().getJavaClassPropertyName()));
+    contents.add(new StaticTextSqlNode("}"));
+    return new MixedSqlNode(contents);
+  }
+  private String buildUpdateSet(String java, String database) {
+    return new StringBuilder(database)
+        .append(" = ")
+        .append("#{")
+        .append(java)
+        .append("}")
+        .append(",")
+        .toString();
   }
 
   /**
