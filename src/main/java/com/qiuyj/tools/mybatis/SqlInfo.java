@@ -143,7 +143,10 @@ public final class SqlInfo {
    */
   public List<String> getJavaProperties() {
     List<String> rt = withoutPrimaryKey.stream().map(PropertyColumnMapping::getJavaClassPropertyName).collect(Collectors.toList());
-    rt.add(0, primaryKey.getJavaClassPropertyName());
+    if (hasPrimaryKey())
+      rt.add(0, primaryKey.getJavaClassPropertyName());
+    else
+      rt.add(0, null);
     return rt;
   }
 
@@ -152,7 +155,10 @@ public final class SqlInfo {
    */
   public List<String> getDatabaseColumns() {
     List<String> rt = withoutPrimaryKey.stream().map(PropertyColumnMapping::getDatabaseColumnName).collect(Collectors.toList());
-    rt.add(0, primaryKey.getDatabaseColumnName());
+    if (hasPrimaryKey())
+      rt.add(0, primaryKey.getDatabaseColumnName());
+    else
+      rt.add(0, null);
     return rt;
   }
 }
