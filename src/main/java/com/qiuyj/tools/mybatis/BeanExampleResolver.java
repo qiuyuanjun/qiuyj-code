@@ -21,37 +21,32 @@ public class BeanExampleResolver {
     put(Long.TYPE, 0L);
     put(Short.TYPE, (short) 0);
   }};
-  private final List<String> attributes;
-  private final List<String> aliases;
-  private final List<Object> values;
+  private List<AttributeColumnValueMapping> withoutPrimaryKey = new ArrayList<>();
+  private AttributeColumnValueMapping primaryKey;
 
   public BeanExampleResolver(Object bean, List<String> attributes, List<String> aliases) {
     Class<?> beanType = bean.getClass();
     int idx = 0;
-    List<String> list1 = new ArrayList<>(),
-                 list2 = new ArrayList<>();
-    List<Object> list3 = new ArrayList<>();
     // 首先得到PrimaryKey
-    String primaryKey = attributes.get(idx++);
-    resolveField(bean, primaryKey, fieldValue -> {
-      list1.add(primaryKey);
-      list2.add(aliases.get(0));
-      list3.add(fieldValue);
-    });
-    if (list1.isEmpty())
-      throw new IllegalStateException("Primary key must not be an default value");
+    String primaryKeyName = attributes.get(idx++);
+    resolveField(bean, primaryKeyName, fieldValue ->
+      BeanExampleResolver.this.primaryKey = new AttributeColumnValueMapping(
+          primaryKeyName,
+          aliases.get(0),
+          fieldValue
+      ));
     for (; idx < attributes.size(); idx++) {
       String attr = attributes.get(idx),
              aliase = aliases.get(idx);
-      resolveField(bean, attr, fieldValue -> {
-        list1.add(attr);
-        list2.add(aliase);
-        list3.add(fieldValue);
-      });
+      resolveField(bean, attr, fieldValue ->
+        BeanExampleResolver.this.withoutPrimaryKey.add(
+            new AttributeColumnValueMapping(
+                attr,
+                aliase,
+                fieldValue
+            )
+        ));
     }
-    this.attributes = Collections.unmodifiableList(list1);
-    this.aliases = Collections.unmodifiableList(list2);
-    this.values = Collections.unmodifiableList(list3);
   }
 
   /**
@@ -106,23 +101,28 @@ public class BeanExampleResolver {
   }
 
   /**
-   * 得到所有不为默认值的java属性名称
+   * 该方法主要是给selectList方法用的
+   * 由于selectList方法不需要一定指定主键
    */
-  public List<String> getNonNullJavaProperties() {
-    return attributes;
+  public List<AttributeColumnValueMapping> selectExample() {
+    List<AttributeColumnValueMapping> rt = new ArrayList<>(withoutPrimaryKey);
+    if (Objects.nonNull(primaryKey))
+      rt.add(0, primaryKey);
+    return rt;
   }
 
   /**
-   * 得到所有不为默认值的java属性对应数据库里面的字段名
+   * 判断主键是否是默认值，如果是默认值，返回false，否则返回true
+   * 该方法主要是给update方法用
    */
-  public List<String> getNonNullDatabaseColumns() {
-    return aliases;
+  public boolean hasPrimaryKeyAndNotDefault() {
+    return Objects.nonNull(primaryKey);
   }
 
   /**
-   * 得到所有不为默认值的java属性的值
+   * 得到所有的非主键并且不是默认值的字段
    */
-  public List<Object> getNonNullValues() {
-    return values;
+  public List<AttributeColumnValueMapping> getWithoutPrimaryKey() {
+    return withoutPrimaryKey;
   }
 }

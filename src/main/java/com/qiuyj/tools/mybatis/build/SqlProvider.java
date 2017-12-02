@@ -1,5 +1,6 @@
 package com.qiuyj.tools.mybatis.build;
 
+import com.qiuyj.tools.mybatis.AttributeColumnValueMapping;
 import com.qiuyj.tools.mybatis.BeanExampleResolver;
 import com.qiuyj.tools.mybatis.SqlInfo;
 import org.apache.ibatis.jdbc.SQL;
@@ -74,12 +75,14 @@ public class SqlProvider {
     checkPrimaryKey(sqlInfo);
     checkBeanType(sqlInfo.getBeanType(), args);
     BeanExampleResolver exampleResolver = new BeanExampleResolver(args, sqlInfo.getJavaProperties(), sqlInfo.getDatabaseColumns());
-    List<String> nonNullColumns = exampleResolver.getNonNullDatabaseColumns();
-    if (nonNullColumns.size() == 1)
+    if (!exampleResolver.hasPrimaryKeyAndNotDefault())
+      throw new NoPrimaryKeyException("primary key is default value");
+    List<AttributeColumnValueMapping> nonNullColumns = exampleResolver.getWithoutPrimaryKey();
+    if (nonNullColumns.isEmpty())
       throw new IllegalStateException("Please update at least one column");
     List<SqlNode> updateSets = new ArrayList<>();
-    for (int idx = 1; idx < nonNullColumns.size(); idx++) {
-      updateSets.add(new StaticTextSqlNode(buildUpdateSet(exampleResolver.getNonNullJavaProperties().get(idx), nonNullColumns.get(idx))));
+    for (AttributeColumnValueMapping acvm : nonNullColumns) {
+      updateSets.add(new StaticTextSqlNode(buildUpdateSet(acvm.getAttribute(), acvm.getAliase())));
     }
     List<SqlNode> contents = new ArrayList<>();
     contents.add(new StaticTextSqlNode("UPDATE"));
