@@ -15,6 +15,7 @@ import org.apache.ibatis.scripting.xmltags.SqlNode;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author qiuyj
@@ -59,28 +60,30 @@ public abstract class AbstractSqlGeneratorEngine implements SqlGeneratorEngine {
     SqlInfo sqlInfo = getSqlInfo(mapperClass);
     // 得到SqlNode
     SqlNode sqlNode = getSqlNode(sqlInfo, ms, mapperClass, mapperMethod, args);
-    // 根据sqlNode生成对应的SqlSource
-    SqlSource sqlSource = generateSqlSourceBySqlNode(ms, sqlNode);
-    // 重新设置sqlSource，即可生成sql语句
-    // 这里需要注意，有些mapper方法只需要生成一次即可，不用每次都生成
-    // 需要每次都生成sql的mapper方法是那些参数带了@Example注解的方法
-    // 所以这里需要分开讨论，判断mapper方法是否是第一次调用
-
-    msMetaObject.setValue("sqlSource", sqlSource);
+    if (Objects.nonNull(sqlNode)) {
+      SqlSource sqlSource = generateSqlSourceBySqlNode(ms, sqlNode);
+      msMetaObject.setValue("sqlSource", sqlSource);
+    }
   }
 
   /**
    * 根据不同的情况得到对应的SqlNode
    */
   private SqlNode getSqlNode(SqlInfo sqlInfo, MappedStatement ms, Class<? extends Mapper<?, ?>> mapperClass, Method mapperMethod, Object args) {
-    SqlNode sqlNode;
+    SqlNode sqlNode = null;
     if (resolver.isExampleMethod(mapperMethod)) {
       // 这里需要解析参数
       Method sqlNodeMethod = ReflectionUtils.getDeclaredMethod(baseSqlProvider.getClass(), mapperMethod.getName(), ms.getClass(), SqlInfo.class, Object.class);
       sqlNode = (SqlNode) ReflectionUtils.invokeMethod(baseSqlProvider, sqlNodeMethod, ms, getSqlInfo(mapperClass), args);
     } else {
-      Method sqlNodeMethod = ReflectionUtils.getDeclaredMethod(baseSqlProvider.getClass(), mapperMethod.getName(), ms.getClass(), SqlInfo.class);
-      sqlNode = (SqlNode) ReflectionUtils.invokeMethod(baseSqlProvider, sqlNodeMethod, ms, getSqlInfo(mapperClass));
+      // 这里需要注意，有些mapper方法只需要生成一次即可，不用每次都生成
+      // 需要每次都生成sql的mapper方法是那些参数带了@Example注解的方法
+      // 所以这里需要分开讨论，判断mapper方法是否是第一次调用
+      if (Mapper.DEFAULT_MAPPER_SQL.equals(ms.getSqlSource().getBoundSql(args).getSql())) {
+        // 这里需要重新生成sqlNode
+        Method sqlNodeMethod = ReflectionUtils.getDeclaredMethod(baseSqlProvider.getClass(), mapperMethod.getName(), ms.getClass(), SqlInfo.class);
+        sqlNode = (SqlNode) ReflectionUtils.invokeMethod(baseSqlProvider, sqlNodeMethod, ms, getSqlInfo(mapperClass));
+      }
     }
     return sqlNode;
   }

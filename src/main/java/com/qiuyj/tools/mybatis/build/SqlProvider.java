@@ -88,10 +88,10 @@ public class SqlProvider {
     contents.add(new StaticTextSqlNode("UPDATE"));
     contents.add(new StaticTextSqlNode(sqlInfo.getTableName()));
     contents.add(new SetSqlNode(ms.getConfiguration(), new MixedSqlNode(updateSets)));
-    contents.add(new StaticTextSqlNode(" WHERE "));
+    contents.add(new StaticTextSqlNode("WHERE"));
     contents.add(new StaticTextSqlNode(sqlInfo.getPrimaryKey().getDatabaseColumnName()));
-    contents.add(new StaticTextSqlNode(" = "));
-    contents.add(new StaticTextSqlNode(" #{"));
+    contents.add(new StaticTextSqlNode("="));
+    contents.add(new StaticTextSqlNode("#{"));
     contents.add(new StaticTextSqlNode(sqlInfo.getPrimaryKey().getJavaClassPropertyName()));
     contents.add(new StaticTextSqlNode("}"));
     return new MixedSqlNode(contents);
@@ -103,6 +103,38 @@ public class SqlProvider {
         .append(java)
         .append("}")
         .append(",")
+        .toString();
+  }
+
+  public SqlNode selectList(MappedStatement ms, SqlInfo sqlInfo, Object args) {
+    checkBeanType(sqlInfo.getBeanType(), args);
+    BeanExampleResolver resolver = new BeanExampleResolver(args, sqlInfo.getJavaProperties(), sqlInfo.getDatabaseColumns());
+    List<PropertyColumnMapping> exampleSelectList = resolver.selectExample();
+    if (exampleSelectList.isEmpty())
+      throw new IllegalStateException("Please specify at least one condition");
+    List<SqlNode> contents = new ArrayList<>();
+    SQL sql = new SQL() {
+      {
+        SELECT(sqlInfo.getAllColumnsWithAlias());
+        FROM(sqlInfo.getTableName());
+      }
+    };
+    contents.add(new StaticTextSqlNode(sql.toString()));
+    List<SqlNode> whereCondition = new ArrayList<>();
+    for (PropertyColumnMapping pcm : exampleSelectList) {
+      whereCondition.add(new StaticTextSqlNode(buildWhereCondition(pcm.getJavaClassPropertyName(), pcm.getDatabaseColumnName())));
+    }
+    WhereSqlNode where = new WhereSqlNode(ms.getConfiguration(), new MixedSqlNode(whereCondition));
+    contents.add(where);
+    return new MixedSqlNode(contents);
+  }
+  private String buildWhereCondition(String java, String database) {
+    return new StringBuilder("AND ")
+        .append(database)
+        .append(" = ")
+        .append("#{")
+        .append(java)
+        .append("}")
         .toString();
   }
 

@@ -20,7 +20,7 @@ public interface CrudMapper<ID, T> {
    * @param entity 要插入的数据
    */
   @InsertProvider(type = Mapper.SqlProvider.class, method = "dynamicSql")
-  void insert(T entity);
+  int insert(T entity);
 
   /**
    * 根据主键查询一条数据
@@ -42,12 +42,12 @@ public interface CrudMapper<ID, T> {
    * @param updated 要更新的对象
    */
   @UpdateProvider(type = Mapper.SqlProvider.class, method = "dynamicSql")
-  void update(@Example T updated);
+  int update(@Example T updated);
 
   /**
    * 根据主键删除
    * @param id 要删除的主键
    */
   @DeleteProvider(type = Mapper.SqlProvider.class, method = "dynamicSql")
-  void delete(ID id);
+  int delete(ID id);
 }

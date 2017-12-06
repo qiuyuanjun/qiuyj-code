@@ -18,7 +18,7 @@ public interface BatchMapper<ID, T> {
    * 批量插入
    */
   @InsertProvider(type = Mapper.SqlProvider.class, method = "dynamicSql")
-  void batchInsert(List<T> insertionList);
+  int batchInsert(List<T> insertionList);
 
   /**
    * 批量更新
@@ -30,5 +30,5 @@ public interface BatchMapper<ID, T> {
    * 批量删除
    */
   @DeleteProvider(type = Mapper.SqlProvider.class, method = "dynamicSql")
-  void batchDelete(ID[] ids);
+  int batchDelete(ID[] ids);
 }
