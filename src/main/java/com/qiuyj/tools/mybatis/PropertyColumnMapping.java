@@ -7,12 +7,18 @@ package com.qiuyj.tools.mybatis;
 public class PropertyColumnMapping {
   private String javaClassPropertyName;
   private String databaseColumnName;
+  private Object value;
 
   public PropertyColumnMapping() {}
 
   public PropertyColumnMapping(String javaClassPropertyName, String databaseColumnName) {
     this.javaClassPropertyName = javaClassPropertyName;
     this.databaseColumnName = databaseColumnName;
+  }
+
+  public PropertyColumnMapping(String javaClassPropertyName, String databaseColumnName, Object value) {
+    this(javaClassPropertyName, databaseColumnName);
+    this.value = value;
   }
 
   public String getJavaClassPropertyName() {
@@ -29,6 +35,14 @@ public class PropertyColumnMapping {
 
   public void setDatabaseColumnName(String databaseColumnName) {
     this.databaseColumnName = databaseColumnName;
+  }
+
+  public Object getValue() {
+    return value;
+  }
+
+  public void setValue(Object value) {
+    this.value = value;
   }
 
   @Override

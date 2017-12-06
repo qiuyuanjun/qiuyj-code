@@ -21,8 +21,8 @@ public class BeanExampleResolver {
     put(Long.TYPE, 0L);
     put(Short.TYPE, (short) 0);
   }};
-  private List<AttributeColumnValueMapping> withoutPrimaryKey = new ArrayList<>();
-  private AttributeColumnValueMapping primaryKey;
+  private List<PropertyColumnMapping> withoutPrimaryKey = new ArrayList<>();
+  private PropertyColumnMapping primaryKey;
 
   public BeanExampleResolver(Object bean, List<String> attributes, List<String> aliases) {
     Class<?> beanType = bean.getClass();
@@ -30,7 +30,7 @@ public class BeanExampleResolver {
     // 首先得到PrimaryKey
     String primaryKeyName = attributes.get(idx++);
     resolveField(bean, primaryKeyName, fieldValue ->
-      BeanExampleResolver.this.primaryKey = new AttributeColumnValueMapping(
+      BeanExampleResolver.this.primaryKey = new PropertyColumnMapping(
           primaryKeyName,
           aliases.get(0),
           fieldValue
@@ -40,7 +40,7 @@ public class BeanExampleResolver {
              aliase = aliases.get(idx);
       resolveField(bean, attr, fieldValue ->
         BeanExampleResolver.this.withoutPrimaryKey.add(
-            new AttributeColumnValueMapping(
+            new PropertyColumnMapping(
                 attr,
                 aliase,
                 fieldValue
@@ -104,8 +104,8 @@ public class BeanExampleResolver {
    * 该方法主要是给selectList方法用的
    * 由于selectList方法不需要一定指定主键
    */
-  public List<AttributeColumnValueMapping> selectExample() {
-    List<AttributeColumnValueMapping> rt = new ArrayList<>(withoutPrimaryKey);
+  public List<PropertyColumnMapping> selectExample() {
+    List<PropertyColumnMapping> rt = new ArrayList<>(withoutPrimaryKey);
     if (Objects.nonNull(primaryKey))
       rt.add(0, primaryKey);
     return rt;
@@ -122,7 +122,7 @@ public class BeanExampleResolver {
   /**
    * 得到所有的非主键并且不是默认值的字段
    */
-  public List<AttributeColumnValueMapping> getWithoutPrimaryKey() {
+  public List<PropertyColumnMapping> getWithoutPrimaryKey() {
     return withoutPrimaryKey;
   }
 }
