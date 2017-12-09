@@ -3,6 +3,8 @@ package com.qiuyj.tools.mybatis.checker;
 import com.qiuyj.tools.mybatis.SqlInfo;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 
 /**
  * 检查器
@@ -62,5 +64,21 @@ public interface ConditionChecker {
             ? new StringBuilder("is") : new StringBuilder("get");
     sb.append(chs);
     return sb.toString();
+  }
+
+  /**
+   * 得到对应java属性的Class类型
+   */
+  default Class<?> getFieldJavaType(Field field) {
+    Type genericType = field.getGenericType();
+    Class<?> javaType;
+    if (genericType instanceof Class<?>)
+      javaType = (Class<?>) genericType;
+    else if (genericType instanceof ParameterizedType) {
+      ParameterizedType t = (ParameterizedType) genericType;
+      javaType = (Class<?>) t.getRawType();
+    } else
+      javaType = field.getType();
+    return javaType;
   }
 }

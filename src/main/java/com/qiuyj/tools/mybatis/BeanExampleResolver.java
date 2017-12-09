@@ -36,8 +36,8 @@ public class BeanExampleResolver {
           fieldValue
       ));
     for (; idx < attributes.size(); idx++) {
-      String attr = attributes.get(idx),
-             aliase = aliases.get(idx);
+      final String attr = attributes.get(idx),
+                   aliase = aliases.get(idx);
       resolveField(bean, attr, fieldValue ->
         BeanExampleResolver.this.withoutPrimaryKey.add(
             new PropertyColumnMapping(
@@ -95,8 +95,11 @@ public class BeanExampleResolver {
    */
   private Object primitiveFieldDefaultValue(Field f) {
     Type t = f.getGenericType();
-    if (t instanceof Class<?> && PRIMITIVE_DEFAULT_VALUE.containsKey(t))
-      return PRIMITIVE_DEFAULT_VALUE.get(t);
+    if (t instanceof Class<?>) {
+      Object value = PRIMITIVE_DEFAULT_VALUE.get(t);
+      if (Objects.nonNull(value))
+        return value;
+    }
     return null;
   }
 

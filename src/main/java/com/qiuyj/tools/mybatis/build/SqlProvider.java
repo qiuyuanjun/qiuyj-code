@@ -5,9 +5,13 @@ import com.qiuyj.tools.mybatis.PropertyColumnMapping;
 import com.qiuyj.tools.mybatis.SqlInfo;
 import org.apache.ibatis.jdbc.SQL;
 import org.apache.ibatis.mapping.MappedStatement;
+import org.apache.ibatis.mapping.ParameterMapping;
 import org.apache.ibatis.scripting.xmltags.*;
+import org.apache.ibatis.session.Configuration;
+import org.apache.ibatis.type.TypeHandlerRegistry;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -15,19 +19,33 @@ import java.util.List;
  * @since 2017/11/21
  */
 public class SqlProvider {
+  private static final String PREPARE_FLAG = "?";
 
-  public SqlNode insert(MappedStatement ms, SqlInfo sqlInfo) {
+  public ReturnValueWrapper insert(MappedStatement ms, SqlInfo sqlInfo) {
     SQL sql = new SQL() {
       {
         INSERT_INTO(sqlInfo.getTableName());
         INTO_COLUMNS(sqlInfo.getAllColumnsWithoutAlias());
-        INTO_VALUES(sqlInfo.getAllColumnValues());
+        String[] prepareColumnValues = new String[sqlInfo.getFiledCount()];
+        Arrays.fill(prepareColumnValues, PREPARE_FLAG);
+        INTO_VALUES(prepareColumnValues);
       }
     };
-    return new TextSqlNode(sql.toString());
+    List<ParameterMapping> parameterMappings = new ArrayList<>(sqlInfo.getFiledCount());
+    TypeHandlerRegistry reg = ms.getConfiguration().getTypeHandlerRegistry();
+    ParameterMapping.Builder parameterBuilder;
+    int idx = 0;
+    for (PropertyColumnMapping mapping : sqlInfo.getPropertyColumnMappings()) {
+      parameterBuilder =
+          new ParameterMapping.Builder(ms.getConfiguration(),
+                                       mapping.getJavaClassPropertyName(),
+                                       reg.getTypeHandler(mapping.getJavaType()));
+      parameterMappings.add(parameterBuilder.build());
+    }
+    return new ReturnValueWrapper(new StaticTextSqlNode(sql.toString()), parameterMappings);
   }
 
-  public SqlNode selectOne(MappedStatement ms, SqlInfo sqlInfo) {
+  public ReturnValueWrapper selectOne(MappedStatement ms, SqlInfo sqlInfo) {
     // 首先判断是否有主键，如果没有主键，那么抛出异常
     checkPrimaryKey(sqlInfo);
     SQL sql = new SQL() {
@@ -37,10 +55,10 @@ public class SqlProvider {
         WHERE(sqlInfo.getPrimaryKeyCondition());
       }
     };
-    return new TextSqlNode(sql.toString());
+    return primaryKeyResolver(sqlInfo.getPrimaryKey(), ms.getConfiguration(), sql.toString());
   }
 
-  public SqlNode delete(MappedStatement ms, SqlInfo sqlInfo) {
+  public ReturnValueWrapper delete(MappedStatement ms, SqlInfo sqlInfo) {
     checkPrimaryKey(sqlInfo);
     SQL sql = new SQL() {
       {
@@ -48,10 +66,24 @@ public class SqlProvider {
         WHERE(sqlInfo.getPrimaryKeyCondition());
       }
     };
-    return new TextSqlNode(sql.toString());
+    return primaryKeyResolver(sqlInfo.getPrimaryKey(), ms.getConfiguration(), sql.toString());
   }
 
-  public SqlNode batchDelete(MappedStatement ms, SqlInfo sqlInfo) {
+  /**
+   * 生成以主键作为条件的sql的返回值
+   */
+  private ReturnValueWrapper primaryKeyResolver(PropertyColumnMapping primaryKey, Configuration config, String sql) {
+    List<ParameterMapping> parameterMappings = new ArrayList<>(1);
+    parameterMappings.add(new ParameterMapping.Builder(
+            config,
+            primaryKey.getJavaClassPropertyName(),
+            primaryKey.getJavaType()
+        ).build()
+    );
+    return new ReturnValueWrapper(new StaticTextSqlNode(sql), parameterMappings);
+  }
+
+  public ReturnValueWrapper batchDelete(MappedStatement ms, SqlInfo sqlInfo) {
     checkPrimaryKey(sqlInfo);
     List<SqlNode> contents = new ArrayList<>();
     contents.add(new StaticTextSqlNode("DELETE FROM"));
@@ -68,7 +100,7 @@ public class SqlProvider {
                                                 ")",
                                                 ",");
     contents.add(forEach);
-    return new MixedSqlNode(contents);
+    return new ReturnValueWrapper(new MixedSqlNode(contents));
   }
 
   public SqlNode update(MappedStatement ms, SqlInfo sqlInfo, Object args) {
@@ -119,23 +151,20 @@ public class SqlProvider {
         FROM(sqlInfo.getTableName());
       }
     };
-    contents.add(new StaticTextSqlNode(sql.toString()));
-    List<SqlNode> whereCondition = new ArrayList<>();
-    for (PropertyColumnMapping pcm : exampleSelectList) {
-      whereCondition.add(new StaticTextSqlNode(buildWhereCondition(pcm.getJavaClassPropertyName(), pcm.getDatabaseColumnName())));
+    StringBuilder sqlBuilder = new StringBuilder(sql.toString());
+    // 拼接sql
+    sqlBuilder.append(" WHERE ");
+    int idx = 0;
+    PropertyColumnMapping pcm = exampleSelectList.get(idx++);
+    sqlBuilder.append(pcm.getDatabaseColumnName())
+              .append(" = ? ");
+    for (; idx < exampleSelectList.size(); idx++) {
+      pcm = exampleSelectList.get(idx);
+      sqlBuilder.append("AND ")
+                .append(pcm.getDatabaseColumnName())
+                .append(" = ? ");
     }
-    WhereSqlNode where = new WhereSqlNode(ms.getConfiguration(), new MixedSqlNode(whereCondition));
-    contents.add(where);
-    return new MixedSqlNode(contents);
-  }
-  private String buildWhereCondition(String java, String database) {
-    return new StringBuilder("AND ")
-        .append(database)
-        .append(" = ")
-        .append("#{")
-        .append(java)
-        .append("}")
-        .toString();
+    return new StaticTextSqlNode(sqlBuilder.toString());
   }
 
   /**

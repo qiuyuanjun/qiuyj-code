@@ -20,6 +20,7 @@ public final class SqlInfo {
   private final List<PropertyColumnMapping> withoutPrimaryKey = new ArrayList<>();
   private PropertyColumnMapping primaryKey;
   private final Class<?> beanType;
+  private int fieldCount;
 
   /*
    * 接下来的所有属性均为辅助属性
@@ -67,7 +68,7 @@ public final class SqlInfo {
   }
 
   private void PrimaryKeyCondition() {
-    primaryKeyCondition = primaryKey.getDatabaseColumnName() + " = #{param1}";
+    primaryKeyCondition = primaryKey.getDatabaseColumnName() + " = ?";
   }
 
   private void AllColumnsWithoutAlias() {
@@ -118,6 +119,14 @@ public final class SqlInfo {
     withoutPrimaryKey.add(column);
   }
 
+  public int getFiledCount() {
+    return fieldCount;
+  }
+
+  public void fieldCountIncrement() {
+    fieldCount++;
+  }
+
   public String[] getAllColumnsWithAlias() {
     return allColumnsWithAlias;
   }
@@ -159,6 +168,16 @@ public final class SqlInfo {
       rt.add(0, primaryKey.getDatabaseColumnName());
     else
       rt.add(0, null);
+    return rt;
+  }
+
+  /**
+   * 得到所有的PropertyColumnMapping
+   */
+  public List<PropertyColumnMapping> getPropertyColumnMappings() {
+    List<PropertyColumnMapping> rt = new ArrayList<>(fieldCount);
+    rt.addAll(withoutPrimaryKey);
+    rt.add(0, primaryKey);
     return rt;
   }
 }

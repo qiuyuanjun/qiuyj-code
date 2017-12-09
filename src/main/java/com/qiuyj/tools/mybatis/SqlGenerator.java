@@ -32,10 +32,13 @@ public class SqlGenerator implements Interceptor {
   public Object intercept(Invocation invocation) throws Throwable {
     MappedStatement ms = (MappedStatement) invocation.getArgs()[0];
     /*
-     * 只有SqlSource是ProviderSqlSource并且当前执行的方式是mapper方法的时候，
-     * 才会自动生成sql
+     * 首先，如果是第一次执行的时候，那么对应的SqlSource应该是ProviderSqlSource
+     * 当通过当前框架生成Sql之后呢，SqlSource就变成了我们自定义的MapperSqlSource
+     * 所以这两种类型的SqlSource都有可能是通过框架定义的方法
+     * 那么需要进一步判断当前执行的方法是否是mapper方法
      */
-    if (ms.getSqlSource() instanceof ProviderSqlSource) {
+    if (ms.getSqlSource() instanceof ProviderSqlSource
+          || ms.getSqlSource() instanceof MapperSqlSource) {
       int lastDot = ms.getId().lastIndexOf(".");
       Class<? extends Mapper<?, ?>> mapperClass//
           = (Class<? extends Mapper<?, ?>>) ClassUtils.resolveClassName(ms.getId().substring(0, lastDot), Thread.currentThread().getContextClassLoader());

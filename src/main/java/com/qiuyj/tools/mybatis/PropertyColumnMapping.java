@@ -8,6 +8,7 @@ public class PropertyColumnMapping {
   private String javaClassPropertyName;
   private String databaseColumnName;
   private Object value;
+  private Class<?> javaType;
 
   public PropertyColumnMapping() {}
 
@@ -19,6 +20,11 @@ public class PropertyColumnMapping {
   public PropertyColumnMapping(String javaClassPropertyName, String databaseColumnName, Object value) {
     this(javaClassPropertyName, databaseColumnName);
     this.value = value;
+  }
+
+  public PropertyColumnMapping(String javaClassPropertyName, String databaseColumnName, Class<?> javaType) {
+    this(javaClassPropertyName, databaseColumnName);
+    this.javaType = javaType;
   }
 
   public String getJavaClassPropertyName() {
@@ -43,6 +49,14 @@ public class PropertyColumnMapping {
 
   public void setValue(Object value) {
     this.value = value;
+  }
+
+  public Class<?> getJavaType() {
+    return javaType;
+  }
+
+  public void setJavaType(Class<?> javaType) {
+    this.javaType = javaType;
   }
 
   @Override
