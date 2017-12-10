@@ -21,7 +21,7 @@ public class ParameterResolver {
    * @param parameterObject 参数
    * @return 解析参数后的二维数组，数组的第一个是所有参数的类型的数组，数组的第二个所有参数对象的数组
    */
-  public static Object[][] resolveParameter(Object parameterObject) {
+  public static ParameterResolverResult resolveParameter(Object parameterObject) {
     // 判断参数类型
     // 如果参数类型是Map，那么有三种可能
     // 第一种是这个方法有多个参数
@@ -77,7 +77,26 @@ public class ParameterResolver {
       parameterType = new Class<?>[] {parameterObject.getClass()};
       parameterObjects = new Object[] {parameterObject};
     }
-    return new Object[][] {parameterType, parameterObjects};
+
+    return new ParameterResolverResult(parameterType, parameterObjects);
+  }
+
+  public static final class ParameterResolverResult {
+    private Class<?>[] parameterTypes;
+    private Object[] parameterValues;
+
+    public ParameterResolverResult(Class<?>[] paramterTypes, Object[] parameterValues) {
+      this.parameterTypes = paramterTypes;
+      this.parameterValues = parameterValues;
+    }
+
+    public Class<?>[] getParameterTypes() {
+      return parameterTypes;
+    }
+
+    public Object[] getParameterValues() {
+      return parameterValues;
+    }
   }
 
   private static final class ParamStringIndexComparator implements Comparator<String> {

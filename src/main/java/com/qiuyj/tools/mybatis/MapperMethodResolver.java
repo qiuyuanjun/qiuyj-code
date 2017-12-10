@@ -134,7 +134,7 @@ public class MapperMethodResolver {
       else if (targetMethods.size() > 1) {
         // 然后对方法遍历，得到最符合要求的方法
         // 首先解析参数对象
-        Class<?>[] parameterTypeMeta = (Class<?>[]) ParameterResolver.resolveParameter(args)[0];
+        Class<?>[] parameterTypeMeta = ParameterResolver.resolveParameter(args).getParameterTypes();
         int paramLen = parameterTypeMeta.length;
         for (Method m : targetMethods) {
           int paramCount = m.getParameterCount();

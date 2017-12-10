@@ -2,6 +2,7 @@ package com.qiuyj.tools.mybatis.build;
 
 import com.qiuyj.tools.mybatis.MapperSqlSource;
 import com.qiuyj.tools.mybatis.SqlInfo;
+import com.qiuyj.tools.mybatis.build.customer.CustomizedParameterObjectResolver;
 import org.apache.ibatis.builder.StaticSqlSource;
 import org.apache.ibatis.mapping.ParameterMapping;
 import org.apache.ibatis.mapping.SqlSource;
@@ -22,6 +23,7 @@ public class ReturnValueWrapper {
   private SqlNode sqlNode;
   private List<ParameterMapping> parameterMappings;
   private boolean generateStaticSqlSource = true;
+  private CustomizedParameterObjectResolver parameterObjectResolver;
 
   public ReturnValueWrapper(SqlNode sqlNode) {
     this.sqlNode = sqlNode;
@@ -31,6 +33,11 @@ public class ReturnValueWrapper {
   public ReturnValueWrapper(SqlNode sqlNode, List<ParameterMapping> parameterMappings) {
     this.sqlNode = sqlNode;
     this.parameterMappings = parameterMappings;
+  }
+
+  public ReturnValueWrapper(SqlNode sqlNode, CustomizedParameterObjectResolver parameterObjectResolver) {
+    this.sqlNode = sqlNode;
+    this.parameterObjectResolver = parameterObjectResolver;
   }
 
   /**
@@ -49,14 +56,23 @@ public class ReturnValueWrapper {
     return new MapperSqlSource(sqlSource);
   }
 
-  public boolean needParseParameter() {
+  private boolean needParseParameter() {
     return generateStaticSqlSource && Objects.isNull(parameterMappings);
   }
 
   /**
-   * 该方法目前暂时不支持
+   * 处理用户自定义的生成ParameterMapping的方法接口
    */
-  public void parseParameterMappings(SqlInfo sqlInfo, Object parameterObject) {
-    throw new UnsupportedOperationException("Not support yet");
+  public void customizedResolveParameterObject(SqlInfo sqlInfo, Object parameterObject, Configuration config) {
+    if (needParseParameter()) {
+      if (Objects.isNull(parameterObjectResolver))
+        throw new IllegalStateException("Please specify parameter 'parameterMappings' or 'parameterObjectResolver' in constructor method");
+      else
+        parameterMappings = parameterObjectResolver.resolveParameterObject(config, sqlInfo, parameterObject, sqlNode);
+    }
+    // 最后再一次验证
+    if (needParseParameter())
+      throw new IllegalStateException("Parameter 'parameterMappings' cannot be null with generate static sql source mode");
   }
+
 }

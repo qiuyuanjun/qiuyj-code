@@ -10,6 +10,7 @@ import com.qiuyj.tools.mybatis.mapper.Mapper;
 import org.apache.ibatis.builder.annotation.ProviderSqlSource;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.reflection.MetaObject;
+import org.apache.ibatis.session.defaults.DefaultSqlSession;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
@@ -59,9 +60,8 @@ public abstract class AbstractSqlGeneratorEngine implements SqlGeneratorEngine {
     // 得到返回值
     ReturnValueWrapper returnValue = getReturnValue(sqlInfo, ms, mapperClass, mapperMethod, args);
     if (Objects.nonNull(returnValue)) {
-      // 健壮性检查
-      if (returnValue.needParseParameter())
-        returnValue.parseParameterMappings(sqlInfo, args);
+      // 处理自定义生成ParameterMapping，如果没有自定义，那么该方法犹如一个空方法
+      returnValue.customizedResolveParameterObject(sqlInfo, args, ms.getConfiguration());
       MetaObject msMetaObject = ms.getConfiguration().newMetaObject(ms);
       // 重新设置sqlSource
       msMetaObject.setValue("sqlSource", returnValue.generateSqlSource(ms.getConfiguration()));
@@ -81,9 +81,10 @@ public abstract class AbstractSqlGeneratorEngine implements SqlGeneratorEngine {
       // 这里需要注意，有些mapper方法只需要生成一次即可，不用每次都生成
       // 需要每次都生成sql的mapper方法是那些参数带了@Example注解的方法
       // 所以这里需要分开讨论，判断mapper方法是否是第一次调用
+      // 如果参数是数组或者集合类型，那么依然还需要重新生成sqlSource
 //      if (Mapper.DEFAULT_MAPPER_SQL.equals(ms.getSqlSource().getBoundSql(args).getSql())) {
       // 如果还是ProviderSqlSource，那么需要重新生成Sql，这么判断比上面那种方式更好，效率也更快
-      if (ms.getSqlSource().getClass() == ProviderSqlSource.class) {
+      if (ms.getSqlSource().getClass() == ProviderSqlSource.class || parameterObjectIsArrayOrCollection(args)) {
         // 这里需要重新生成sqlNode
         Method reflectionMethod = ReflectionUtils.getDeclaredMethod(baseSqlProvider.getClass(), mapperMethod.getName(), ms.getClass(), SqlInfo.class);
         returnValue = (ReturnValueWrapper) ReflectionUtils.invokeMethod(baseSqlProvider, reflectionMethod, ms, sqlInfo);
@@ -92,4 +93,7 @@ public abstract class AbstractSqlGeneratorEngine implements SqlGeneratorEngine {
     return returnValue;
   }
 
+  private boolean parameterObjectIsArrayOrCollection(Object paramObj) {
+    return paramObj instanceof DefaultSqlSession.StrictMap;
+  }
 }

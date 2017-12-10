@@ -11,16 +11,18 @@ import java.util.*;
  * @since 2017/11/28
  */
 public class BeanExampleResolver {
-  private static final Map<Class<?>, Object> PRIMITIVE_DEFAULT_VALUE = new HashMap<Class<?>, Object>() {{
-    put(Boolean.TYPE, false);
-    put(Byte.TYPE, (byte) 0);
-    put(Character.TYPE, '\u0000');
-    put(Double.TYPE, 0.0);
-    put(Float.TYPE, 0.0F);
-    put(Integer.TYPE, 0);
-    put(Long.TYPE, 0L);
-    put(Short.TYPE, (short) 0);
-  }};
+  private static final Map<Class<?>, Object> PRIMITIVE_DEFAULT_VALUE;
+  static {
+    PRIMITIVE_DEFAULT_VALUE = new HashMap<>();
+    PRIMITIVE_DEFAULT_VALUE.put(Boolean.TYPE, false);
+    PRIMITIVE_DEFAULT_VALUE.put(Byte.TYPE, (byte) 0);
+    PRIMITIVE_DEFAULT_VALUE.put(Character.TYPE, '\u0000');
+    PRIMITIVE_DEFAULT_VALUE.put(Double.TYPE, 0.0);
+    PRIMITIVE_DEFAULT_VALUE.put(Float.TYPE, 0.0F);
+    PRIMITIVE_DEFAULT_VALUE.put(Integer.TYPE, 0);
+    PRIMITIVE_DEFAULT_VALUE.put(Long.TYPE, 0L);
+    PRIMITIVE_DEFAULT_VALUE.put(Short.TYPE, (short) 0);
+  }
   private List<PropertyColumnMapping> withoutPrimaryKey = new ArrayList<>();
   private PropertyColumnMapping primaryKey;
 
@@ -127,5 +129,9 @@ public class BeanExampleResolver {
    */
   public List<PropertyColumnMapping> getWithoutPrimaryKey() {
     return withoutPrimaryKey;
+  }
+
+  public PropertyColumnMapping getPrimaryKey() {
+    return primaryKey;
   }
 }

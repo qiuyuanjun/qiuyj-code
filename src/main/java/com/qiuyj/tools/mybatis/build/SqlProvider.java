@@ -3,10 +3,11 @@ package com.qiuyj.tools.mybatis.build;
 import com.qiuyj.tools.mybatis.BeanExampleResolver;
 import com.qiuyj.tools.mybatis.PropertyColumnMapping;
 import com.qiuyj.tools.mybatis.SqlInfo;
+import com.qiuyj.tools.mybatis.build.customer.BatchDeleteParameterObjectResolver;
 import org.apache.ibatis.jdbc.SQL;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.mapping.ParameterMapping;
-import org.apache.ibatis.scripting.xmltags.*;
+import org.apache.ibatis.scripting.xmltags.StaticTextSqlNode;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.type.TypeHandlerRegistry;
 
@@ -19,10 +20,12 @@ import java.util.List;
  * @since 2017/11/21
  */
 public class SqlProvider {
-  private static final String PREPARE_FLAG = "?";
+  public static final String PREPARE_FLAG = "?";
 
   public ReturnValueWrapper insert(MappedStatement ms, SqlInfo sqlInfo) {
-    SQL sql = new SQL() {
+    // 不建议以下这种方式创建SQL，这样会增加编译之后的字节码文件数量
+    // 因为这样会创建一个匿名内部类
+    /*SQL sql = new SQL() {
       {
         INSERT_INTO(sqlInfo.getTableName());
         INTO_COLUMNS(sqlInfo.getAllColumnsWithoutAlias());
@@ -30,7 +33,13 @@ public class SqlProvider {
         Arrays.fill(prepareColumnValues, PREPARE_FLAG);
         INTO_VALUES(prepareColumnValues);
       }
-    };
+    };*/
+    String[] prepareColumnValues = new String[sqlInfo.getFiledCount()];
+    Arrays.fill(prepareColumnValues, PREPARE_FLAG);
+    String sql = new SQL().INSERT_INTO(sqlInfo.getTableName())
+                          .INTO_COLUMNS(sqlInfo.getAllColumnsWithAlias())
+                          .INTO_VALUES(prepareColumnValues)
+                          .toString();
     List<ParameterMapping> parameterMappings = new ArrayList<>(sqlInfo.getFiledCount());
     TypeHandlerRegistry reg = ms.getConfiguration().getTypeHandlerRegistry();
     ParameterMapping.Builder parameterBuilder;
@@ -42,31 +51,25 @@ public class SqlProvider {
                                        reg.getTypeHandler(mapping.getJavaType()));
       parameterMappings.add(parameterBuilder.build());
     }
-    return new ReturnValueWrapper(new StaticTextSqlNode(sql.toString()), parameterMappings);
+    return new ReturnValueWrapper(new StaticTextSqlNode(sql), parameterMappings);
   }
 
   public ReturnValueWrapper selectOne(MappedStatement ms, SqlInfo sqlInfo) {
     // 首先判断是否有主键，如果没有主键，那么抛出异常
     checkPrimaryKey(sqlInfo);
-    SQL sql = new SQL() {
-      {
-        SELECT(sqlInfo.getAllColumnsWithAlias());
-        FROM(sqlInfo.getTableName());
-        WHERE(sqlInfo.getPrimaryKeyCondition());
-      }
-    };
-    return primaryKeyResolver(sqlInfo.getPrimaryKey(), ms.getConfiguration(), sql.toString());
+    String sql = new SQL().SELECT(sqlInfo.getAllColumnsWithAlias())
+                          .FROM(sqlInfo.getTableName())
+                          .WHERE(sqlInfo.getPrimaryKeyCondition())
+                          .toString();
+    return primaryKeyResolver(sqlInfo.getPrimaryKey(), ms.getConfiguration(), sql);
   }
 
   public ReturnValueWrapper delete(MappedStatement ms, SqlInfo sqlInfo) {
     checkPrimaryKey(sqlInfo);
-    SQL sql = new SQL() {
-      {
-        DELETE_FROM(sqlInfo.getTableName());
-        WHERE(sqlInfo.getPrimaryKeyCondition());
-      }
-    };
-    return primaryKeyResolver(sqlInfo.getPrimaryKey(), ms.getConfiguration(), sql.toString());
+    String sql = new SQL().DELETE_FROM(sqlInfo.getTableName())
+                          .WHERE(sqlInfo.getPrimaryKeyCondition())
+                          .toString();
+    return primaryKeyResolver(sqlInfo.getPrimaryKey(), ms.getConfiguration(), sql);
   }
 
   /**
@@ -85,86 +88,67 @@ public class SqlProvider {
 
   public ReturnValueWrapper batchDelete(MappedStatement ms, SqlInfo sqlInfo) {
     checkPrimaryKey(sqlInfo);
-    List<SqlNode> contents = new ArrayList<>();
-    contents.add(new StaticTextSqlNode("DELETE FROM"));
-    contents.add(new StaticTextSqlNode(sqlInfo.getTableName()));
-    contents.add(new StaticTextSqlNode("WHERE"));
-    contents.add(new StaticTextSqlNode(sqlInfo.getPrimaryKey().getDatabaseColumnName()));
-    contents.add(new StaticTextSqlNode("IN"));
-    ForEachSqlNode forEach = new ForEachSqlNode(ms.getConfiguration(),
-                                                new StaticTextSqlNode("#{item}"),
-                                                "array",
-                                                null,
-                                                "item",
-                                                "(",
-                                                ")",
-                                                ",");
-    contents.add(forEach);
-    return new ReturnValueWrapper(new MixedSqlNode(contents));
+    StringBuilder sqlBuilder = new StringBuilder("DELETE FROM ");
+    sqlBuilder.append(sqlInfo.getTableName())
+              .append(" WHERE ")
+              .append(sqlInfo.getPrimaryKey().getDatabaseColumnName())
+              .append(" IN ");
+    return new ReturnValueWrapper(new StaticTextSqlNode(sqlBuilder.toString()), new BatchDeleteParameterObjectResolver());
   }
 
-  public SqlNode update(MappedStatement ms, SqlInfo sqlInfo, Object args) {
+  public ReturnValueWrapper update(MappedStatement ms, SqlInfo sqlInfo, Object args) {
     checkPrimaryKey(sqlInfo);
     checkBeanType(sqlInfo.getBeanType(), args);
     BeanExampleResolver exampleResolver = new BeanExampleResolver(args, sqlInfo.getJavaProperties(), sqlInfo.getDatabaseColumns());
     if (!exampleResolver.hasPrimaryKeyAndNotDefault())
       throw new NoPrimaryKeyException("primary key is default value");
-    List<PropertyColumnMapping> nonNullColumns = exampleResolver.getWithoutPrimaryKey();
-    if (nonNullColumns.isEmpty())
-      throw new IllegalStateException("Please update at least one column");
-    List<SqlNode> updateSets = new ArrayList<>();
-    for (PropertyColumnMapping pcm : nonNullColumns) {
-      updateSets.add(new StaticTextSqlNode(buildUpdateSet(pcm.getJavaClassPropertyName(), pcm.getDatabaseColumnName())));
+    else {
+      List<PropertyColumnMapping> nonNullColumns = exampleResolver.getWithoutPrimaryKey();
+      if (nonNullColumns.isEmpty())
+        throw new IllegalStateException("Please update at least one column");
+      else {
+        List<ParameterMapping> parameterMappings = new ArrayList<>(nonNullColumns.size() + 1);
+        SQL sql = new SQL();
+        sql.UPDATE(sqlInfo.getTableName());
+        for (PropertyColumnMapping pcm : nonNullColumns) {
+          sql.SET(pcm.getDatabaseColumnName() + " = ?");
+          parameterMappings.add(new ParameterMapping.Builder(
+              ms.getConfiguration(),
+              pcm.getJavaClassPropertyName(),
+              pcm.getValue().getClass()
+          ).build());
+        }
+        sql.WHERE(sqlInfo.getPrimaryKey().getDatabaseColumnName() + " = ?");
+        parameterMappings.add(new ParameterMapping.Builder(
+            ms.getConfiguration(),
+            sqlInfo.getPrimaryKey().getJavaClassPropertyName(),
+            sqlInfo.getPrimaryKey().getJavaType()
+        ).build());
+        return new ReturnValueWrapper(new StaticTextSqlNode(sql.toString()), parameterMappings);
+      }
     }
-    List<SqlNode> contents = new ArrayList<>();
-    contents.add(new StaticTextSqlNode("UPDATE"));
-    contents.add(new StaticTextSqlNode(sqlInfo.getTableName()));
-    contents.add(new SetSqlNode(ms.getConfiguration(), new MixedSqlNode(updateSets)));
-    contents.add(new StaticTextSqlNode("WHERE"));
-    contents.add(new StaticTextSqlNode(sqlInfo.getPrimaryKey().getDatabaseColumnName()));
-    contents.add(new StaticTextSqlNode("="));
-    contents.add(new StaticTextSqlNode("#{"));
-    contents.add(new StaticTextSqlNode(sqlInfo.getPrimaryKey().getJavaClassPropertyName()));
-    contents.add(new StaticTextSqlNode("}"));
-    return new MixedSqlNode(contents);
-  }
-  private String buildUpdateSet(String java, String database) {
-    return new StringBuilder(database)
-        .append(" = ")
-        .append("#{")
-        .append(java)
-        .append("}")
-        .append(",")
-        .toString();
   }
 
-  public SqlNode selectList(MappedStatement ms, SqlInfo sqlInfo, Object args) {
+  public ReturnValueWrapper selectList(MappedStatement ms, SqlInfo sqlInfo, Object args) {
     checkBeanType(sqlInfo.getBeanType(), args);
     BeanExampleResolver resolver = new BeanExampleResolver(args, sqlInfo.getJavaProperties(), sqlInfo.getDatabaseColumns());
     List<PropertyColumnMapping> exampleSelectList = resolver.selectExample();
     if (exampleSelectList.isEmpty())
       throw new IllegalStateException("Please specify at least one condition");
-    List<SqlNode> contents = new ArrayList<>();
-    SQL sql = new SQL() {
-      {
-        SELECT(sqlInfo.getAllColumnsWithAlias());
-        FROM(sqlInfo.getTableName());
+    else {
+      SQL sql = new SQL().SELECT(sqlInfo.getAllColumnsWithAlias())
+                         .FROM(sqlInfo.getTableName());
+      List<ParameterMapping> parameterMappings = new ArrayList<>(exampleSelectList.size());
+      for (PropertyColumnMapping pcm : exampleSelectList) {
+        parameterMappings.add(new ParameterMapping.Builder(
+            ms.getConfiguration(),
+            pcm.getJavaClassPropertyName(),
+            pcm.getValue().getClass()
+        ).build());
+        sql.WHERE(pcm.getDatabaseColumnName() + " = ?");
       }
-    };
-    StringBuilder sqlBuilder = new StringBuilder(sql.toString());
-    // 拼接sql
-    sqlBuilder.append(" WHERE ");
-    int idx = 0;
-    PropertyColumnMapping pcm = exampleSelectList.get(idx++);
-    sqlBuilder.append(pcm.getDatabaseColumnName())
-              .append(" = ? ");
-    for (; idx < exampleSelectList.size(); idx++) {
-      pcm = exampleSelectList.get(idx);
-      sqlBuilder.append("AND ")
-                .append(pcm.getDatabaseColumnName())
-                .append(" = ? ");
+      return new ReturnValueWrapper(new StaticTextSqlNode(sql.toString()), parameterMappings);
     }
-    return new StaticTextSqlNode(sqlBuilder.toString());
   }
 
   /**
