@@ -27,16 +27,15 @@ public class BeanExampleResolver {
   private PropertyColumnMapping primaryKey;
 
   public BeanExampleResolver(Object bean, List<String> attributes, List<String> aliases) {
-    int idx = 0;
     // 首先得到PrimaryKey
-    String primaryKeyName = attributes.get(idx++);
+    String primaryKeyName = attributes.get(0);
     resolveField(bean, primaryKeyName, fieldValue ->
       BeanExampleResolver.this.primaryKey = new PropertyColumnMapping(
           primaryKeyName,
           aliases.get(0),
           fieldValue
       ));
-    for (; idx < attributes.size(); idx++) {
+    for (int idx = 1; idx < attributes.size(); idx++) {
       final String attr = attributes.get(idx),
                    aliase = aliases.get(idx);
       resolveField(bean, attr, fieldValue ->
