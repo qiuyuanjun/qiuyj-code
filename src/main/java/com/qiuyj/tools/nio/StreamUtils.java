@@ -21,7 +21,7 @@ import java.util.Objects;
  * @since 2017/11/18
  */
 public abstract class StreamUtils {
-  private static final int BUF_SIZE = 8192; // 8Kb
+  static final int BUF_SIZE = 8192; // 8Kb
 
   /**
    * 获取指定文件的字节数组

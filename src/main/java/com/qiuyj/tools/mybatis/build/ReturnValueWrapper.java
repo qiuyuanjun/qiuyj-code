@@ -65,14 +65,12 @@ public class ReturnValueWrapper {
    */
   public void customizedResolveParameterObject(SqlInfo sqlInfo, Object parameterObject, Configuration config) {
     if (needParseParameter()) {
-      if (Objects.isNull(parameterObjectResolver))
-        throw new IllegalStateException("Please specify parameter 'parameterMappings' or 'parameterObjectResolver' in constructor method");
-      else
+      if (Objects.nonNull(parameterObjectResolver))
         parameterMappings = parameterObjectResolver.resolveParameterObject(config, sqlInfo, parameterObject, sqlNode);
+      // 最后再一次验证
+      if (needParseParameter())
+        throw new IllegalStateException("Parameter 'parameterMappings' cannot be null with generate static sql source mode");
     }
-    // 最后再一次验证
-    if (needParseParameter())
-      throw new IllegalStateException("Parameter 'parameterMappings' cannot be null with generate static sql source mode");
   }
 
 }

@@ -58,7 +58,7 @@ public abstract class AbstractSqlGeneratorEngine implements SqlGeneratorEngine {
     // 得到当前实体类的映射数据库的信息
     SqlInfo sqlInfo = getSqlInfo(mapperClass);
     // 得到返回值
-    ReturnValueWrapper returnValue = getReturnValue(sqlInfo, ms, mapperClass, mapperMethod, args);
+    ReturnValueWrapper returnValue = getReturnValue(sqlInfo, ms, mapperMethod, args);
     if (Objects.nonNull(returnValue)) {
       // 处理自定义生成ParameterMapping，如果没有自定义，那么该方法犹如一个空方法
       returnValue.customizedResolveParameterObject(sqlInfo, args, ms.getConfiguration());
@@ -71,7 +71,7 @@ public abstract class AbstractSqlGeneratorEngine implements SqlGeneratorEngine {
   /**
    * 根据不同的情况得到对应的SqlNode
    */
-  private ReturnValueWrapper getReturnValue(SqlInfo sqlInfo, MappedStatement ms, Class<? extends Mapper<?, ?>> mapperClass, Method mapperMethod, Object args) {
+  private ReturnValueWrapper getReturnValue(SqlInfo sqlInfo, MappedStatement ms, Method mapperMethod, Object args) {
     ReturnValueWrapper returnValue = null;
     if (resolver.isExampleMethod(mapperMethod)) {
       // 这里需要解析参数

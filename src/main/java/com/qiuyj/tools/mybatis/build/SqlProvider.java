@@ -37,13 +37,12 @@ public class SqlProvider {
     String[] prepareColumnValues = new String[sqlInfo.getFiledCount()];
     Arrays.fill(prepareColumnValues, PREPARE_FLAG);
     String sql = new SQL().INSERT_INTO(sqlInfo.getTableName())
-                          .INTO_COLUMNS(sqlInfo.getAllColumnsWithAlias())
+                          .INTO_COLUMNS(sqlInfo.getAllColumnsWithoutAlias())
                           .INTO_VALUES(prepareColumnValues)
                           .toString();
     List<ParameterMapping> parameterMappings = new ArrayList<>(sqlInfo.getFiledCount());
     TypeHandlerRegistry reg = ms.getConfiguration().getTypeHandlerRegistry();
     ParameterMapping.Builder parameterBuilder;
-    int idx = 0;
     for (PropertyColumnMapping mapping : sqlInfo.getPropertyColumnMappings()) {
       parameterBuilder =
           new ParameterMapping.Builder(ms.getConfiguration(),
@@ -88,12 +87,13 @@ public class SqlProvider {
 
   public ReturnValueWrapper batchDelete(MappedStatement ms, SqlInfo sqlInfo) {
     checkPrimaryKey(sqlInfo);
-    StringBuilder sqlBuilder = new StringBuilder("DELETE FROM ");
-    sqlBuilder.append(sqlInfo.getTableName())
-              .append(" WHERE ")
-              .append(sqlInfo.getPrimaryKey().getDatabaseColumnName())
-              .append(" IN ");
-    return new ReturnValueWrapper(new StaticTextSqlNode(sqlBuilder.toString()), new BatchDeleteParameterObjectResolver());
+    String sql = new StringBuilder("DELETE FROM ")
+        .append(sqlInfo.getTableName())
+        .append(" WHERE ")
+        .append(sqlInfo.getPrimaryKey().getDatabaseColumnName())
+        .append(" IN ")
+        .toString();
+    return new ReturnValueWrapper(new StaticTextSqlNode(sql), new BatchDeleteParameterObjectResolver());
   }
 
   public ReturnValueWrapper update(MappedStatement ms, SqlInfo sqlInfo, Object args) {

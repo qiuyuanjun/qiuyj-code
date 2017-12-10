@@ -25,7 +25,7 @@ public class FileChannelLineReader {
   private final Charset UTF8 = Charset.forName("UTF-8");
   private long position;              // 当前读取文件的位置
   private final ByteBuffer temp = ByteBuffer.allocate(1);
-  private final ByteBuffer currLineData = ByteBuffer.allocate(8192);
+  private final ByteBuffer currLineData = ByteBuffer.allocate(StreamUtils.BUF_SIZE);
 
   public FileChannelLineReader(FileChannel inChannel, boolean closeChannel) {
     Objects.requireNonNull(inChannel);

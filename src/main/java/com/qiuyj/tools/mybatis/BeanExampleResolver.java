@@ -27,7 +27,6 @@ public class BeanExampleResolver {
   private PropertyColumnMapping primaryKey;
 
   public BeanExampleResolver(Object bean, List<String> attributes, List<String> aliases) {
-    Class<?> beanType = bean.getClass();
     int idx = 0;
     // 首先得到PrimaryKey
     String primaryKeyName = attributes.get(idx++);
