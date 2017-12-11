@@ -83,6 +83,7 @@ public final class SqlGeneratorConfig {
   /**
    * 解析sqlProvider
    */
+  @SuppressWarnings("unchecked")
   private static void parseSqlProvider(SqlGeneratorConfig config) {
     Class<?> baseClass = config.getBaseMapperClass();
     com.qiuyj.tools.mybatis.SqlProvider sqlProviderAnno = //
@@ -92,7 +93,11 @@ public final class SqlGeneratorConfig {
       sqlProviderStr = sqlProviderAnno.value();
     if ("".equals(sqlProviderStr))
       sqlProviderStr = "com.qiuyj.tools.mybatis.build.SqlProvider";
-    config.baseSqlProvider = ReflectionUtils.instantiateClass(sqlProviderStr);
+    config.baseSqlProvider = ReflectionUtils.instantiateClass(
+        (Class<SqlProvider>) ClassUtils.resolveClassName(sqlProviderStr, SqlGeneratorConfig.class.getClassLoader()),
+        new Object[] {config.databaseType},
+        new Class<?>[] {Database.class}
+    );
   }
 
   public Database getDatabaseType() {

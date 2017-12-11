@@ -4,6 +4,10 @@ import com.qiuyj.tools.mybatis.BeanExampleResolver;
 import com.qiuyj.tools.mybatis.PropertyColumnMapping;
 import com.qiuyj.tools.mybatis.SqlInfo;
 import com.qiuyj.tools.mybatis.build.customer.BatchDeleteParameterObjectResolver;
+import com.qiuyj.tools.mybatis.build.dialect.MySqlDialect;
+import com.qiuyj.tools.mybatis.build.dialect.OracleDialect;
+import com.qiuyj.tools.mybatis.build.dialect.SqlDialect;
+import com.qiuyj.tools.mybatis.config.Database;
 import org.apache.ibatis.jdbc.SQL;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.mapping.ParameterMapping;
@@ -21,6 +25,22 @@ import java.util.List;
  */
 public class SqlProvider {
   public static final String PREPARE_FLAG = "?";
+  private final SqlDialect sqlDialect;
+
+  /**
+   * 这里传入一个Database的参数，那么可以通过这个Database判断当前数据库的类型
+   * 同时如果用户继承了SqlProvider实现自己的SqlProvider，那么该参数也可以给用户判断数据库
+   */
+  public SqlProvider(Database databaseType) {
+    switch (databaseType) {
+      case ORACLE:
+        sqlDialect = new OracleDialect();
+        break;
+      case MYSQL:
+      default:
+        sqlDialect = new MySqlDialect();
+    }
+  }
 
   public ReturnValueWrapper insert(MappedStatement ms, SqlInfo sqlInfo) {
     // 不建议以下这种方式创建SQL，这样会增加编译之后的字节码文件数量
@@ -34,13 +54,13 @@ public class SqlProvider {
         INTO_VALUES(prepareColumnValues);
       }
     };*/
-    String[] prepareColumnValues = new String[sqlInfo.getFiledCount()];
+    String[] prepareColumnValues = new String[sqlInfo.getFieldCount()];
     Arrays.fill(prepareColumnValues, PREPARE_FLAG);
     String sql = new SQL().INSERT_INTO(sqlInfo.getTableName())
                           .INTO_COLUMNS(sqlInfo.getAllColumnsWithoutAlias())
                           .INTO_VALUES(prepareColumnValues)
                           .toString();
-    List<ParameterMapping> parameterMappings = new ArrayList<>(sqlInfo.getFiledCount());
+    List<ParameterMapping> parameterMappings = new ArrayList<>(sqlInfo.getFieldCount());
     TypeHandlerRegistry reg = ms.getConfiguration().getTypeHandlerRegistry();
     ParameterMapping.Builder parameterBuilder;
     for (PropertyColumnMapping mapping : sqlInfo.getPropertyColumnMappings()) {
@@ -93,7 +113,9 @@ public class SqlProvider {
         .append(sqlInfo.getPrimaryKey().getDatabaseColumnName())
         .append(" IN ")
         .toString();
-    return new ReturnValueWrapper(new StaticTextSqlNode(sql), new BatchDeleteParameterObjectResolver());
+    // 这里生成的sql仅仅是 DELETE FROM table_name WHERE primary_key_name IN
+    // 后面的条件交给BatchDeleteParameterObjectResolver去通过反射生成
+    return new ReturnValueWrapper(new StaticTextSqlNode(sql), BatchDeleteParameterObjectResolver.getInstance());
   }
 
   public ReturnValueWrapper update(MappedStatement ms, SqlInfo sqlInfo, Object args) {
@@ -151,6 +173,10 @@ public class SqlProvider {
     }
   }
 
+  public ReturnValueWrapper batchInsert(MappedStatement ms, SqlInfo sqlInfo) {
+    return sqlDialect.batchInsert(ms.getConfiguration(), sqlInfo);
+  }
+
   /**
    * 检查如果没有主键，那么就抛出异常
    */
@@ -166,4 +192,5 @@ public class SqlProvider {
     if (beanType != args.getClass())
       throw new IllegalArgumentException("Parameter must be " + beanType + " only");
   }
+
 }

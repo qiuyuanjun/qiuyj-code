@@ -119,7 +119,7 @@ public final class SqlInfo {
     withoutPrimaryKey.add(column);
   }
 
-  public int getFiledCount() {
+  public int getFieldCount() {
     return fieldCount;
   }
 

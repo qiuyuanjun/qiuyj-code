@@ -1,10 +1,13 @@
 package com.qiuyj.tools.mybatis.build.customer;
 
+import com.qiuyj.tools.ReflectionUtils;
 import com.qiuyj.tools.mybatis.SqlInfo;
 import org.apache.ibatis.mapping.ParameterMapping;
 import org.apache.ibatis.scripting.xmltags.SqlNode;
+import org.apache.ibatis.scripting.xmltags.StaticTextSqlNode;
 import org.apache.ibatis.session.Configuration;
 
+import java.lang.reflect.Field;
 import java.util.List;
 
 /**
@@ -26,4 +29,22 @@ public interface CustomizedParameterObjectResolver {
                                                 SqlInfo sqlInfo,
                                                 Object paramObj,
                                                 SqlNode sqlNode);
+
+  /**
+   * 重新设置StaticTextSqlNode的text属性的值
+   * @param staticNode 要设置的StaticTextSqlNode对象
+   * @param append 要追加的sql值
+   */
+  default void resetStaticSqlNode(StaticTextSqlNode staticNode, String append) {
+    // 最后通过反射修改SqlNode里面的sql
+    Field textField = ReflectionUtils.getDeclaredField(staticNode.getClass(), "text");
+    // 由于StaticTextSqlNode里面的text属性是final类型的，所以这里需要设置accessible
+    textField.setAccessible(true);
+    try {
+      String origin = (String) textField.get(staticNode);
+      textField.set(staticNode, origin + append);
+    } catch (IllegalAccessException e) {
+      // ignore
+    }
+  }
 }

@@ -1,6 +1,5 @@
 package com.qiuyj.tools.mybatis.build.customer;
 
-import com.qiuyj.tools.ReflectionUtils;
 import com.qiuyj.tools.mybatis.SqlInfo;
 import com.qiuyj.tools.mybatis.build.ParameterResolver;
 import com.qiuyj.tools.mybatis.build.SqlProvider;
@@ -12,7 +11,6 @@ import org.apache.ibatis.type.BaseTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 
 import java.lang.reflect.Array;
-import java.lang.reflect.Field;
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -26,33 +24,37 @@ import java.util.StringJoiner;
  * @since 2017/12/10
  */
 public class BatchDeleteParameterObjectResolver implements CustomizedParameterObjectResolver {
+  private static final BatchDeleteParameterObjectResolver INSTANCE = new BatchDeleteParameterObjectResolver();
+  private final BatchDeleteTypeHandler batchDeleteTypeHandler;
+
+  private BatchDeleteParameterObjectResolver() {
+    batchDeleteTypeHandler = new BatchDeleteTypeHandler();
+  }
+
+  public static BatchDeleteParameterObjectResolver getInstance() {
+    return INSTANCE;
+  }
 
   @Override
   public List<ParameterMapping> resolveParameterObject(Configuration config, SqlInfo sqlInfo, Object paramObj, SqlNode sqlNode) {
     Object paramValue = ParameterResolver.resolveParameter(paramObj).getParameterValues()[0];
     int len = Array.getLength(paramValue);
-    List<ParameterMapping> parameterMappings = new ArrayList<>(len);
-    StringJoiner joiner = new StringJoiner(",", "(", ")");
-    for (int i = 0; i < len; i++) {
-      parameterMappings.add(new ParameterMapping.Builder(
-          config,
-          "array",
-          new BatchDeleteTypeHandler()
-      ).build());
-      joiner.add(SqlProvider.PREPARE_FLAG);
+    if (len == 0)
+      throw new IllegalArgumentException("Method batchDelete() parameter can not be an empty array");
+    else {
+      List<ParameterMapping> parameterMappings = new ArrayList<>(len);
+      StringJoiner joiner = new StringJoiner(",", "(", ")");
+      for (int i = 0; i < len; i++) {
+        parameterMappings.add(new ParameterMapping.Builder(
+            config,
+            "array",
+            batchDeleteTypeHandler
+        ).build());
+        joiner.add(SqlProvider.PREPARE_FLAG);
+      }
+      resetStaticSqlNode((StaticTextSqlNode) sqlNode, joiner.toString());
+      return parameterMappings;
     }
-    StaticTextSqlNode staticNode = (StaticTextSqlNode) sqlNode;
-    // 最后通过反射修改SqlNode里面的sql
-    Field textField = ReflectionUtils.getDeclaredField(staticNode.getClass(), "text");
-    // 由于StaticTextSqlNode里面的text属性是final类型的，所以这里需要设置accessible
-    textField.setAccessible(true);
-    try {
-      String origin = (String) textField.get(staticNode);
-      textField.set(staticNode, origin + joiner.toString());
-    } catch (IllegalAccessException e) {
-      // ignore
-    }
-    return parameterMappings;
   }
 
   private static final class BatchDeleteTypeHandler extends BaseTypeHandler<Object[]> {

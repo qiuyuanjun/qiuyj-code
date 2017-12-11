@@ -1,5 +1,6 @@
 package com.qiuyj.tools.mybatis.build;
 
+import org.apache.ibatis.binding.BindingException;
 import org.apache.ibatis.binding.MapperMethod;
 import org.apache.ibatis.session.defaults.DefaultSqlSession;
 
@@ -50,18 +51,20 @@ public class ParameterResolver {
       }
       // 这种情况是只有一个参数，但是该参数是Collection类型或者是数组
       else if (DefaultSqlSession.StrictMap.class.isInstance(parameterObject)) {
-        // 首先尝试获取一下数组
         DefaultSqlSession.StrictMap<?> sMap = (DefaultSqlSession.StrictMap<?>) parameterObject;
-        Object arr = sMap.get("array");
-        if (Objects.nonNull(arr)) {
-          parameterType = new Class<?>[] {arr.getClass()};
-          parameterObjects = new Object[] {arr};
-        }
-        // 如果不是数组，那么一定是集合类型
-        else {
-          Object collection = sMap.get("collection");
-          parameterType = new Class<?>[] {collection.getClass()};
-          parameterObjects = new Object[] {collection};
+        Object obj;
+        try {
+          // 首先尝试获取一下数组
+          obj = sMap.get("array");
+          parameterType = new Class<?>[] {obj.getClass()};
+          parameterObjects = new Object[] {obj};
+        } catch (BindingException e) {
+          // 如果抛出异常，那么表明不是数组，而是一个集合
+          // 由于mybatis的StrictMap的get方法重写了HashMap的get方法
+          // 如果get一个不存在的key，那么就会抛出异常，所以这里需要捕获BindingException异常
+          obj = sMap.get("collection");
+          parameterType = new Class<?>[] {obj.getClass()};
+          parameterObjects = new Object[] {obj};
         }
       }
       // 这种情况是只有一个参数，并且这个参数的类型就是Map类型
