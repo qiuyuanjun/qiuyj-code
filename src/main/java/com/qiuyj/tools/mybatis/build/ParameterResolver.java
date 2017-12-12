@@ -1,6 +1,5 @@
 package com.qiuyj.tools.mybatis.build;
 
-import org.apache.ibatis.binding.BindingException;
 import org.apache.ibatis.binding.MapperMethod;
 import org.apache.ibatis.session.defaults.DefaultSqlSession;
 
@@ -53,7 +52,20 @@ public class ParameterResolver {
       else if (DefaultSqlSession.StrictMap.class.isInstance(parameterObject)) {
         DefaultSqlSession.StrictMap<?> sMap = (DefaultSqlSession.StrictMap<?>) parameterObject;
         Object obj;
-        try {
+        // 根据mybatis对参数的封装，这里的StrictMap的size只有两种可能
+        // 要么是2，要么是1
+        if (sMap.size() == 2) {
+          // 如果size为2，那么表明一定是集合类型
+          obj = sMap.get("collection");
+        } else {
+          // 否则，size为1，那么可能有两种情况，
+          // 要么是一个数组，要么是一个Collection类型的集合
+          // 但是这里可以不用管，直接获取map的values
+          obj = sMap.values().toArray()[0];
+        }
+        parameterType = new Class<?>[] {obj.getClass()};
+        parameterObjects = new Object[] {obj};
+        /*try {
           // 首先尝试获取一下数组
           obj = sMap.get("array");
           parameterType = new Class<?>[] {obj.getClass()};
@@ -65,7 +77,7 @@ public class ParameterResolver {
           obj = sMap.get("collection");
           parameterType = new Class<?>[] {obj.getClass()};
           parameterObjects = new Object[] {obj};
-        }
+        }*/
       }
       // 这种情况是只有一个参数，并且这个参数的类型就是Map类型
       else {

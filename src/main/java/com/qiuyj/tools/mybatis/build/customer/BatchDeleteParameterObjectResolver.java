@@ -44,12 +44,13 @@ public class BatchDeleteParameterObjectResolver implements CustomizedParameterOb
     else {
       List<ParameterMapping> parameterMappings = new ArrayList<>(len);
       StringJoiner joiner = new StringJoiner(",", "(", ")");
+      ParameterMapping canonic = new ParameterMapping.Builder(
+          config,
+          "array",
+          batchDeleteTypeHandler
+      ).build();
       for (int i = 0; i < len; i++) {
-        parameterMappings.add(new ParameterMapping.Builder(
-            config,
-            "array",
-            batchDeleteTypeHandler
-        ).build());
+        parameterMappings.add(canonic);
         joiner.add(SqlProvider.PREPARE_FLAG);
       }
       resetStaticSqlNode((StaticTextSqlNode) sqlNode, joiner.toString());

@@ -26,8 +26,8 @@ import java.util.StringJoiner;
  */
 public class MysqlBatchInsertParameterObjectResolver implements CustomizedParameterObjectResolver {
   private static MysqlBatchInsertParameterObjectResolver INSTANCE = new MysqlBatchInsertParameterObjectResolver();
-  private static SqlInfo sqlInfo;
-  private static Configuration config;
+  private static volatile SqlInfo sqlInfo;
+  private static volatile Configuration config;
 
   private final MysqlBatchInsertTypeHandler batchInsertTypeHandler;
 
@@ -50,13 +50,14 @@ public class MysqlBatchInsertParameterObjectResolver implements CustomizedParame
       StringJoiner grammaJoiner = new StringJoiner(",");
       StringJoiner valueJoiner = new StringJoiner(",", "(", ")");
       List<ParameterMapping> singleInstanceParameterMapping = new ArrayList<>(sqlInfo.getFieldCount());
+      ParameterMapping canonic = new ParameterMapping.Builder(
+          config,
+          "list",
+          batchInsertTypeHandler
+      ).build();
       for (PropertyColumnMapping propertyColumnMapping : sqlInfo.getPropertyColumnMappings()) {
         valueJoiner.add(SqlProvider.PREPARE_FLAG);
-        singleInstanceParameterMapping.add(new ParameterMapping.Builder(
-            config,
-            "list",
-            batchInsertTypeHandler
-        ).build());
+        singleInstanceParameterMapping.add(canonic);
       }
       List<ParameterMapping> allParameterMappings = new ArrayList<>(sqlInfo.getFieldCount() * list.size());
       String value = valueJoiner.toString();

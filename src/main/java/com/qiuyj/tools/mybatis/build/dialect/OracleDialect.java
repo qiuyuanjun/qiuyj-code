@@ -14,6 +14,6 @@ public class OracleDialect implements SqlDialect {
 
   @Override
   public ReturnValueWrapper batchInsert(Configuration configuration, SqlInfo sqlInfo) {
-    return new ReturnValueWrapper(new StaticTextSqlNode("INSERT ALL "), new OracleBatchInsertParameterObjectResolver());
+    return new ReturnValueWrapper(new StaticTextSqlNode("INSERT ALL"), OracleBatchInsertParameterObjectResolver.getInstance());
   }
 }
