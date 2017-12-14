@@ -1,5 +1,7 @@
 package com.qiuyj.tools.mybatis;
 
+import org.apache.ibatis.type.TypeHandler;
+
 /**
  * @author qiuyj
  * @since 2017/11/15
@@ -8,7 +10,7 @@ public class PropertyColumnMapping {
   private String javaClassPropertyName;
   private String databaseColumnName;
   private Object value;
-  private Class<?> javaType;
+  private TypeHandler typeHandler;
 
   public PropertyColumnMapping() {}
 
@@ -22,9 +24,9 @@ public class PropertyColumnMapping {
     this.value = value;
   }
 
-  public PropertyColumnMapping(String javaClassPropertyName, String databaseColumnName, Class<?> javaType) {
+  public PropertyColumnMapping(String javaClassPropertyName, String databaseColumnName, TypeHandler typeHandler) {
     this(javaClassPropertyName, databaseColumnName);
-    this.javaType = javaType;
+    this.typeHandler = typeHandler;
   }
 
   public String getJavaClassPropertyName() {
@@ -51,12 +53,12 @@ public class PropertyColumnMapping {
     this.value = value;
   }
 
-  public Class<?> getJavaType() {
-    return javaType;
+  public TypeHandler getTypeHandler() {
+    return typeHandler;
   }
 
-  public void setJavaType(Class<?> javaType) {
-    this.javaType = javaType;
+  public void setTypeHandler(TypeHandler typeHandler) {
+    this.typeHandler = typeHandler;
   }
 
   @Override

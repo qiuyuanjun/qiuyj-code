@@ -13,8 +13,9 @@ import java.lang.reflect.Modifier;
 public class StaticConditionChecker implements ConditionChecker {
 
   @Override
-  public int doCheck(Field field, SqlInfo sqlInfo) {
-    return Modifier.isStatic(field.getModifiers()) //
+  public ReturnValue doCheck(Field field, SqlInfo sqlInfo, ReturnValue preRv) {
+    preRv.intValue = Modifier.isStatic(field.getModifiers())
         ? ConditionChecker.BREAK_CURRENT : ConditionChecker.CONTINUE_EXECUTION;
+    return preRv;
   }
 }

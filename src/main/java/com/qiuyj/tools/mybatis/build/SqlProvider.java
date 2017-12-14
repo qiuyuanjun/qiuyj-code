@@ -67,7 +67,7 @@ public class SqlProvider {
       parameterBuilder =
           new ParameterMapping.Builder(ms.getConfiguration(),
                                        mapping.getJavaClassPropertyName(),
-                                       reg.getTypeHandler(mapping.getJavaType()));
+                                       mapping.getTypeHandler());
       parameterMappings.add(parameterBuilder.build());
     }
     return new ReturnValueWrapper(new StaticTextSqlNode(sql), parameterMappings);
@@ -99,7 +99,7 @@ public class SqlProvider {
     parameterMappings.add(new ParameterMapping.Builder(
             config,
             primaryKey.getJavaClassPropertyName(),
-            primaryKey.getJavaType()
+            primaryKey.getTypeHandler()
         ).build()
     );
     return new ReturnValueWrapper(new StaticTextSqlNode(sql), parameterMappings);
@@ -144,7 +144,7 @@ public class SqlProvider {
         parameterMappings.add(new ParameterMapping.Builder(
             ms.getConfiguration(),
             sqlInfo.getPrimaryKey().getJavaClassPropertyName(),
-            sqlInfo.getPrimaryKey().getJavaType()
+            sqlInfo.getPrimaryKey().getTypeHandler()
         ).build());
         return new ReturnValueWrapper(new StaticTextSqlNode(sql.toString()), parameterMappings);
       }

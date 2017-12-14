@@ -8,7 +8,6 @@ import com.qiuyj.tools.mybatis.SqlInfo;
 import com.qiuyj.tools.mybatis.annotation.Column;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.Objects;
 
 /**
@@ -19,7 +18,7 @@ import java.util.Objects;
 public class ColumnAnnotationChecker implements ConditionChecker {
 
   @Override
-  public int doCheck(Field field, SqlInfo sqlInfo) {
+  public ReturnValue doCheck(Field field, SqlInfo sqlInfo, ReturnValue preRv) {
     String columnName = null;
     Column column = AnnotationUtils.findAnnotation(field, Column.class);
     if (Objects.nonNull(column))
@@ -27,8 +26,9 @@ public class ColumnAnnotationChecker implements ConditionChecker {
     else {
       // 查找对应的getter方法
       try {
-        Method getter = ReflectionUtils.getDeclaredMethod(sqlInfo.getBeanType(), fieldToGetterName(field), field.getType());
-        column = AnnotationUtils.findAnnotation(getter, Column.class);
+        if (Objects.isNull(preRv.fieldMethod))
+          preRv.fieldMethod = ReflectionUtils.getDeclaredMethod(sqlInfo.getBeanType(), fieldToGetterName(field), field.getType());
+        column = AnnotationUtils.findAnnotation(preRv.fieldMethod, Column.class);
         if (Objects.nonNull(column))
           columnName = column.value();
       } catch (IllegalStateException e) {
@@ -37,7 +37,14 @@ public class ColumnAnnotationChecker implements ConditionChecker {
     }
     if (StringUtils.isBlank(columnName))
       columnName = StringUtils.camelCaseToUnderscore(field.getName());
-    sqlInfo.addPropertyColumn(new PropertyColumnMapping(field.getName(), columnName, getFieldJavaType(field)));
-    return ConditionChecker.CONTINUE_EXECUTION;
+    sqlInfo.setPrimaryKey(
+        new PropertyColumnMapping(
+            field.getName(),
+            columnName,
+            sqlInfo.getConfiguration().getTypeHandlerRegistry().getTypeHandler(getFieldJavaType(field))
+        )
+    );
+    preRv.intValue = ConditionChecker.CONTINUE_EXECUTION;
+    return preRv;
   }
 }

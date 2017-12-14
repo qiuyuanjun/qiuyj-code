@@ -4,6 +4,7 @@ import com.qiuyj.tools.ClassUtils;
 import com.qiuyj.tools.ReflectionUtils;
 import com.qiuyj.tools.mybatis.checker.CheckerChain;
 import com.qiuyj.tools.mybatis.mapper.Mapper;
+import org.apache.ibatis.session.Configuration;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
  * @since 2017/11/15
  */
 public final class SqlInfo {
+  private final Configuration configuration;
   private String tableName;
   private final List<PropertyColumnMapping> withoutPrimaryKey = new ArrayList<>();
   private PropertyColumnMapping primaryKey;
@@ -30,7 +32,8 @@ public final class SqlInfo {
   private String[] allColumnsWithoutAlias;
   private String[] allColumnValues;
 
-  public SqlInfo(Class<? extends Mapper> mapperClass, final CheckerChain chain) {
+  public SqlInfo(Class<? extends Mapper> mapperClass, final CheckerChain chain, Configuration configuration) {
+    this.configuration = configuration;
     // 得到泛型，这里Mapper会有两个泛型，第一个表示主键，第二个才是正真运行时候的实体类
     // public interface Mapper<ID, T> {}
     beanType = ReflectionUtils.getParameterizedTypesAsClass(mapperClass)[1];
@@ -179,5 +182,21 @@ public final class SqlInfo {
     rt.addAll(withoutPrimaryKey);
     rt.add(0, primaryKey);
     return rt;
+  }
+
+  public PropertyColumnMapping getPropertyColumnMappingByPropertyName(String javaPropertyName) {
+    List<PropertyColumnMapping> pcmList = withoutPrimaryKey.stream()
+        .filter(pcm -> pcm.getJavaClassPropertyName().equals(javaPropertyName))
+        .collect(Collectors.toList());
+    if (pcmList.isEmpty()) {
+      if (!primaryKey.getJavaClassPropertyName().equals(javaPropertyName))
+        throw new IllegalStateException("Can not find PropertyColumnMapping with propertyName: " + javaPropertyName);
+      return primaryKey;
+    } else
+      return pcmList.get(0);
+  }
+
+  public Configuration getConfiguration() {
+    return configuration;
   }
 }

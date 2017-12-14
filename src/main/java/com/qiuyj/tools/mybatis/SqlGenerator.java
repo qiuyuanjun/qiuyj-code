@@ -48,7 +48,7 @@ public class SqlGenerator implements Interceptor {
       Method mapperMethod = resolver.getMapperDeclaredMethod(mapperClass, methodStr, parameterObject);
       if (resolver.isMapperMethod(mapperMethod)) {
         // 解析mapper接口，得到对应的sql信息
-        engine.analysis(mapperClass);
+        engine.analysis(mapperClass, ms.getConfiguration());
         // 生成对应的sql
         engine.generateSql(ms, mapperClass, mapperMethod, parameterObject);
       }

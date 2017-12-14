@@ -9,7 +9,6 @@ import com.qiuyj.tools.mybatis.annotation.Column;
 import com.qiuyj.tools.mybatis.annotation.PrimaryKey;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.Objects;
 
 /**
@@ -20,13 +19,13 @@ import java.util.Objects;
 public class PrimaryKeyAnnotationChecker implements ConditionChecker {
 
   @Override
-  public int doCheck(Field field, SqlInfo sqlInfo) {
+  public ReturnValue doCheck(Field field, SqlInfo sqlInfo, ReturnValue preRv) {
     boolean hasPrimaryKey = AnnotationUtils.hasAnnotation(field, PrimaryKey.class);
-    Method getter = null;
     if (!hasPrimaryKey) {
       try {
-        getter = ReflectionUtils.getDeclaredMethod(sqlInfo.getBeanType(), fieldToGetterName(field), field.getType());
-        hasPrimaryKey = AnnotationUtils.hasAnnotation(getter, PrimaryKey.class);
+        if (Objects.isNull(preRv.fieldMethod))
+          preRv.fieldMethod = ReflectionUtils.getDeclaredMethod(sqlInfo.getBeanType(), fieldToGetterName(field), field.getType());
+        hasPrimaryKey = AnnotationUtils.hasAnnotation(preRv.fieldMethod, PrimaryKey.class);
       } catch (IllegalStateException e) {
         // ignore
       }
@@ -37,14 +36,14 @@ public class PrimaryKeyAnnotationChecker implements ConditionChecker {
       if (Objects.nonNull(column))
         columnName = column.value();
       else {
-        if (Objects.isNull(getter)) {
+        if (Objects.isNull(preRv.fieldMethod)) {
           try {
-            getter = ReflectionUtils.getDeclaredMethod(sqlInfo.getBeanType(), fieldToGetterName(field), field.getType());
+            preRv.fieldMethod = ReflectionUtils.getDeclaredMethod(sqlInfo.getBeanType(), fieldToGetterName(field), field.getType());
           } catch (IllegalStateException e) {
             // ignore
           }
-          if (Objects.nonNull(getter)) {
-            column = AnnotationUtils.findAnnotation(getter, Column.class);
+          if (Objects.nonNull(preRv.fieldMethod)) {
+            column = AnnotationUtils.findAnnotation(preRv.fieldMethod, Column.class);
             if (Objects.nonNull(column))
               columnName = column.value();
           }
@@ -52,9 +51,16 @@ public class PrimaryKeyAnnotationChecker implements ConditionChecker {
       }
       if (StringUtils.isBlank(columnName))
         columnName = StringUtils.camelCaseToUnderscore(field.getName());
-      sqlInfo.setPrimaryKey(new PropertyColumnMapping(field.getName(), columnName, getFieldJavaType(field)));
-      return ConditionChecker.SKIP_ONE;
+      sqlInfo.setPrimaryKey(
+          new PropertyColumnMapping(
+              field.getName(),
+              columnName,
+              sqlInfo.getConfiguration().getTypeHandlerRegistry().getTypeHandler(getFieldJavaType(field))
+          )
+      );
+      preRv.intValue = ConditionChecker.SKIP_ONE;
     } else
-      return ConditionChecker.CONTINUE_EXECUTION;
+      preRv.intValue = ConditionChecker.CONTINUE_EXECUTION;
+    return preRv;
   }
 }

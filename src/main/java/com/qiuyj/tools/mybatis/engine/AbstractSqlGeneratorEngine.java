@@ -10,6 +10,7 @@ import com.qiuyj.tools.mybatis.mapper.Mapper;
 import org.apache.ibatis.builder.annotation.ProviderSqlSource;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.reflection.MetaObject;
+import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.defaults.DefaultSqlSession;
 
 import java.lang.reflect.Method;
@@ -35,7 +36,7 @@ public abstract class AbstractSqlGeneratorEngine implements SqlGeneratorEngine {
   }
 
   @Override
-  public void analysis(Class<? extends Mapper<?, ?>> actualMapperClass) {
+  public void analysis(Class<? extends Mapper<?, ?>> actualMapperClass, Configuration configuration) {
     if (!sqlInfos.containsKey(actualMapperClass)) {
       synchronized (sqlInfoLock) {
         if (!sqlInfos.containsKey(actualMapperClass)) {
@@ -44,7 +45,7 @@ public abstract class AbstractSqlGeneratorEngine implements SqlGeneratorEngine {
            * 所以这里一定要将结果缓存起来
            * 实验证明，缓存结果将换来将近10倍的性能提升
            */
-          SqlInfo mapperSqlInfo = new SqlInfo(actualMapperClass, chain);
+          SqlInfo mapperSqlInfo = new SqlInfo(actualMapperClass, chain, configuration);
           sqlInfos.put(actualMapperClass, mapperSqlInfo);
         }
       }

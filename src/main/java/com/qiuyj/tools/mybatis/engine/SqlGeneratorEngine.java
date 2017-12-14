@@ -4,6 +4,7 @@ import com.qiuyj.tools.mybatis.MapperMethodResolver;
 import com.qiuyj.tools.mybatis.config.SqlGeneratorConfig;
 import com.qiuyj.tools.mybatis.mapper.Mapper;
 import org.apache.ibatis.mapping.MappedStatement;
+import org.apache.ibatis.session.Configuration;
 
 import java.lang.reflect.Method;
 
@@ -38,5 +39,5 @@ public interface SqlGeneratorEngine {
   /**
    * 分析mapper
    */
-  void analysis(Class<? extends Mapper<?, ?>> actualMapperClass);
+  void analysis(Class<? extends Mapper<?, ?>> actualMapperClass, Configuration configuration);
 }

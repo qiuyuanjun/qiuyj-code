@@ -11,8 +11,9 @@ import java.lang.reflect.Field;
 public class FieldCountConditionChecker implements ConditionChecker {
 
   @Override
-  public int doCheck(Field field, SqlInfo sqlInfo) {
+  public ReturnValue doCheck(Field field, SqlInfo sqlInfo, ReturnValue preRv) {
     sqlInfo.fieldCountIncrement();
-    return ConditionChecker.CONTINUE_EXECUTION;
+    preRv.intValue = ConditionChecker.CONTINUE_EXECUTION;
+    return preRv;
   }
 }

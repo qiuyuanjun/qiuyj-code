@@ -16,7 +16,7 @@ import java.util.Objects;
 public class TableAnnotationChecker implements ConditionChecker {
 
   @Override
-  public int doCheck(Field field, SqlInfo sqlInfo) {
+  public ReturnValue doCheck(Field field, SqlInfo sqlInfo, ReturnValue rv) {
     /*
      * 这么判断是为了防止在循环所有的Field的时候都要执行下面的代码
      */
@@ -28,6 +28,6 @@ public class TableAnnotationChecker implements ConditionChecker {
       if (StringUtils.isBlank(sqlInfo.getTableName()))
         sqlInfo.setTableName(StringUtils.camelCaseToUnderscore(beanType.getSimpleName()));
     }
-    return ConditionChecker.CONTINUE_EXECUTION;
+    return new ReturnValue(ConditionChecker.CONTINUE_EXECUTION);
   }
 }

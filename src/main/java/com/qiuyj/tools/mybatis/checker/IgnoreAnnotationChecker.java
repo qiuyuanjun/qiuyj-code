@@ -16,17 +16,19 @@ import java.lang.reflect.Method;
 public class IgnoreAnnotationChecker implements ConditionChecker {
 
   @Override
-  public int doCheck(Field field, SqlInfo sqlInfo) {
+  public ReturnValue doCheck(Field field, SqlInfo sqlInfo, ReturnValue preRv) {
     boolean hasIgnoreAnnotation = AnnotationUtils.hasAnnotation(field, Ignore.class);
     if (!hasIgnoreAnnotation) {
       // 如果当前属性（Field）上没有@Ignore，那么判断对应的setter方法上是否有@Ignore
       try {
         Method getter = ReflectionUtils.getDeclaredMethod(sqlInfo.getBeanType(), fieldToGetterName(field), field.getType());
+        preRv.fieldMethod = getter;
         hasIgnoreAnnotation = AnnotationUtils.hasAnnotation(getter, Ignore.class);
       } catch (IllegalStateException e) {
         // ignore
       }
     }
-    return hasIgnoreAnnotation ? ConditionChecker.BREAK_CURRENT : ConditionChecker.CONTINUE_EXECUTION;
+    preRv.intValue = hasIgnoreAnnotation ? ConditionChecker.BREAK_CURRENT : ConditionChecker.CONTINUE_EXECUTION;
+    return preRv;
   }
 }

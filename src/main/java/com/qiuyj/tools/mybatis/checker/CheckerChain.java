@@ -22,6 +22,7 @@ public final class CheckerChain {
     chain.add(new FieldCountConditionChecker());
     chain.add(new PrimaryKeyAnnotationChecker());
     chain.add(new ColumnAnnotationChecker());
+    chain.add(new EnumTypeConditionChecker());
   }
 
   /**
@@ -29,13 +30,14 @@ public final class CheckerChain {
    */
   public void checkAll(Field field, SqlInfo sqlInfo) {
     Iterator<ConditionChecker> it = chain.iterator();
+    ConditionChecker.ReturnValue rv = null;
     while (it.hasNext()) {
       ConditionChecker next = it.next();
-      int continueExecution = next.doCheck(field, sqlInfo);
-      if (continueExecution < 0)
+      rv = next.doCheck(field, sqlInfo, rv);
+      if (rv.intValue < 0)
         break;
-      else if (continueExecution > 0)
-        skip(continueExecution, it);
+      else if (rv.intValue > 0)
+        skip(rv.intValue, it);
     }
   }
 

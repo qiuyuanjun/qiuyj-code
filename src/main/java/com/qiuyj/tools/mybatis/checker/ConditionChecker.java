@@ -3,6 +3,7 @@ package com.qiuyj.tools.mybatis.checker;
 import com.qiuyj.tools.mybatis.SqlInfo;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
@@ -47,11 +48,26 @@ public interface ConditionChecker {
    * 检查对应的javabean的属性是否满足对应的关系
    * @param field 属性的Field对象
    * @param sqlInfo 当前bean的sqlInfo对象
+   * @param rv 上一个检查器的返回值，第一个检查器，该值为null
    * @return {int} 如果返回-1，那么就不会继续执行剩下的检查器了，
    *    如果返回0，那么就继续执行剩下的检查器
    *    如果返回大于0的整数，那么表示跳过后面的几个检查器继续执行剩下的检查器（可能会发生异常，如果返回的n大于剩下的检查器的个数）
    */
-  int doCheck(Field field, SqlInfo sqlInfo);
+  ReturnValue doCheck(Field field, SqlInfo sqlInfo, ReturnValue rv);
+
+  final class ReturnValue {
+    public int intValue;
+    public Method fieldMethod;
+
+    ReturnValue(int intValue) {
+      this.intValue = intValue;
+    }
+
+    ReturnValue(int intValue, Method fieldMethod) {
+      this(intValue);
+      this.fieldMethod = fieldMethod;
+    }
+  }
 
   /**
    * 将一个属性按照javabean规范转换成对应的getter方法名
