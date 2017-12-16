@@ -1,5 +1,6 @@
 package com.qiuyj.tools.mybatis.build.customer;
 
+import com.qiuyj.tools.mybatis.PropertyColumnMapping;
 import com.qiuyj.tools.mybatis.SqlInfo;
 import com.qiuyj.tools.mybatis.build.ParameterResolver;
 import com.qiuyj.tools.mybatis.build.SqlProvider;
@@ -9,6 +10,8 @@ import org.apache.ibatis.scripting.xmltags.SqlNode;
 import org.apache.ibatis.scripting.xmltags.StaticTextSqlNode;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.type.BaseTypeHandler;
+import org.apache.ibatis.type.EnumOrdinalTypeHandler;
+import org.apache.ibatis.type.EnumTypeHandler;
 import org.apache.ibatis.type.JdbcType;
 
 import java.sql.CallableStatement;
@@ -81,6 +84,7 @@ public class OracleBatchInsertParameterObjectResolver implements CustomizedParam
   public static final class OracleBatchInsertTypeHandler extends BaseTypeHandler<List> {
 
     @Override
+    @SuppressWarnings("unchecked")
     public void setNonNullParameter(PreparedStatement ps, int i, List parameter, JdbcType jdbcType) throws SQLException {
       // 首先判断当前占位符是属于List集合的第几个元素
       int idx = i - 1;
@@ -91,8 +95,15 @@ public class OracleBatchInsertParameterObjectResolver implements CustomizedParam
       Object obj = parameter.get(instanceIdx);
       // 得到对应实体类的反射对象（MetaObject）方便后面获取值
       MetaObject objMeta = OracleBatchInsertParameterObjectResolver.config.newMetaObject(obj);
-      String name = OracleBatchInsertParameterObjectResolver.sqlInfo.getPropertyColumnMappings().get(parameterIdx).getJavaClassPropertyName();
-      ps.setObject(i, objMeta.getValue(name));
+      PropertyColumnMapping pcm = OracleBatchInsertParameterObjectResolver.sqlInfo.getPropertyColumnMappings().get(parameterIdx);
+      Object value = objMeta.getValue(pcm.getJavaClassPropertyName());
+      // 如果是枚举类型，那么需要使用枚举类型的typeHandler设置值
+      if (pcm.getTypeHandler() instanceof EnumOrdinalTypeHandler
+          || pcm.getTypeHandler() instanceof EnumTypeHandler)
+        pcm.getTypeHandler().setParameter(ps, i, value, pcm.getJdbcType());
+      // 否则直接setObject即可
+      else
+        ps.setObject(i, value);
     }
 
     @Override

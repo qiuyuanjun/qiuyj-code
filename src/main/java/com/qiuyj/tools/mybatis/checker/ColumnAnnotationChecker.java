@@ -27,7 +27,7 @@ public class ColumnAnnotationChecker implements ConditionChecker {
       // 查找对应的getter方法
       try {
         if (Objects.isNull(preRv.fieldMethod))
-          preRv.fieldMethod = ReflectionUtils.getDeclaredMethod(sqlInfo.getBeanType(), fieldToGetterName(field), field.getType());
+          preRv.fieldMethod = ReflectionUtils.getDeclaredMethod(sqlInfo.getBeanType(), fieldToGetterName(field));
         column = AnnotationUtils.findAnnotation(preRv.fieldMethod, Column.class);
         if (Objects.nonNull(column))
           columnName = column.value();
@@ -37,7 +37,7 @@ public class ColumnAnnotationChecker implements ConditionChecker {
     }
     if (StringUtils.isBlank(columnName))
       columnName = StringUtils.camelCaseToUnderscore(field.getName());
-    sqlInfo.setPrimaryKey(
+    sqlInfo.addPropertyColumn(
         new PropertyColumnMapping(
             field.getName(),
             columnName,

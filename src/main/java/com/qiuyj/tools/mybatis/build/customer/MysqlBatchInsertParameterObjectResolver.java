@@ -9,8 +9,7 @@ import org.apache.ibatis.reflection.MetaObject;
 import org.apache.ibatis.scripting.xmltags.SqlNode;
 import org.apache.ibatis.scripting.xmltags.StaticTextSqlNode;
 import org.apache.ibatis.session.Configuration;
-import org.apache.ibatis.type.BaseTypeHandler;
-import org.apache.ibatis.type.JdbcType;
+import org.apache.ibatis.type.*;
 
 import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
@@ -74,6 +73,7 @@ public class MysqlBatchInsertParameterObjectResolver implements CustomizedParame
   private static final class MysqlBatchInsertTypeHandler extends BaseTypeHandler<List> {
 
     @Override
+    @SuppressWarnings("unchecked")
     public void setNonNullParameter(PreparedStatement ps, int i, List parameter, JdbcType jdbcType) throws SQLException {
       // 首先判断当前占位符是属于List集合的第几个元素
       int idx = i - 1;
@@ -84,8 +84,15 @@ public class MysqlBatchInsertParameterObjectResolver implements CustomizedParame
       Object obj = parameter.get(instanceIdx);
       // 得到对应实体类的反射对象（MetaObject）方便后面获取值
       MetaObject objMeta = MysqlBatchInsertParameterObjectResolver.config.newMetaObject(obj);
-      String name = MysqlBatchInsertParameterObjectResolver.sqlInfo.getPropertyColumnMappings().get(parameterIdx).getJavaClassPropertyName();
-      ps.setObject(i, objMeta.getValue(name));
+      PropertyColumnMapping pcm = MysqlBatchInsertParameterObjectResolver.sqlInfo.getPropertyColumnMappings().get(parameterIdx);
+      Object value = objMeta.getValue(pcm.getJavaClassPropertyName());
+      // 如果是枚举类型，那么需要使用枚举类型的typeHandler设置值
+      if (pcm.getTypeHandler() instanceof EnumOrdinalTypeHandler
+            || pcm.getTypeHandler() instanceof EnumTypeHandler)
+        pcm.getTypeHandler().setParameter(ps, i, value, pcm.getJdbcType());
+      // 否则直接setObject即可
+      else
+        ps.setObject(i, value);
     }
 
     /**

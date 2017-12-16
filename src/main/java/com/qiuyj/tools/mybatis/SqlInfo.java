@@ -23,6 +23,7 @@ public final class SqlInfo {
   private PropertyColumnMapping primaryKey;
   private final Class<?> beanType;
   private int fieldCount;
+  private boolean hasEnumField;
 
   /*
    * 接下来的所有属性均为辅助属性
@@ -31,6 +32,7 @@ public final class SqlInfo {
   private String[] allColumnsWithAlias;
   private String[] allColumnsWithoutAlias;
   private String[] allColumnValues;
+  private List<PropertyColumnMapping> propertyColumnMappings;
 
   public SqlInfo(Class<? extends Mapper> mapperClass, final CheckerChain chain, Configuration configuration) {
     this.configuration = configuration;
@@ -41,8 +43,9 @@ public final class SqlInfo {
     /*
      * 对每一个field执行检查器链
      */
-    for (Field field : allDeclaredFields) {
-      chain.checkAll(field, this);
+    int len = allDeclaredFields.length;
+    for (int idx = 0; idx < len; idx++) {
+      chain.checkAll(allDeclaredFields[idx], this);
     }
     /*
      * 辅助属性，主键作为唯一一个条件的字符串
@@ -51,6 +54,13 @@ public final class SqlInfo {
     AllColumnsWithAlias();
     AllColumnsWithoutAlias();
     AllColumnValues();
+    PropertyColumnMappings();
+  }
+
+  private void PropertyColumnMappings() {
+    propertyColumnMappings = new ArrayList<>();
+    propertyColumnMappings.addAll(withoutPrimaryKey);
+    propertyColumnMappings.add(0, primaryKey);
   }
 
   private void AllColumnValues() {
@@ -178,10 +188,7 @@ public final class SqlInfo {
    * 得到所有的PropertyColumnMapping
    */
   public List<PropertyColumnMapping> getPropertyColumnMappings() {
-    List<PropertyColumnMapping> rt = new ArrayList<>(fieldCount);
-    rt.addAll(withoutPrimaryKey);
-    rt.add(0, primaryKey);
-    return rt;
+    return propertyColumnMappings;
   }
 
   public PropertyColumnMapping getPropertyColumnMappingByPropertyName(String javaPropertyName) {
@@ -194,6 +201,14 @@ public final class SqlInfo {
       return primaryKey;
     } else
       return pcmList.get(0);
+  }
+
+  public boolean hasEnumField() {
+    return hasEnumField;
+  }
+
+  public void setHasEnumField() {
+    hasEnumField = true;
   }
 
   public Configuration getConfiguration() {

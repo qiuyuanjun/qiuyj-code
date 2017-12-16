@@ -20,47 +20,49 @@ public class PrimaryKeyAnnotationChecker implements ConditionChecker {
 
   @Override
   public ReturnValue doCheck(Field field, SqlInfo sqlInfo, ReturnValue preRv) {
-    boolean hasPrimaryKey = AnnotationUtils.hasAnnotation(field, PrimaryKey.class);
-    if (!hasPrimaryKey) {
-      try {
-        if (Objects.isNull(preRv.fieldMethod))
-          preRv.fieldMethod = ReflectionUtils.getDeclaredMethod(sqlInfo.getBeanType(), fieldToGetterName(field), field.getType());
-        hasPrimaryKey = AnnotationUtils.hasAnnotation(preRv.fieldMethod, PrimaryKey.class);
-      } catch (IllegalStateException e) {
-        // ignore
-      }
-    }
-    if (hasPrimaryKey) {
-      String columnName = null;
-      Column column = AnnotationUtils.findAnnotation(field, Column.class);
-      if (Objects.nonNull(column))
-        columnName = column.value();
-      else {
-        if (Objects.isNull(preRv.fieldMethod)) {
-          try {
-            preRv.fieldMethod = ReflectionUtils.getDeclaredMethod(sqlInfo.getBeanType(), fieldToGetterName(field), field.getType());
-          } catch (IllegalStateException e) {
-            // ignore
-          }
-          if (Objects.nonNull(preRv.fieldMethod)) {
-            column = AnnotationUtils.findAnnotation(preRv.fieldMethod, Column.class);
-            if (Objects.nonNull(column))
-              columnName = column.value();
-          }
+    preRv.intValue = ConditionChecker.CONTINUE_EXECUTION;
+    if (!sqlInfo.hasPrimaryKey()) {
+      boolean hasPrimaryKey = AnnotationUtils.hasAnnotation(field, PrimaryKey.class);
+      if (!hasPrimaryKey) {
+        try {
+          if (Objects.isNull(preRv.fieldMethod))
+            preRv.fieldMethod = ReflectionUtils.getDeclaredMethod(sqlInfo.getBeanType(), fieldToGetterName(field));
+          hasPrimaryKey = AnnotationUtils.hasAnnotation(preRv.fieldMethod, PrimaryKey.class);
+        } catch (IllegalStateException e) {
+          // ignore
         }
       }
-      if (StringUtils.isBlank(columnName))
-        columnName = StringUtils.camelCaseToUnderscore(field.getName());
-      sqlInfo.setPrimaryKey(
-          new PropertyColumnMapping(
-              field.getName(),
-              columnName,
-              sqlInfo.getConfiguration().getTypeHandlerRegistry().getTypeHandler(getFieldJavaType(field))
-          )
-      );
-      preRv.intValue = ConditionChecker.SKIP_ONE;
-    } else
-      preRv.intValue = ConditionChecker.CONTINUE_EXECUTION;
+      if (hasPrimaryKey) {
+        String columnName = null;
+        Column column = AnnotationUtils.findAnnotation(field, Column.class);
+        if (Objects.nonNull(column))
+          columnName = column.value();
+        else {
+          if (Objects.isNull(preRv.fieldMethod)) {
+            try {
+              preRv.fieldMethod = ReflectionUtils.getDeclaredMethod(sqlInfo.getBeanType(), fieldToGetterName(field));
+            } catch (IllegalStateException e) {
+              // ignore
+            }
+            if (Objects.nonNull(preRv.fieldMethod)) {
+              column = AnnotationUtils.findAnnotation(preRv.fieldMethod, Column.class);
+              if (Objects.nonNull(column))
+                columnName = column.value();
+            }
+          }
+        }
+        if (StringUtils.isBlank(columnName))
+          columnName = StringUtils.camelCaseToUnderscore(field.getName());
+        sqlInfo.setPrimaryKey(
+            new PropertyColumnMapping(
+                field.getName(),
+                columnName,
+                sqlInfo.getConfiguration().getTypeHandlerRegistry().getTypeHandler(getFieldJavaType(field))
+            )
+        );
+        preRv.intValue = ConditionChecker.SKIP_ONE;
+      }
+    }
     return preRv;
   }
 }

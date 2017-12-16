@@ -21,11 +21,7 @@ public @interface Enumerated {
    */
   ValueType type() default ValueType.ORDINAL;
 
-  /**
-   * 如果采用的是ordinal作为数据库的值，那么该属性表示ordinal代表那种数字
-   * 可选值为TINYINT, SMALLINT, INT, BIGINT
-   */
-  JdbcType ordinalValueType() default JdbcType.TINYINT;
+  JdbcType jdbcType() default JdbcType.TINYINT;
 
   enum ValueType {
     STRING, ORDINAL

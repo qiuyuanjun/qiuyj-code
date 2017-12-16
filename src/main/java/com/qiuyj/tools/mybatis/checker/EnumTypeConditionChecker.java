@@ -5,8 +5,9 @@ import com.qiuyj.tools.ReflectionUtils;
 import com.qiuyj.tools.mybatis.PropertyColumnMapping;
 import com.qiuyj.tools.mybatis.SqlInfo;
 import com.qiuyj.tools.mybatis.annotation.Enumerated;
-import com.qiuyj.tools.mybatis.typehandler.EnumOrdinalTypeHandler;
+import org.apache.ibatis.type.EnumOrdinalTypeHandler;
 import org.apache.ibatis.type.EnumTypeHandler;
+import org.apache.ibatis.type.TypeHandler;
 
 import java.lang.reflect.Field;
 import java.util.Objects;
@@ -22,11 +23,10 @@ public class EnumTypeConditionChecker implements ConditionChecker {
   @SuppressWarnings("unchecked")
   public ReturnValue doCheck(Field field, SqlInfo sqlInfo, ReturnValue preRv) {
     Enumerated enumerated = AnnotationUtils.findAnnotation(field, Enumerated.class);
-    Class<?> type = getFieldJavaType(field);
     if (Objects.isNull(enumerated)) {
       if (Objects.isNull(preRv.fieldMethod)) {
         try {
-          preRv.fieldMethod = ReflectionUtils.getDeclaredMethod(sqlInfo.getBeanType(), fieldToGetterName(field), type);
+          preRv.fieldMethod = ReflectionUtils.getDeclaredMethod(sqlInfo.getBeanType(), fieldToGetterName(field));
         } catch (Exception e) {
           // ignore
         }
@@ -35,13 +35,14 @@ public class EnumTypeConditionChecker implements ConditionChecker {
         enumerated = AnnotationUtils.findAnnotation(preRv.fieldMethod, Enumerated.class);
     }
     if (Objects.nonNull(enumerated)) {
+      Class<?> type = getFieldJavaType(field);
       if (type.isEnum()) {
         PropertyColumnMapping enumMapping = sqlInfo.getPropertyColumnMappingByPropertyName(field.getName());
-        Enumerated.ValueType valueType = enumerated.type();
-        if (valueType == Enumerated.ValueType.ORDINAL)
-          enumMapping.setTypeHandler(new EnumOrdinalTypeHandler(type));
-        else
-          enumMapping.setTypeHandler(new EnumTypeHandler(type));
+        TypeHandler enumTypeHandlerType = enumerated.type() == Enumerated.ValueType.ORDINAL
+            ? new EnumOrdinalTypeHandler(type) : new EnumTypeHandler(type);
+        enumMapping.setTypeHandler(enumTypeHandlerType);
+        enumMapping.setJdbcType(enumerated.jdbcType());
+        sqlInfo.setHasEnumField();
       }
     }
     preRv.intValue = ConditionChecker.CONTINUE_EXECUTION;

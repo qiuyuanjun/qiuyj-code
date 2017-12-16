@@ -32,8 +32,7 @@ public final class CheckerChain {
     Iterator<ConditionChecker> it = chain.iterator();
     ConditionChecker.ReturnValue rv = null;
     while (it.hasNext()) {
-      ConditionChecker next = it.next();
-      rv = next.doCheck(field, sqlInfo, rv);
+      rv = it.next().doCheck(field, sqlInfo, rv);
       if (rv.intValue < 0)
         break;
       else if (rv.intValue > 0)
