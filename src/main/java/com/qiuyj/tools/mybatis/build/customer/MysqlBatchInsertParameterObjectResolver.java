@@ -71,7 +71,7 @@ public class MysqlBatchInsertParameterObjectResolver implements CustomizedParame
     }
   }
 
-  private boolean isJsr330DateTimeApi(Object value) {
+  private boolean isJava8DateTimeApi(Object value) {
     return TemporalAccessor.class.isInstance(value);
   }
 
@@ -100,7 +100,7 @@ public class MysqlBatchInsertParameterObjectResolver implements CustomizedParame
        */
       if (pcm.getTypeHandler() instanceof EnumOrdinalTypeHandler
             || pcm.getTypeHandler() instanceof EnumTypeHandler
-            || MysqlBatchInsertParameterObjectResolver.getInstance().isJsr330DateTimeApi(value))
+            || MysqlBatchInsertParameterObjectResolver.getInstance().isJava8DateTimeApi(value))
         pcm.getTypeHandler().setParameter(ps, i, value, pcm.getJdbcType());
       // 否则直接setObject即可
       else

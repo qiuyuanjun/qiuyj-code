@@ -82,7 +82,7 @@ public class OracleBatchInsertParameterObjectResolver implements CustomizedParam
     }
   }
 
-  private boolean isJsr330DateTimeApi(Object value) {
+  private boolean isJava8DateTimeApi(Object value) {
     return TemporalAccessor.class.isInstance(value);
   }
 
@@ -109,7 +109,7 @@ public class OracleBatchInsertParameterObjectResolver implements CustomizedParam
        */
       if (pcm.getTypeHandler() instanceof EnumOrdinalTypeHandler
           || pcm.getTypeHandler() instanceof EnumTypeHandler
-          || OracleBatchInsertParameterObjectResolver.getInstance().isJsr330DateTimeApi(value))
+          || OracleBatchInsertParameterObjectResolver.getInstance().isJava8DateTimeApi(value))
         pcm.getTypeHandler().setParameter(ps, i, value, pcm.getJdbcType());
       else
         ps.setObject(i, value);
