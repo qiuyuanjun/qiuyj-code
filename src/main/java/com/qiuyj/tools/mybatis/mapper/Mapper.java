@@ -10,7 +10,7 @@ import com.qiuyj.tools.mybatis.SqlProvider;
 @SqlProvider("com.qiuyj.tools.mybatis.build.SqlProvider")
 public interface Mapper<ID, T> extends CrudMapper<ID, T>, BatchMapper<ID, T> {
 
-  String DEFAULT_MAPPER_SQL = Mapper.SqlProvider.class.getName() + ".ROOT";
+  String DEFAULT_MAPPER_SQL = Mapper.SqlProvider.class.getName() + ".MAPPER";
 
   final class SqlProvider {
 
@@ -19,7 +19,7 @@ public interface Mapper<ID, T> extends CrudMapper<ID, T>, BatchMapper<ID, T> {
      * sql会通过框架自动生成
      */
     public String dynamicSql() {
-      return DEFAULT_MAPPER_SQL;
+      return Mapper.DEFAULT_MAPPER_SQL;
     }
   }
 }

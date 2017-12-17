@@ -7,6 +7,7 @@ import com.qiuyj.tools.mybatis.PropertyColumnMapping;
 import com.qiuyj.tools.mybatis.SqlInfo;
 import com.qiuyj.tools.mybatis.annotation.Column;
 import com.qiuyj.tools.mybatis.annotation.PrimaryKey;
+import com.qiuyj.tools.mybatis.key.Sequence;
 
 import java.lang.reflect.Field;
 import java.util.Objects;
@@ -60,6 +61,26 @@ public class PrimaryKeyAnnotationChecker implements ConditionChecker {
                 sqlInfo.getConfiguration().getTypeHandlerRegistry().getTypeHandler(getFieldJavaType(field))
             )
         );
+        // 解析@Sequence注解
+        Sequence sequence = AnnotationUtils.findAnnotation(field, Sequence.class);
+        if (Objects.isNull(sequence)) {
+          if (Objects.isNull(preRv.fieldMethod)) {
+            try {
+              preRv.fieldMethod = ReflectionUtils.getDeclaredMethod(sqlInfo.getBeanType(), fieldToGetterName(field));
+            } catch (IllegalStateException e) {
+              // ignore
+            }
+            if (Objects.nonNull(preRv.fieldMethod))
+              sequence = AnnotationUtils.findAnnotation(preRv.fieldMethod, Sequence.class);
+          }
+        }
+        if (Objects.nonNull(sequence)) {
+          String sequenceName = sequence.name();
+          if (StringUtils.isBlank(sequenceName))
+            throw new IllegalStateException("Sequence name can not be empty");
+          else
+            sqlInfo.setSequenceName(sequenceName);
+        }
         preRv.intValue = ConditionChecker.SKIP_ONE;
       }
     }

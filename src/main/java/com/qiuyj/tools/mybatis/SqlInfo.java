@@ -24,6 +24,7 @@ public final class SqlInfo {
   private final Class<?> beanType;
   private int fieldCount;
   private boolean hasEnumField;
+  private String sequenceName;
 
   /*
    * 接下来的所有属性均为辅助属性
@@ -209,6 +210,14 @@ public final class SqlInfo {
 
   public void setHasEnumField() {
     hasEnumField = true;
+  }
+
+  public String getSequenceName() {
+    return sequenceName;
+  }
+
+  public void setSequenceName(String sequenceName) {
+    this.sequenceName = sequenceName;
   }
 
   public Configuration getConfiguration() {

@@ -26,18 +26,27 @@
       <groupId>org.mybatis</groupId>
       <artifactId>mybatis</artifactId>
       <version>${mybatis.version}</version>
+      <scope>provided</scope>
     </dependency>
 
-    <dependency>
+    <!--<dependency>
       <groupId>mysql</groupId>
       <artifactId>mysql-connector-java</artifactId>
       <version>${mysql.version}</version>
+      <scope>provided</scope>
+    </dependency>-->
+
+    <dependency>
+      <groupId>com.oracle</groupId>
+      <artifactId>ojdbc7</artifactId>
+      <version>12.1.0</version>
+      <scope>provided</scope>
     </dependency>
   </dependencies>
 
   <build>
     <plugins>
-      <plugin>
+    <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.7.0</version>
