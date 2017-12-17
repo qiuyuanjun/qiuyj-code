@@ -15,6 +15,7 @@ import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
@@ -70,6 +71,10 @@ public class MysqlBatchInsertParameterObjectResolver implements CustomizedParame
     }
   }
 
+  private boolean isJsr330DateTimeApi(Object value) {
+    return TemporalAccessor.class.isInstance(value);
+  }
+
   private static final class MysqlBatchInsertTypeHandler extends BaseTypeHandler<List> {
 
     @Override
@@ -87,8 +92,15 @@ public class MysqlBatchInsertParameterObjectResolver implements CustomizedParame
       PropertyColumnMapping pcm = MysqlBatchInsertParameterObjectResolver.sqlInfo.getPropertyColumnMappings().get(parameterIdx);
       Object value = objMeta.getValue(pcm.getJavaClassPropertyName());
       // 如果是枚举类型，那么需要使用枚举类型的typeHandler设置值
+      /*
+       * 由于构建这个框架的mysql驱动版本较高，直接使用的是java8构建的
+       * 所以mysql驱动原生支持java8的时间日期api的setObject方法参数
+       * 但是考虑到有些人的mysql驱动不会这么高，所以这里也一样
+       * 对于java8的时间日期的值显示调用对应的TypeHandler处理
+       */
       if (pcm.getTypeHandler() instanceof EnumOrdinalTypeHandler
-            || pcm.getTypeHandler() instanceof EnumTypeHandler)
+            || pcm.getTypeHandler() instanceof EnumTypeHandler
+            || MysqlBatchInsertParameterObjectResolver.getInstance().isJsr330DateTimeApi(value))
         pcm.getTypeHandler().setParameter(ps, i, value, pcm.getJdbcType());
       // 否则直接setObject即可
       else

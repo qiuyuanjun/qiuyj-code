@@ -18,6 +18,7 @@ import java.sql.CallableStatement;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
@@ -68,17 +69,21 @@ public class OracleBatchInsertParameterObjectResolver implements CustomizedParam
       List<ParameterMapping> parameterMappings = new ArrayList<>(sqlInfo.getFieldCount() * list.size());
       for (int idx = 0; idx < sqlInfo.getFieldCount(); idx++) {
         joiner.add(SqlProvider.PREPARE_FLAG);
-        parameterMappings.addAll(instanceParameterMappings);
       }
       eachBuilder.append(joiner.toString());
       joiner = new StringJoiner(join);
       for (int idx = 0; idx < list.size(); idx++) {
         joiner.add(eachBuilder.toString());
+        parameterMappings.addAll(instanceParameterMappings);
       }
       String sql = join + joiner.toString() + " SELECT 1 FROM DUAL";
       resetStaticSqlNode((StaticTextSqlNode) sqlNode, sql);
       return parameterMappings;
     }
+  }
+
+  private boolean isJsr330DateTimeApi(Object value) {
+    return TemporalAccessor.class.isInstance(value);
   }
 
   public static final class OracleBatchInsertTypeHandler extends BaseTypeHandler<List> {
@@ -98,24 +103,37 @@ public class OracleBatchInsertParameterObjectResolver implements CustomizedParam
       PropertyColumnMapping pcm = OracleBatchInsertParameterObjectResolver.sqlInfo.getPropertyColumnMappings().get(parameterIdx);
       Object value = objMeta.getValue(pcm.getJavaClassPropertyName());
       // 如果是枚举类型，那么需要使用枚举类型的typeHandler设置值
+      /*
+       * 由于oracle的驱动大多都是java8之前的版本构建的，所以不支持java8的时间日期api
+       * 所以这里，如果值是java8的时间日期，那么也需要使用对应的typeHandler来处理
+       */
       if (pcm.getTypeHandler() instanceof EnumOrdinalTypeHandler
-          || pcm.getTypeHandler() instanceof EnumTypeHandler)
+          || pcm.getTypeHandler() instanceof EnumTypeHandler
+          || OracleBatchInsertParameterObjectResolver.getInstance().isJsr330DateTimeApi(value))
         pcm.getTypeHandler().setParameter(ps, i, value, pcm.getJdbcType());
-      // 否则直接setObject即可
       else
         ps.setObject(i, value);
     }
 
+    /**
+     * 该方法没有作用
+     */
     @Override
     public List getNullableResult(ResultSet rs, String columnName) throws SQLException {
       return null;
     }
 
+    /**
+     * 该方法没有作用
+     */
     @Override
     public List getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
       return null;
     }
 
+    /**
+     * 该方法没有作用
+     */
     @Override
     public List getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
       return null;
