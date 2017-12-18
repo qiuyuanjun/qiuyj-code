@@ -2,16 +2,21 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.qiuyj.tools</groupId>
-  <artifactId>common-utils</artifactId>
+  <groupId>com.qiuyj</groupId>
+  <artifactId>qiuyj-code</artifactId>
   <version>1.0.0</version>
-  <packaging>jar</packaging>
+  <modules>
+    <module>qiuyj-commons</module>
+    <module>qiuyj-mybatis</module>
+  </modules>
+  <packaging>pom</packaging>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <junit.version>4.12</junit.version>
     <mybatis.version>3.4.5</mybatis.version>
     <mysql.version>6.0.6</mysql.version>
+    <oracle.version>12.1.0</oracle.version>
   </properties>
 
   <dependencies>
@@ -20,27 +25,6 @@
       <artifactId>junit</artifactId>
       <version>${junit.version}</version>
       <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.mybatis</groupId>
-      <artifactId>mybatis</artifactId>
-      <version>${mybatis.version}</version>
-      <scope>provided</scope>
-    </dependency>
-
-    <!--<dependency>
-      <groupId>mysql</groupId>
-      <artifactId>mysql-connector-java</artifactId>
-      <version>${mysql.version}</version>
-      <scope>provided</scope>
-    </dependency>-->
-
-    <dependency>
-      <groupId>com.oracle</groupId>
-      <artifactId>ojdbc7</artifactId>
-      <version>12.1.0</version>
-      <scope>provided</scope>
     </dependency>
   </dependencies>
 
