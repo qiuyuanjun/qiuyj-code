@@ -81,7 +81,7 @@ public abstract class AbstractSqlGeneratorEngine implements SqlGeneratorEngine {
         sqlInfo.getPrimaryKey().getJavaClassPropertyName(),
         sqlInfo.getPrimaryKey().getJavaClassPropertyName(),
         sqlInfo.getPrimaryKey().getTypeHandler()
-    ).flags(Arrays.asList(ResultFlag.ID)).build());
+    ).flags(Collections.singletonList(ResultFlag.ID)).build());
     resultMaps.put(mapperClass, new ResultMap.Builder(
         sqlInfo.getConfiguration(),
         "mapper-" + mapperClass.getName(),
@@ -101,7 +101,7 @@ public abstract class AbstractSqlGeneratorEngine implements SqlGeneratorEngine {
    * 该方法无需同步处理，因为当执行该方法的时候，执行顺序可以保证缓存中一定有ResultMap
    */
   private List<ResultMap> getResultMap(Class<? extends Mapper<?, ?>> mapperClass) {
-    return Arrays.asList(resultMaps.get(mapperClass));
+    return Collections.singletonList(resultMaps.get(mapperClass));
   }
 
   @Override
