@@ -120,7 +120,8 @@ public abstract class AbstractSqlGeneratorEngine implements SqlGeneratorEngine {
       if (sqlInfo.hasEnumField() && ms.getSqlCommandType() == SqlCommandType.SELECT)
         msMetaObject.setValue("resultMaps", getResultMap(mapperClass));
       // 如果类型是Insert，那么有可能需要设置KeyGenerator
-      else if (ms.getSqlCommandType() == SqlCommandType.INSERT)
+      // 当然，前提是当前的主键标注了@Sequence注解
+      else if (Objects.nonNull(sqlInfo.getSequenceName()) && ms.getSqlCommandType() == SqlCommandType.INSERT)
         generateSequenceKey(ms, msMetaObject, sqlInfo);
     }
   }

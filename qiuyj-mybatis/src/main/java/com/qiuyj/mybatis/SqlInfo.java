@@ -40,13 +40,12 @@ public final class SqlInfo {
     // 得到泛型，这里Mapper会有两个泛型，第一个表示主键，第二个才是正真运行时候的实体类
     // public interface Mapper<ID, T> {}
     beanType = ReflectionUtils.getParameterizedTypesAsClass(mapperClass)[1];
-    Field[] allDeclaredFields = ClassUtils.getAllDeclaredFields(beanType);
+    List<Field> allDeclaredFields = ClassUtils.getAllDeclaredFieldsAsList(beanType);
     /*
      * 对每一个field执行检查器链
      */
-    int len = allDeclaredFields.length;
-    for (int idx = 0; idx < len; idx++) {
-      chain.checkAll(allDeclaredFields[idx], this);
+    for (Field field : allDeclaredFields) {
+      chain.checkAll(field, this);
     }
     /*
      * 辅助属性，主键作为唯一一个条件的字符串
@@ -75,10 +74,7 @@ public final class SqlInfo {
   }
 
   private String buildColumnValues(PropertyColumnMapping mapping) {
-    return new StringBuilder("#{")
-        .append(mapping.getJavaClassPropertyName())
-        .append("}")
-        .toString();
+    return "#{" + mapping.getJavaClassPropertyName() + "}";
   }
 
   private void PrimaryKeyCondition() {
@@ -165,7 +161,9 @@ public final class SqlInfo {
    * 得到当前所有的java属性名称
    */
   public List<String> getJavaProperties() {
-    List<String> rt = withoutPrimaryKey.stream().map(PropertyColumnMapping::getJavaClassPropertyName).collect(Collectors.toList());
+    List<String> rt = withoutPrimaryKey.stream()
+        .map(PropertyColumnMapping::getJavaClassPropertyName)
+        .collect(Collectors.toList());
     if (hasPrimaryKey())
       rt.add(0, primaryKey.getJavaClassPropertyName());
     else
@@ -177,7 +175,9 @@ public final class SqlInfo {
    * 得到当前所有的数据库名称
    */
   public List<String> getDatabaseColumns() {
-    List<String> rt = withoutPrimaryKey.stream().map(PropertyColumnMapping::getDatabaseColumnName).collect(Collectors.toList());
+    List<String> rt = withoutPrimaryKey.stream()
+        .map(PropertyColumnMapping::getDatabaseColumnName)
+        .collect(Collectors.toList());
     if (hasPrimaryKey())
       rt.add(0, primaryKey.getDatabaseColumnName());
     else
