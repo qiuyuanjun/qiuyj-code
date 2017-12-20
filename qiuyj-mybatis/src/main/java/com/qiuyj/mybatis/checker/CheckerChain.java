@@ -33,10 +33,12 @@ public final class CheckerChain {
     ConditionChecker.ReturnValue rv = null;
     while (it.hasNext()) {
       rv = it.next().doCheck(field, sqlInfo, rv);
-      if (rv.intValue < 0)
+      if (rv.intValue < 0) {
         break;
-      else if (rv.intValue > 0)
+      }
+      else if (rv.intValue > 0) {
         skip(rv.intValue, it);
+      }
     }
   }
 

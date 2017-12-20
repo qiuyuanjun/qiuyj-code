@@ -26,8 +26,9 @@ public class PrimaryKeyAnnotationChecker implements ConditionChecker {
       boolean hasPrimaryKey = AnnotationUtils.hasAnnotation(field, PrimaryKey.class);
       if (!hasPrimaryKey) {
         try {
-          if (Objects.isNull(preRv.fieldMethod))
+          if (Objects.isNull(preRv.fieldMethod)) {
             preRv.fieldMethod = ReflectionUtils.getDeclaredMethod(sqlInfo.getBeanType(), fieldToGetterName(field));
+          }
           hasPrimaryKey = AnnotationUtils.hasAnnotation(preRv.fieldMethod, PrimaryKey.class);
         } catch (IllegalStateException e) {
           // ignore
@@ -36,8 +37,9 @@ public class PrimaryKeyAnnotationChecker implements ConditionChecker {
       if (hasPrimaryKey) {
         String columnName = null;
         Column column = AnnotationUtils.findAnnotation(field, Column.class);
-        if (Objects.nonNull(column))
+        if (Objects.nonNull(column)) {
           columnName = column.value();
+        }
         else {
           if (Objects.isNull(preRv.fieldMethod)) {
             try {
@@ -47,13 +49,15 @@ public class PrimaryKeyAnnotationChecker implements ConditionChecker {
             }
             if (Objects.nonNull(preRv.fieldMethod)) {
               column = AnnotationUtils.findAnnotation(preRv.fieldMethod, Column.class);
-              if (Objects.nonNull(column))
+              if (Objects.nonNull(column)) {
                 columnName = column.value();
+              }
             }
           }
         }
-        if (StringUtils.isBlank(columnName))
+        if (StringUtils.isBlank(columnName)) {
           columnName = StringUtils.camelCaseToUnderscore(field.getName());
+        }
         sqlInfo.setPrimaryKey(
             new PropertyColumnMapping(
                 field.getName(),
@@ -70,16 +74,19 @@ public class PrimaryKeyAnnotationChecker implements ConditionChecker {
             } catch (IllegalStateException e) {
               // ignore
             }
-            if (Objects.nonNull(preRv.fieldMethod))
+            if (Objects.nonNull(preRv.fieldMethod)) {
               sequence = AnnotationUtils.findAnnotation(preRv.fieldMethod, Sequence.class);
+            }
           }
         }
         if (Objects.nonNull(sequence)) {
           String sequenceName = sequence.name();
-          if (StringUtils.isBlank(sequenceName))
+          if (StringUtils.isBlank(sequenceName)) {
             throw new IllegalStateException("Sequence name can not be empty");
-          else
+          }
+          else {
             sqlInfo.setSequenceName(sequenceName);
+          }
         }
         preRv.intValue = ConditionChecker.SKIP_ONE;
       }

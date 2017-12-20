@@ -49,8 +49,9 @@ public final class SqlGeneratorConfig {
       } catch (IllegalArgumentException e) {
         throw new IllegalArgumentException("Unsupported database type yet", e);
       }
-    } else
+    } else {
       config.databaseType = Database.MYSQL;
+    }
   }
 
   /**
@@ -59,8 +60,9 @@ public final class SqlGeneratorConfig {
   @SuppressWarnings("unchecked")
   private static void parseBaseMapperClass(SqlGeneratorConfig config, Properties prop) {
     String baseMapperClassName = prop.getProperty("baseMapperClass", BASE_MAPPER_CLASS_NAME);
-    if (!BASE_MAPPER_CLASS_NAME.equals(baseMapperClassName))
+    if (!BASE_MAPPER_CLASS_NAME.equals(baseMapperClassName)) {
       config.baseMapperClass = (Class<? extends Mapper>) ClassUtils.resolveClassName(baseMapperClassName, null);
+    }
   }
 
   /**
@@ -89,10 +91,12 @@ public final class SqlGeneratorConfig {
     com.qiuyj.mybatis.SqlProvider sqlProviderAnno = //
         AnnotationUtils.findAnnotation(baseClass, com.qiuyj.mybatis.SqlProvider.class);
     String sqlProviderStr = "";
-    if (Objects.nonNull(sqlProviderAnno))
+    if (Objects.nonNull(sqlProviderAnno)) {
       sqlProviderStr = sqlProviderAnno.value();
-    if ("".equals(sqlProviderStr))
+    }
+    if ("".equals(sqlProviderStr)) {
       sqlProviderStr = "com.qiuyj.mybatis.build.SqlProvider";
+    }
     config.baseSqlProvider = ReflectionUtils.instantiateClass(
         (Class<SqlProvider>) ClassUtils.resolveClassName(sqlProviderStr, SqlGeneratorConfig.class.getClassLoader()),
         new Object[] {config.databaseType},

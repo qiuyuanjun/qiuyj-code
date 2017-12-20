@@ -31,8 +31,9 @@ public class EnumTypeConditionChecker implements ConditionChecker {
           // ignore
         }
       }
-      if (Objects.nonNull(preRv.fieldMethod))
+      if (Objects.nonNull(preRv.fieldMethod)) {
         enumerated = AnnotationUtils.findAnnotation(preRv.fieldMethod, Enumerated.class);
+      }
     }
     if (Objects.nonNull(enumerated)) {
       Class<?> type = getFieldJavaType(field);

@@ -21,22 +21,26 @@ public class ColumnAnnotationChecker implements ConditionChecker {
   public ReturnValue doCheck(Field field, SqlInfo sqlInfo, ReturnValue preRv) {
     String columnName = null;
     Column column = AnnotationUtils.findAnnotation(field, Column.class);
-    if (Objects.nonNull(column))
+    if (Objects.nonNull(column)) {
       columnName = column.value();
+    }
     else {
       // 查找对应的getter方法
       try {
-        if (Objects.isNull(preRv.fieldMethod))
+        if (Objects.isNull(preRv.fieldMethod)) {
           preRv.fieldMethod = ReflectionUtils.getDeclaredMethod(sqlInfo.getBeanType(), fieldToGetterName(field));
+        }
         column = AnnotationUtils.findAnnotation(preRv.fieldMethod, Column.class);
-        if (Objects.nonNull(column))
+        if (Objects.nonNull(column)) {
           columnName = column.value();
+        }
       } catch (IllegalStateException e) {
         // ingore
       }
     }
-    if (StringUtils.isBlank(columnName))
+    if (StringUtils.isBlank(columnName)) {
       columnName = StringUtils.camelCaseToUnderscore(field.getName());
+    }
     sqlInfo.addPropertyColumn(
         new PropertyColumnMapping(
             field.getName(),

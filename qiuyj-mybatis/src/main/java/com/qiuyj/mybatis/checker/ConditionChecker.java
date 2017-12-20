@@ -88,13 +88,15 @@ public interface ConditionChecker {
   default Class<?> getFieldJavaType(Field field) {
     Type genericType = field.getGenericType();
     Class<?> javaType;
-    if (genericType instanceof Class<?>)
+    if (genericType instanceof Class<?>) {
       javaType = (Class<?>) genericType;
+    }
     else if (genericType instanceof ParameterizedType) {
       ParameterizedType t = (ParameterizedType) genericType;
       javaType = (Class<?>) t.getRawType();
-    } else
+    } else {
       javaType = field.getType();
+    }
     return javaType;
   }
 }

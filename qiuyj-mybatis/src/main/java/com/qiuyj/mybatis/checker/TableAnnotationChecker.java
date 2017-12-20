@@ -23,10 +23,12 @@ public class TableAnnotationChecker implements ConditionChecker {
     if (StringUtils.isBlank(sqlInfo.getTableName())) {
       Class<?> beanType = sqlInfo.getBeanType();
       Table table = AnnotationUtils.findAnnotation(beanType, Table.class);
-      if (Objects.nonNull(table))
+      if (Objects.nonNull(table)) {
         sqlInfo.setTableName(table.value());
-      if (StringUtils.isBlank(sqlInfo.getTableName()))
+      }
+      if (StringUtils.isBlank(sqlInfo.getTableName())) {
         sqlInfo.setTableName(StringUtils.camelCaseToUnderscore(beanType.getSimpleName()));
+      }
     }
     return new ReturnValue(ConditionChecker.CONTINUE_EXECUTION);
   }

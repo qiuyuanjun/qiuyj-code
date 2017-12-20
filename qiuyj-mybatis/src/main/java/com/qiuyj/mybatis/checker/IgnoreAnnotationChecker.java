@@ -25,8 +25,9 @@ public class IgnoreAnnotationChecker implements ConditionChecker {
       } catch (IllegalStateException e) {
         // ignore
       }
-      if (Objects.nonNull(preRv.fieldMethod))
+      if (Objects.nonNull(preRv.fieldMethod)) {
         hasIgnoreAnnotation = AnnotationUtils.hasAnnotation(preRv.fieldMethod, Ignore.class);
+      }
     }
     preRv.intValue = hasIgnoreAnnotation ? ConditionChecker.BREAK_CURRENT : ConditionChecker.CONTINUE_EXECUTION;
     return preRv;
