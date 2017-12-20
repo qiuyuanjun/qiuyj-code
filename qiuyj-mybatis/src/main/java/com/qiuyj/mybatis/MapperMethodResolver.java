@@ -24,8 +24,9 @@ public class MapperMethodResolver {
   private final Set<Method> exampleMapperMethods = Collections.newSetFromMap(new HashMap<>());
 
   MapperMethodResolver(Class<? extends Mapper> baseMapperClass) {
-    if (!baseMapperClass.isInterface())
+    if (!baseMapperClass.isInterface()) {
       throw new IllegalArgumentException("interface only");
+    }
     this.baseMapperClass = baseMapperClass;
     Class<?>[] allMapperInterfaces = getAllMapperInterfaces(baseMapperClass);
     Set<String> sets = new HashSet<>(32);
@@ -50,8 +51,9 @@ public class MapperMethodResolver {
         break;
       }
     }
-    if (exampleMethod)
+    if (exampleMethod) {
       exampleMapperMethods.add(method);
+    }
   }
 
   /**
@@ -87,13 +89,16 @@ public class MapperMethodResolver {
    * 判断当前的方法是否是通用mapper的所定义的方法
    */
   public boolean isMapperMethod(Method currMethod) {
-    if (Objects.isNull(currMethod))
+    if (Objects.isNull(currMethod)) {
       return false;
+    }
     // 如果当前执行的方法不是baseMapperClass的父接口或者就是baseMapperClass，那么表明当前执行的方法不是通用Mapper提供的方法
-    if (!currMethod.getDeclaringClass().isAssignableFrom(baseMapperClass))
+    if (!currMethod.getDeclaringClass().isAssignableFrom(baseMapperClass)) {
       return false;
-    if (!hasProviderAnnotation(currMethod))
+    }
+    if (!hasProviderAnnotation(currMethod)) {
       return false;
+    }
     Class<?> mapperClass = currMethod.getDeclaringClass();
     return mapperMethodSignatures.contains(buildUniqueName(mapperClass, getMethodSignature(currMethod)));
   }
@@ -129,8 +134,9 @@ public class MapperMethodResolver {
       List<Method> targetMethods = Arrays.stream(cls.getMethods())
                                          .filter(m -> methodStr.equals(m.getName()))
                                          .collect(Collectors.toList());
-      if (targetMethods.size() == 1)
+      if (targetMethods.size() == 1) {
         mapperMethod = targetMethods.get(0);
+      }
       else if (targetMethods.size() > 1) {
         // 然后对方法遍历，得到最符合要求的方法
         // 首先解析参数对象

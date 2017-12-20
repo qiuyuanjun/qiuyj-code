@@ -39,8 +39,9 @@ public abstract class ClassUtils {
     Objects.requireNonNull(className);
     if (className.length() < 8) {
       int idx = Arrays.binarySearch(PRIMATIVE_TYPE_NAME, className);
-      if (idx > -1)
+      if (idx > -1) {
         return PRIMATIVE_TYPE_CLASS[idx];
+      }
     }
     return null;
   }
@@ -62,8 +63,9 @@ public abstract class ClassUtils {
    */
   public static Class<?> classForName(String className, ClassLoader cl) throws ClassNotFoundException {
     Class<?> cls = primativeClassForName(className);
-    if (Objects.nonNull(cls))
+    if (Objects.nonNull(cls)) {
       return cls;
+    }
     else if (className.endsWith(ARRAY_SUFFIX)) {
       cls = classForName(StringUtils.substringBefore(className, ARRAY_SUFFIX), cl);
       return Array.newInstance(cls, 0).getClass();
@@ -71,8 +73,9 @@ public abstract class ClassUtils {
       cls = classForName(className.substring(2, className.length() - 1), cl);
       return Array.newInstance(cls, 0).getClass();
     } else {
-      if (Objects.isNull(cl))
+      if (Objects.isNull(cl)) {
         cl = getDefaultClassLoader();
+      }
       try {
         return Objects.isNull(cl) ? Class.forName(className) : cl.loadClass(className);
       } catch (ClassNotFoundException e) {
@@ -137,8 +140,9 @@ public abstract class ClassUtils {
     while (Objects.nonNull(cls) && Object.class != cls) {
       Field[] fs = cls.getDeclaredFields();
       for (Field f : fs) {
-        if (already.add(f.getName()))
+        if (already.add(f.getName())) {
           fields.add(f);
+        }
       }
       cls = cls.getSuperclass();
     }
@@ -199,8 +203,9 @@ public abstract class ClassUtils {
    */
   public static Set<Class<?>> getAllInterfacesAsSet(Class<?> cls) {
     Objects.requireNonNull(cls);
-    if (cls.isInterface())
+    if (cls.isInterface()) {
       return Collections.singleton(cls);
+    }
     else {
       Set<Class<?>> interfaces = new LinkedHashSet<>();
       while (superclassCondition(cls)) {
@@ -220,16 +225,21 @@ public abstract class ClassUtils {
    */
   static Class<?> resolveCollectionInterfaces(Class<?> cls) {
     Class<?> clsToUse = cls;
-    if (cls == List.class || cls == Collection.class)
+    if (cls == List.class || cls == Collection.class) {
       clsToUse = ArrayList.class;
-    else if (cls == Map.class)
+    }
+    else if (cls == Map.class) {
       clsToUse = HashMap.class;
-    else if (cls == Set.class)
+    }
+    else if (cls == Set.class) {
       clsToUse = HashSet.class;
-    else if (cls == SortedMap.class)
+    }
+    else if (cls == SortedMap.class) {
       clsToUse = TreeMap.class;
-    else if (cls == SortedSet.class)
+    }
+    else if (cls == SortedSet.class) {
       clsToUse = TreeSet.class;
+    }
     return clsToUse;
   }
 }

@@ -125,8 +125,9 @@ public abstract class ReflectionUtils {
    * @return 执行方法的结果
    */
   public static Object invokeMethod(Object objectTarget, Method methodToInvoke, Object... args) {
-    if (Objects.isNull(objectTarget) || Objects.isNull(methodToInvoke))
+    if (Objects.isNull(objectTarget) || Objects.isNull(methodToInvoke)) {
       throw new NullPointerException();
+    }
     try {
       return methodToInvoke.invoke(objectTarget, args);
     } catch (Exception e) {
@@ -140,18 +141,24 @@ public abstract class ReflectionUtils {
    */
   public static void handleReflectionException(Exception e) {
     // 根据异常发生的频率做判断的顺序
-    if (e instanceof InvocationTargetException)
+    if (e instanceof InvocationTargetException) {
       handleInvocationTargetException((InvocationTargetException) e);
-    else if (e instanceof IllegalAccessException)
+    }
+    else if (e instanceof IllegalAccessException) {
       throw new IllegalStateException("Private or protected?");
-    else if (e instanceof NoSuchMethodException)
+    }
+    else if (e instanceof NoSuchMethodException) {
       throw new IllegalStateException("Can not find specificate method to execute");
-    else if (e instanceof InstantiationException)
+    }
+    else if (e instanceof InstantiationException) {
       throw new IllegalStateException("Can not instanitate class");
-    else if (e instanceof NoSuchFieldException)
+    }
+    else if (e instanceof NoSuchFieldException) {
       throw new IllegalStateException("Can not find specificate field to execute");
-    else
+    }
+    else {
       throw new UndeclaredThrowableException(e);
+    }
   }
 
   /**
@@ -159,12 +166,15 @@ public abstract class ReflectionUtils {
    */
   public static void handleInvocationTargetException(InvocationTargetException e) {
     Throwable t = e.getTargetException();
-    if (t instanceof RuntimeException)
+    if (t instanceof RuntimeException) {
       throw (RuntimeException) t;
-    else if (t instanceof Error)
+    }
+    else if (t instanceof Error) {
       throw (Error) t;
-    else
+    }
+    else {
       throw new UndeclaredThrowableException(t);
+    }
   }
 
   /**
@@ -199,8 +209,9 @@ public abstract class ReflectionUtils {
     Objects.requireNonNull(cls);
     // 如果是数组，那么先处理数组
     if (cls.isArray()) {
-      if (Objects.isNull(ctorArgs) || ctorArgs.length == 0)
+      if (Objects.isNull(ctorArgs) || ctorArgs.length == 0) {
         return (T) Array.newInstance(cls.getComponentType(), 0);
+      }
       else {
         int len = ctorArgs.length;
         T arr = (T) Array.newInstance(cls.getComponentType(), len);
@@ -214,20 +225,24 @@ public abstract class ReflectionUtils {
     Constructor<T> ctor;
     if (Objects.isNull(ctorArgsType)) {
       // 如果使用默认构造函数但是却传入了参数，那么抛出异常
-      if (Objects.nonNull(ctorArgs))
+      if (Objects.nonNull(ctorArgs)) {
         throw new IllegalArgumentException("Wrong number of arguments");
+      }
       // 使用默认构造函数创建对象
       ctor = (Constructor<T>) getDefaultConstructor(cls);
     } else {
-      if (Objects.isNull(ctorArgs))
+      if (Objects.isNull(ctorArgs)) {
         throw new IllegalArgumentException("Wrong number of arguments");
+      }
       int argsTypeLen = ctorArgsType.length,
           argsLen = ctorArgs.length;
       // 调整参数个数
-      if (argsTypeLen > argsLen)
+      if (argsTypeLen > argsLen) {
         ctorArgsType = Arrays.copyOf(ctorArgsType, argsLen);
-      else if (argsTypeLen < argsLen)
+      }
+      else if (argsTypeLen < argsLen) {
         ctorArgs = Arrays.copyOf(ctorArgs, argsTypeLen);
+      }
       // 否则就根据构造函数的参数列表的Class类型获取对应的构造函数
       ctor = (Constructor<T>) getConstructor(cls, ctorArgsType);
     }
@@ -257,4 +272,25 @@ public abstract class ReflectionUtils {
     throw new IllegalStateException("Can not find field: " + fieldName + " in: " + cls + " and all its superclass");
   }
 
+  /**
+   * 设置当前Field对象屏蔽java语法检查
+   */
+  public static void makeAccessible(Field field) {
+    if ((!Modifier.isPublic(field.getModifiers())
+          || !Modifier.isPublic(field.getDeclaringClass().getModifiers()))
+          || Modifier.isFinal(field.getModifiers()) && !field.isAccessible()) {
+      field.setAccessible(true);
+    }
+  }
+
+  /**
+   * 设置当前Method对象屏蔽java语法检查
+   */
+  public static void makeAccessible(Method method) {
+    if ((!Modifier.isPublic(method.getModifiers())
+          || !Modifier.isPublic(method.getDeclaringClass().getModifiers()))
+          || !method.isAccessible()) {
+      method.setAccessible(true);
+    }
+  }
 }

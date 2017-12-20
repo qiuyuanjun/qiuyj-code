@@ -40,15 +40,17 @@ public abstract class AnnotationUtils {
   private static <A extends Annotation> A findAnnotation(AnnotatedElement ae, Class<A> anno, Set<Annotation> visited) {
     Annotation[] annos = ae.getDeclaredAnnotations();
     for (Annotation a : annos) {
-      if (a.annotationType() == anno)
+      if (a.annotationType() == anno) {
         return (A) a;
+      }
     }
     A finded;
     for (Annotation a : annos) {
       if (!isJavaLangAnnotationPackage(a) && visited.add(a)) {
         finded = findAnnotation(a.annotationType(), anno, visited);
-        if (Objects.nonNull(finded))
+        if (Objects.nonNull(finded)) {
           return finded;
+        }
       }
     }
     if (ae instanceof Class<?>) {
@@ -56,15 +58,17 @@ public abstract class AnnotationUtils {
       Class<?>[] inters = cls.getInterfaces();
       for (Class<?> inter : inters) {
         finded = findAnnotation(inter, anno, visited);
-        if (Objects.nonNull(finded))
+        if (Objects.nonNull(finded)) {
           return finded;
+        }
       }
       for (Class<?> superclass = cls.getSuperclass();
            ClassUtils.superclassCondition(superclass);
            superclass = superclass.getSuperclass()) {
         finded = findAnnotation(cls, anno, visited);
-        if (Objects.nonNull(finded))
+        if (Objects.nonNull(finded)) {
           return finded;
+        }
       }
     }
     return null;

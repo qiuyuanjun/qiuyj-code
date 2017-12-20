@@ -164,10 +164,12 @@ public final class SqlInfo {
     List<String> rt = withoutPrimaryKey.stream()
         .map(PropertyColumnMapping::getJavaClassPropertyName)
         .collect(Collectors.toList());
-    if (hasPrimaryKey())
+    if (hasPrimaryKey()) {
       rt.add(0, primaryKey.getJavaClassPropertyName());
-    else
+    }
+    else {
       rt.add(0, null);
+    }
     return rt;
   }
 
@@ -178,10 +180,12 @@ public final class SqlInfo {
     List<String> rt = withoutPrimaryKey.stream()
         .map(PropertyColumnMapping::getDatabaseColumnName)
         .collect(Collectors.toList());
-    if (hasPrimaryKey())
+    if (hasPrimaryKey()) {
       rt.add(0, primaryKey.getDatabaseColumnName());
-    else
+    }
+    else {
       rt.add(0, null);
+    }
     return rt;
   }
 
@@ -197,11 +201,15 @@ public final class SqlInfo {
         .filter(pcm -> pcm.getJavaClassPropertyName().equals(javaPropertyName))
         .collect(Collectors.toList());
     if (pcmList.isEmpty()) {
-      if (!primaryKey.getJavaClassPropertyName().equals(javaPropertyName))
+      if (!primaryKey.getJavaClassPropertyName().equals(javaPropertyName)) {
         throw new IllegalStateException("Can not find PropertyColumnMapping with propertyName: " + javaPropertyName);
-      return primaryKey;
-    } else
+      }
+      else {
+        return primaryKey;
+      }
+    } else {
       return pcmList.get(0);
+    }
   }
 
   public boolean hasEnumField() {

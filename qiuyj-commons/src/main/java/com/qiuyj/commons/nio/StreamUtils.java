@@ -29,40 +29,43 @@ public abstract class StreamUtils {
    */
   public static byte[] getBytesFromFile(String path) throws IOException {
     path = StringUtils.cleanPath(path);
-    if (Objects.isNull(path))
+    if (Objects.isNull(path)) {
       throw new IllegalArgumentException("Parameter 'path' cannot be null");
-    FileChannel in = null;
-    ByteArrayOutputStream out = null;
-    byte[] b;
-    try {
-      in = FileChannel.open(Paths.get(path), StandardOpenOption.READ);
-      long fileLen = in.size();
-      MappedByteBuffer buf = in.map(FileChannel.MapMode.READ_ONLY, 0L, fileLen);
-      int cycle = (int) fileLen / BUF_SIZE,
-          last = (int) fileLen % BUF_SIZE;
-      if (cycle > 0) {
-        out = new ByteArrayOutputStream(BUF_SIZE);
-        b = new byte[BUF_SIZE];
-        for (int i = 0; i < cycle; i++) {
-//          buf.flip();  这里无需flip，因为这个buf一直是读模式，没有从读模式变成写模式
-          buf.get(b);
-          out.write(b);
-//          buf.clear(); // 这里一定不能用clear，这样会将position重新置为0，导致一直重复读
-        }
-      } else {
-        out = new ByteArrayOutputStream(last);
-        b = new byte[last];
-      }
-      if (last > 0) {
-        buf.get(b, 0, last);
-        out.write(b, 0, last);
-      }
-      b = out.toByteArray();
-    } finally {
-      closeQuietly(in);
-      closeQuietly(out);
     }
-    return b;
+    else {
+      FileChannel in = null;
+      ByteArrayOutputStream out = null;
+      byte[] b;
+      try {
+        in = FileChannel.open(Paths.get(path), StandardOpenOption.READ);
+        long fileLen = in.size();
+        MappedByteBuffer buf = in.map(FileChannel.MapMode.READ_ONLY, 0L, fileLen);
+        int cycle = (int) fileLen / BUF_SIZE,
+            last = (int) fileLen % BUF_SIZE;
+        if (cycle > 0) {
+          out = new ByteArrayOutputStream(BUF_SIZE);
+          b = new byte[BUF_SIZE];
+          for (int i = 0; i < cycle; i++) {
+  //          buf.flip();  这里无需flip，因为这个buf一直是读模式，没有从读模式变成写模式
+            buf.get(b);
+            out.write(b);
+  //          buf.clear(); // 这里一定不能用clear，这样会将position重新置为0，导致一直重复读
+          }
+        } else {
+          out = new ByteArrayOutputStream(last);
+          b = new byte[last];
+        }
+        if (last > 0) {
+          buf.get(b, 0, last);
+          out.write(b, 0, last);
+        }
+        b = out.toByteArray();
+      } finally {
+        closeQuietly(in);
+        closeQuietly(out);
+      }
+      return b;
+    }
   }
 
   /**
@@ -88,8 +91,9 @@ public abstract class StreamUtils {
       b = out.toByteArray();
     } finally {
       closeQuietly(out);
-      if (close)
+      if (close) {
         closeQuietly(inChannel);
+      }
     }
     return b;
   }

@@ -37,8 +37,9 @@ public class SequenceKeyGenerator implements KeyGenerator {
 
   @Override
   public void processBefore(Executor executor, MappedStatement ms, Statement stmt, Object parameter) {
-    if (executeBefore)
+    if (executeBefore) {
       processSequenceQueryBeforeMainExecutor(executor, ms.getConfiguration(), parameter);
+    }
   }
 
   /**
@@ -65,8 +66,9 @@ public class SequenceKeyGenerator implements KeyGenerator {
 
   @Override
   public void processAfter(Executor executor, MappedStatement ms, Statement stmt, Object parameter) {
-    if (!executeBefore)
+    if (!executeBefore) {
       processSequenceQuery(ms.getConfiguration(), stmt, parameter);
+    }
   }
 
   private void processSequenceQuery(Configuration configuration, Statement stmt, Object parameter) {
@@ -78,10 +80,12 @@ public class SequenceKeyGenerator implements KeyGenerator {
     if (sqlInfo.getBeanType() == parameterType) {
       // 这种情况对应的参数是一个实体类，那么只需要查询一次序列值即可
       resolveBeanInstance(configuration, stmt, parameterObject);
-    } else if (configuration.getObjectFactory().isCollection(parameterType)) {
+    }
+    else if (configuration.getObjectFactory().isCollection(parameterType)) {
       // 这种情况对应的参数是一个集合类型，那么可能需要查询多次序列值
       resolveCollection(configuration, stmt, (Collection<?>) parameterObject);
-    } else if (parameterType.isArray()) {
+    }
+    else if (parameterType.isArray()) {
       // 这种情况对应的参数是一个数组，那么可能需要查询多次序列值
       resolveArray(configuration, stmt, parameterObject);
     }

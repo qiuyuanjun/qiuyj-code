@@ -109,8 +109,9 @@ public class BeanExampleResolver {
    */
   public List<PropertyColumnMapping> selectExample() {
     List<PropertyColumnMapping> rt = new ArrayList<>(withoutPrimaryKey);
-    if (Objects.nonNull(primaryKey))
+    if (Objects.nonNull(primaryKey)) {
       rt.add(0, primaryKey);
+    }
     return rt;
   }
 

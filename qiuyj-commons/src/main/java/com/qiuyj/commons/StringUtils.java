@@ -19,8 +19,9 @@ public abstract class StringUtils {
    * 清理路径信息，即将路径中的..和.转换成实际路径
    */
   public static String cleanPath(String originPath) {
-    if (Objects.isNull(originPath))
+    if (Objects.isNull(originPath)) {
       return null;
+    }
     else {
       int protocolIdx = originPath.indexOf(":");
       String protocol = "", pathToUse = originPath;
@@ -34,15 +35,17 @@ public abstract class StringUtils {
           lastInsertIdx = 0;
       String[] pathBuilder = new String[len];
       for (String content : pathContents) {
-        if ("..".equals(content))
+        if ("..".equals(content)) {
           lastInsertIdx--;
+        }
         else if (!".".equals(content)) {
           lastInsertIdx = lastInsertIdx < 0 ? 0 : lastInsertIdx;
           pathBuilder[lastInsertIdx++] = content;
         }
       }
-      if (lastInsertIdx != len)
+      if (lastInsertIdx != len) {
         pathBuilder = Arrays.copyOf(pathBuilder, lastInsertIdx);
+      }
       return protocol + File.separator + String.join(File.separator, pathBuilder);
     }
   }
@@ -51,10 +54,12 @@ public abstract class StringUtils {
    * 将一个字符串按照分隔符分割成一个字符串数组
    */
   public static String[] delimiteToStringArray(String str, String delimiter) {
-    if (Objects.isNull(str))
+    if (Objects.isNull(str)) {
       return EMPTY_STRING_ARRAY;
-    else if (Objects.isNull(delimiter))
+    }
+    else if (Objects.isNull(delimiter)) {
       return new String[] {str};
+    }
     else {
       StringTokenizer token = new StringTokenizer(str, delimiter);
       int count = token.countTokens();
@@ -71,8 +76,9 @@ public abstract class StringUtils {
    */
   public static String substringBefore(String target, String substring) {
     Objects.requireNonNull(target);
-    if (Objects.isNull(substring))
+    if (Objects.isNull(substring)) {
       return target;
+    }
     else {
       int idx = target.indexOf(substring);
       return idx > -1 ? target.substring(0, idx) : null;
@@ -84,8 +90,9 @@ public abstract class StringUtils {
    */
   public static String substringAfter(String target, String substring) {
     Objects.requireNonNull(target);
-    if (Objects.isNull(substring))
+    if (Objects.isNull(substring)) {
       return target;
+    }
     else {
       int idx = target.lastIndexOf(substring);
       return idx > -1 ? target.substring(idx + substring.length()) : null;
@@ -121,8 +128,9 @@ public abstract class StringUtils {
       if (Character.isUpperCase(c) && Character.isUpperCase(chs[start + 1])) {
         // 循环跳过所有的大写字母
         for (start = 2; start < len && Character.isUpperCase(chs[start]); start++);
-        if (start == len)
+        if (start == len) {
           return new String(chs);
+        }
         sb.append(chs, 0, --start);
         sb.append("_");
         chs[start] = Character.toLowerCase(chs[start]);
@@ -133,15 +141,17 @@ public abstract class StringUtils {
       // 处理尾部
       int end = len - 1;
       // 循环跳过所有的大写字母
-      if (Character.isUpperCase(chs[end]) && Character.isUpperCase(chs[end - 1]))
+      if (Character.isUpperCase(chs[end]) && Character.isUpperCase(chs[end - 1])) {
         for (end -= 2; end > 0 && Character.isUpperCase(chs[end]); end--);
+      }
       for (; start <= end; start++) {
         c = chs[start];
         if (Character.isUpperCase(c) && Character.isLowerCase(chs[start - 1])) {
           sb.append("_");
           sb.append(Character.toLowerCase(c));
-        } else
+        } else {
           sb.append(c);
+        }
       }
       int suffixLen = len - 1 - end;
       if (suffixLen > 0) {
@@ -149,8 +159,9 @@ public abstract class StringUtils {
         sb.append(chs, end + 1, suffixLen);
       }
       return sb.toString();
-    } else
+    } else {
       return Introspector.decapitalize(name);
+    }
   }
 
 }
