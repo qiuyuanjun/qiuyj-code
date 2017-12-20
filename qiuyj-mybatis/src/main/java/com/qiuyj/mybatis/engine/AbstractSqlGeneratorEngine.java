@@ -60,11 +60,13 @@ public abstract class AbstractSqlGeneratorEngine implements SqlGeneratorEngine {
     SqlInfo currentSqlInfo = getSqlInfo(actualMapperClass);
     if (currentSqlInfo.hasEnumField() && !resultMaps.containsKey(actualMapperClass)) {
       synchronized (resultMapWriteLock) {
-        if (!resultMaps.containsKey(actualMapperClass))
+        if (!resultMaps.containsKey(actualMapperClass)) {
           initResultMap(currentSqlInfo, actualMapperClass);
+        }
       }
     }
   }
+
 
   private void initResultMap(SqlInfo sqlInfo, Class<? extends Mapper<?, ?>> mapperClass) {
     List<ResultMapping> resultMappings = new ArrayList<>(sqlInfo.getFieldCount());
@@ -117,12 +119,14 @@ public abstract class AbstractSqlGeneratorEngine implements SqlGeneratorEngine {
       // 重新设置sqlSource
       msMetaObject.setValue("sqlSource", returnValue.generateSqlSource(ms.getConfiguration()));
       // 如果类型是Select的，那么还需要设置resultMap
-      if (sqlInfo.hasEnumField() && ms.getSqlCommandType() == SqlCommandType.SELECT)
+      if (sqlInfo.hasEnumField() && ms.getSqlCommandType() == SqlCommandType.SELECT) {
         msMetaObject.setValue("resultMaps", getResultMap(mapperClass));
+      }
       // 如果类型是Insert，那么有可能需要设置KeyGenerator
       // 当然，前提是当前的主键标注了@Sequence注解
-      else if (Objects.nonNull(sqlInfo.getSequenceName()) && ms.getSqlCommandType() == SqlCommandType.INSERT)
+      else if (Objects.nonNull(sqlInfo.getSequenceName()) && ms.getSqlCommandType() == SqlCommandType.INSERT) {
         generateSequenceKey(ms, msMetaObject, sqlInfo);
+      }
     }
   }
 
@@ -140,7 +144,8 @@ public abstract class AbstractSqlGeneratorEngine implements SqlGeneratorEngine {
       // 这里需要解析参数
       Method reflectionMethod = ReflectionUtils.getDeclaredMethod(baseSqlProvider.getClass(), mapperMethod.getName(), ms.getClass(), SqlInfo.class, Object.class);
       returnValue = (ReturnValueWrapper) ReflectionUtils.invokeMethod(baseSqlProvider, reflectionMethod, ms, sqlInfo, args);
-    } else {
+    }
+    else {
       // 这里需要注意，有些mapper方法只需要生成一次即可，不用每次都生成
       // 需要每次都生成sql的mapper方法是那些参数带了@Example注解的方法
       // 所以这里需要分开讨论，判断mapper方法是否是第一次调用
