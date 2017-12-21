@@ -2,7 +2,7 @@ package com.qiuyj.mybatis.engine;
 
 import com.qiuyj.mybatis.MapperMethodResolver;
 import com.qiuyj.mybatis.SqlInfo;
-import com.qiuyj.mybatis.build.SqlProvider;
+import com.qiuyj.mybatis.sqlbuild.SqlProvider;
 import com.qiuyj.mybatis.checker.CheckerChain;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.reflection.MetaObject;

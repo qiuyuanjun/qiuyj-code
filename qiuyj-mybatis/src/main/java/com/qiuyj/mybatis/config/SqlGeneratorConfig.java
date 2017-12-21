@@ -4,7 +4,7 @@ import com.qiuyj.commons.AnnotationUtils;
 import com.qiuyj.commons.ClassUtils;
 import com.qiuyj.commons.ReflectionUtils;
 import com.qiuyj.commons.StringUtils;
-import com.qiuyj.mybatis.build.SqlProvider;
+import com.qiuyj.mybatis.sqlbuild.SqlProvider;
 import com.qiuyj.mybatis.checker.CheckerChain;
 import com.qiuyj.mybatis.checker.ConditionChecker;
 import com.qiuyj.mybatis.mapper.Mapper;
@@ -95,7 +95,7 @@ public final class SqlGeneratorConfig {
       sqlProviderStr = sqlProviderAnno.value();
     }
     if ("".equals(sqlProviderStr)) {
-      sqlProviderStr = "com.qiuyj.mybatis.build.SqlProvider";
+      sqlProviderStr = "com.qiuyj.mybatis.sqlbuild.SqlProvider";
     }
     config.baseSqlProvider = ReflectionUtils.instantiateClass(
         (Class<SqlProvider>) ClassUtils.resolveClassName(sqlProviderStr, SqlGeneratorConfig.class.getClassLoader()),

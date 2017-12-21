@@ -1,7 +1,7 @@
 package com.qiuyj.mybatis.key;
 
 import com.qiuyj.mybatis.SqlInfo;
-import com.qiuyj.mybatis.build.ParameterResolver;
+import com.qiuyj.mybatis.sqlbuild.ParameterResolver;
 import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.executor.ExecutorException;
 import org.apache.ibatis.executor.keygen.KeyGenerator;

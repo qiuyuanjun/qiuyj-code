@@ -2,7 +2,7 @@ package com.qiuyj.mybatis;
 
 import com.qiuyj.commons.AnnotationUtils;
 import com.qiuyj.commons.ClassUtils;
-import com.qiuyj.mybatis.build.ParameterResolver;
+import com.qiuyj.mybatis.sqlbuild.ParameterResolver;
 import com.qiuyj.mybatis.mapper.Mapper;
 import org.apache.ibatis.annotations.DeleteProvider;
 import org.apache.ibatis.annotations.InsertProvider;

@@ -7,7 +7,7 @@ import com.qiuyj.mybatis.SqlProvider;
  * @author qiuyj
  * @since 2017/11/11
  */
-@SqlProvider("com.qiuyj.mybatis.build.SqlProvider")
+@SqlProvider("com.qiuyj.mybatis.sqlbuild.SqlProvider")
 public interface Mapper<ID, T> extends CrudMapper<ID, T>, BatchMapper<ID, T> {
 
   String DEFAULT_MAPPER_SQL = SqlProvider.class.getName() + ".MAPPER";

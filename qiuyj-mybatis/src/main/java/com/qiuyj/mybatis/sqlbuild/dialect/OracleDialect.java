@@ -1,8 +1,8 @@
 package com.qiuyj.mybatis.sqlbuild.dialect;
 
 import com.qiuyj.mybatis.SqlInfo;
-import com.qiuyj.mybatis.build.ReturnValueWrapper;
-import com.qiuyj.mybatis.build.customer.OracleBatchInsertParameterObjectResolver;
+import com.qiuyj.mybatis.sqlbuild.ReturnValueWrapper;
+import com.qiuyj.mybatis.sqlbuild.customer.OracleBatchInsertParameterObjectResolver;
 import org.apache.ibatis.scripting.xmltags.StaticTextSqlNode;
 import org.apache.ibatis.session.Configuration;
 
