@@ -22,7 +22,8 @@ public class IgnoreAnnotationChecker implements ConditionChecker {
       // 如果当前属性（Field）上没有@Ignore，那么判断对应的getter方法上是否有@Ignore
       try {
         preRv.fieldMethod = ReflectionUtils.getDeclaredMethod(sqlInfo.getBeanType(), fieldToGetterName(field));
-      } catch (IllegalStateException e) {
+      }
+      catch (IllegalStateException e) {
         // ignore
       }
       if (Objects.nonNull(preRv.fieldMethod)) {

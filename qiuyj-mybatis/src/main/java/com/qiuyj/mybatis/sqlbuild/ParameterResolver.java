@@ -90,12 +90,10 @@ public class ParameterResolver {
       parameterType = new Class<?>[0];
       parameterObjects = new Object[0];
     }
-
     else {
       parameterType = new Class<?>[] {parameterObject.getClass()};
       parameterObjects = new Object[] {parameterObject};
     }
-
     return new ParameterResolverResult(parameterType, parameterObjects);
   }
 

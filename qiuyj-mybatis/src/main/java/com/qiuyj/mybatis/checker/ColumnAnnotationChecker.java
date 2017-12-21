@@ -34,7 +34,8 @@ public class ColumnAnnotationChecker implements ConditionChecker {
         if (Objects.nonNull(column)) {
           columnName = column.value();
         }
-      } catch (IllegalStateException e) {
+      }
+      catch (IllegalStateException e) {
         // ingore
       }
     }

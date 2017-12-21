@@ -30,7 +30,8 @@ public class PrimaryKeyAnnotationChecker implements ConditionChecker {
             preRv.fieldMethod = ReflectionUtils.getDeclaredMethod(sqlInfo.getBeanType(), fieldToGetterName(field));
           }
           hasPrimaryKey = AnnotationUtils.hasAnnotation(preRv.fieldMethod, PrimaryKey.class);
-        } catch (IllegalStateException e) {
+        }
+        catch (IllegalStateException e) {
           // ignore
         }
       }
@@ -44,7 +45,8 @@ public class PrimaryKeyAnnotationChecker implements ConditionChecker {
           if (Objects.isNull(preRv.fieldMethod)) {
             try {
               preRv.fieldMethod = ReflectionUtils.getDeclaredMethod(sqlInfo.getBeanType(), fieldToGetterName(field));
-            } catch (IllegalStateException e) {
+            }
+            catch (IllegalStateException e) {
               // ignore
             }
             if (Objects.nonNull(preRv.fieldMethod)) {
@@ -71,7 +73,8 @@ public class PrimaryKeyAnnotationChecker implements ConditionChecker {
           if (Objects.isNull(preRv.fieldMethod)) {
             try {
               preRv.fieldMethod = ReflectionUtils.getDeclaredMethod(sqlInfo.getBeanType(), fieldToGetterName(field));
-            } catch (IllegalStateException e) {
+            }
+            catch (IllegalStateException e) {
               // ignore
             }
             if (Objects.nonNull(preRv.fieldMethod)) {

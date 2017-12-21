@@ -207,7 +207,8 @@ public final class SqlInfo {
       else {
         return primaryKey;
       }
-    } else {
+    }
+    else {
       return pcmList.get(0);
     }
   }

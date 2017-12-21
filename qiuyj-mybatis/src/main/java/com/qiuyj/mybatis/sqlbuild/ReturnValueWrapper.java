@@ -77,7 +77,6 @@ public class ReturnValueWrapper {
       if (needParseParameter()) {
         throw new IllegalStateException("Parameter 'parameterMappings' cannot be null with generate static sql source mode");
       }
-
     }
   }
 

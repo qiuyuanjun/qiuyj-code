@@ -63,7 +63,8 @@ public abstract class ReflectionUtils {
     Constructor<?> ctor = null;
     try {
       ctor = cls.getDeclaredConstructor(paramTypes);
-    } catch (NoSuchMethodException e) {
+    }
+    catch (NoSuchMethodException e) {
       // ignore
     }
     return ctor;
@@ -77,7 +78,8 @@ public abstract class ReflectionUtils {
     Constructor<?> ctor;
     try {
       ctor = cls.getDeclaredConstructor(paramTypes);
-    } catch (NoSuchMethodException e) {
+    }
+    catch (NoSuchMethodException e) {
       throw new IllegalStateException("Can not find constructor with parameter types: " + Arrays.toString(paramTypes));
     }
     return ctor;
@@ -96,7 +98,8 @@ public abstract class ReflectionUtils {
   public static Constructor<?> getDefaultConstructor(Class<?> cls) {
     try {
       return getConstructor(cls);
-    } catch (IllegalStateException e) {
+    }
+    catch (IllegalStateException e) {
       throw new IllegalStateException("There are no default constructor in: " + cls, e);
     }
   }
@@ -109,7 +112,8 @@ public abstract class ReflectionUtils {
     while (Objects.nonNull(cls)) {
       try {
         return cls.getDeclaredMethod(methodName, paramTypes);
-      } catch (NoSuchMethodException e) {
+      }
+      catch (NoSuchMethodException e) {
         // ignore;
       }
       cls = cls.getSuperclass();
@@ -130,7 +134,8 @@ public abstract class ReflectionUtils {
     }
     try {
       return methodToInvoke.invoke(objectTarget, args);
-    } catch (Exception e) {
+    }
+    catch (Exception e) {
       handleReflectionException(e);
     }
     throw new IllegalStateException("Should never get here");
@@ -248,7 +253,8 @@ public abstract class ReflectionUtils {
     }
     try {
       return ctor.newInstance(ctorArgs);
-    } catch (Exception e) {
+    }
+    catch (Exception e) {
       handleReflectionException(e);
     }
     throw new IllegalStateException("Should never get here");
@@ -264,7 +270,8 @@ public abstract class ReflectionUtils {
     while (Objects.nonNull(cls) && cls != Object.class) {
       try {
         return cls.getDeclaredField(fieldName);
-      } catch (NoSuchFieldException e) {
+      }
+      catch (NoSuchFieldException e) {
         // ignore
       }
       cls = cls.getSuperclass();

@@ -49,7 +49,8 @@ public abstract class ClassUtils {
   public static Class<?> resolveClassName(String className, ClassLoader cl) {
     try {
       return classForName(className, cl);
-    } catch (ClassNotFoundException e) {
+    }
+    catch (ClassNotFoundException e) {
       throw new IllegalArgumentException("Can not find: " + className);
     }
   }
@@ -78,14 +79,16 @@ public abstract class ClassUtils {
       }
       try {
         return Objects.isNull(cl) ? Class.forName(className) : cl.loadClass(className);
-      } catch (ClassNotFoundException e) {
+      }
+      catch (ClassNotFoundException e) {
         // 有可能是内部类
         int idx = className.lastIndexOf(".");
         String innerClassName =
             className.substring(0, idx) + INNER_CLASS_SEPERATOR + className.substring(idx + 1);
         try {
           return Objects.isNull(cl) ? Class.forName(innerClassName) : cl.loadClass(innerClassName);
-        } catch (ClassNotFoundException e2) {
+        }
+        catch (ClassNotFoundException e2) {
           // ignore;
         }
         throw e;
@@ -100,19 +103,22 @@ public abstract class ClassUtils {
     ClassLoader cl = null;
     try {
       cl = Thread.currentThread().getContextClassLoader();
-    } catch (Exception e) {
+    }
+    catch (Exception e) {
       // ignore
     }
     if (Objects.isNull(cl)) {
       try {
         cl = ClassUtils.class.getClassLoader();
-      } catch (Exception e) {
+      }
+      catch (Exception e) {
         // ignore
       }
       if (Objects.isNull(cl)) {
         try {
           cl = ClassLoader.getSystemClassLoader();
-        } catch (Throwable t) {
+        }
+        catch (Throwable t) {
           // ignore
         }
       }

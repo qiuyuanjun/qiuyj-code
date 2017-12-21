@@ -62,19 +62,23 @@ public class BeanExampleResolver {
     Object fieldValue = invokeFieldGetter(bean, field);
     if (Objects.nonNull(defaultValue) && defaultValue == fieldValue) {
       // 表明当前是基本数据类型，并且值是默认值，不做任何处理
-    } else if (Objects.isNull(fieldValue)) {
+    }
+    else if (Objects.isNull(fieldValue)) {
       // 表明是引用类型，但是其值是null，也就是默认值，也不做任何处理
-    } else {
+    }
+    else {
       // 不是默认值，字段有值
       callback.resolveNonNullField(fieldValue);
     }
   }
   private static Object invokeFieldGetter(Object obj, Field f) {
-    if (!f.isAccessible())
+    if (!f.isAccessible()) {
       f.setAccessible(true);
+    }
     try {
       return f.get(obj);
-    } catch (IllegalAccessException e) {
+    }
+    catch (IllegalAccessException e) {
       // ignore;
     }
     throw new IllegalStateException("Should never get here");
@@ -95,12 +99,14 @@ public class BeanExampleResolver {
    */
   private Object primitiveFieldDefaultValue(Field f) {
     Type t = f.getGenericType();
+    Object value = null;
     if (t instanceof Class<?>) {
-      Object value = PRIMITIVE_DEFAULT_VALUE.get(t);
-      if (Objects.nonNull(value))
-        return value;
+      String name = ((Class) t).getName();
+      if (name.length() < 8) {
+        value = PRIMITIVE_DEFAULT_VALUE.get(t);
+      }
     }
-    return null;
+    return value;
   }
 
   /**

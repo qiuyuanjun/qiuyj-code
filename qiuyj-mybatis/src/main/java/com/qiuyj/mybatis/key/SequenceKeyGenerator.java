@@ -51,13 +51,16 @@ public class SequenceKeyGenerator implements KeyGenerator {
       Connection sequenceQueryConn = executor.getTransaction().getConnection();
       stmt = sequenceQueryConn.createStatement();
       processSequenceQuery(configuration, stmt, parameter);
-    } catch (SQLException e) {
+    }
+    catch (SQLException e) {
       throw new ExecutorException("Error obtaining database connection or creating statement. \nCaused by: " + e, e);
-    } finally {
+    }
+    finally {
       if (Objects.nonNull(stmt)) {
         try {
           stmt.close();
-        } catch (SQLException e) {
+        }
+        catch (SQLException e) {
           // ignore
         }
       }
@@ -104,9 +107,11 @@ public class SequenceKeyGenerator implements KeyGenerator {
           configuration.newMetaObject(instance).setValue(sqlInfo.getPrimaryKey().getJavaClassPropertyName(), sequence);
         }
       }
-    } catch (SQLException e) {
+    }
+    catch (SQLException e) {
       throw new ExecutorException("Error getting generated key or setting result to parameter object. Cause: " + e, e);
-    } finally {
+    }
+    finally {
       closeResultSetQuietly(rs);
     }
   }
@@ -121,9 +126,11 @@ public class SequenceKeyGenerator implements KeyGenerator {
           configuration.newMetaObject(instance).setValue(sqlInfo.getPrimaryKey().getJavaClassPropertyName(), sequence);
         }
       }
-    } catch (SQLException e) {
+    }
+    catch (SQLException e) {
       throw new ExecutorException("Error getting generated key or setting result to parameter object. Cause: " + e, e);
-    } finally {
+    }
+    finally {
       closeResultSetQuietly(rs);
     }
   }
@@ -136,9 +143,11 @@ public class SequenceKeyGenerator implements KeyGenerator {
         Object sequence = sqlInfo.getPrimaryKey().getTypeHandler().getResult(rs, 1);
         configuration.newMetaObject(parameterObject).setValue(sqlInfo.getPrimaryKey().getJavaClassPropertyName(), sequence);
       }
-    } catch (SQLException e) {
+    }
+    catch (SQLException e) {
       throw new ExecutorException("Error getting generated key or setting result to parameter object. Cause: " + e, e);
-    } finally {
+    }
+    finally {
       closeResultSetQuietly(rs);
     }
   }
@@ -147,7 +156,8 @@ public class SequenceKeyGenerator implements KeyGenerator {
     if (Objects.nonNull(rs)) {
       try {
         rs.close();
-      } catch (SQLException e) {
+      }
+      catch (SQLException e) {
         // ignore
       }
     }

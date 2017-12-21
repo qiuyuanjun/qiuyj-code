@@ -27,7 +27,8 @@ public class EnumTypeConditionChecker implements ConditionChecker {
       if (Objects.isNull(preRv.fieldMethod)) {
         try {
           preRv.fieldMethod = ReflectionUtils.getDeclaredMethod(sqlInfo.getBeanType(), fieldToGetterName(field));
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
           // ignore
         }
       }

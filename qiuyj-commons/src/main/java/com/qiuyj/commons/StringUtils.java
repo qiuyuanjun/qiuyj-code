@@ -134,7 +134,8 @@ public abstract class StringUtils {
         sb.append(chs, 0, --start);
         sb.append("_");
         chs[start] = Character.toLowerCase(chs[start]);
-      } else {
+      }
+      else {
         sb.append(Character.toLowerCase(c));
         start++;
       }
@@ -149,7 +150,8 @@ public abstract class StringUtils {
         if (Character.isUpperCase(c) && Character.isLowerCase(chs[start - 1])) {
           sb.append("_");
           sb.append(Character.toLowerCase(c));
-        } else {
+        }
+        else {
           sb.append(c);
         }
       }
@@ -159,7 +161,8 @@ public abstract class StringUtils {
         sb.append(chs, end + 1, suffixLen);
       }
       return sb.toString();
-    } else {
+    }
+    else {
       return Introspector.decapitalize(name);
     }
   }
