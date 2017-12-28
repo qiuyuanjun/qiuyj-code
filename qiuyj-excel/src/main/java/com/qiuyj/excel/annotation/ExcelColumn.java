@@ -16,6 +16,11 @@ public @interface ExcelColumn {
   String name() default "";
 
   /**
+   * 列的下标，也就是导出excel的时候，对应的javabean的属性对应列的先后顺序
+   */
+  int index() default -1;
+
+  /**
    * 数据转换器
    */
   Class<? extends DataConverter> dataConverterClass() default DefaultDataConverter.class;
@@ -23,5 +28,5 @@ public @interface ExcelColumn {
   /**
    * 数据转换的格式，如果有必要的话
    */
-  String pattern() default "";
+  String pattern() default DataConverter.NO_PATTERN;
 }

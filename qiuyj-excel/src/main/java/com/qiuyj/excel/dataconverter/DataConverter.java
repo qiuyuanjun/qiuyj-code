@@ -10,7 +10,7 @@ public interface DataConverter<T> {
   /**
    * 如果不需要传入格式，那么可以将该参数传入满足语法要求
    */
-  String NO_PATTERN = null;
+  String NO_PATTERN = "";
 
   /**
    * 按照某种格式转换数据，主要用于导出excel
