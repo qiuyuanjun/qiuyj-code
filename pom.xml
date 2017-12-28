@@ -8,6 +8,7 @@
   <modules>
     <module>qiuyj-commons</module>
     <module>qiuyj-mybatis</module>
+    <module>qiuyj-excel</module>
   </modules>
   <packaging>pom</packaging>
 

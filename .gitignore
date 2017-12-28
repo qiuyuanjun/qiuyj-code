@@ -25,3 +25,6 @@ nbdist/
 
 ### test case ###
 */src/test/
+
+### netty ###
+qiuyj-commons/src/main/java/com/qiuyj/commons/netty

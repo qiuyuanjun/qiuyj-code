@@ -7,15 +7,14 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>qiuyj-commons</artifactId>
+  <artifactId>qiuyj-excel</artifactId>
   <packaging>jar</packaging>
 
   <dependencies>
     <dependency>
-      <groupId>io.netty</groupId>
-      <artifactId>netty-all</artifactId>
-      <version>4.1.19.Final</version>
+      <groupId>org.apache.poi</groupId>
+      <artifactId>poi</artifactId>
+      <version>3.17</version>
     </dependency>
   </dependencies>
-
 </project>
