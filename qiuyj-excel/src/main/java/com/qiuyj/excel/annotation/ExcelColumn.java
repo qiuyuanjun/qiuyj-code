@@ -19,4 +19,9 @@ public @interface ExcelColumn {
    * 数据转换器
    */
   Class<? extends DataConverter> dataConverterClass() default DefaultDataConverter.class;
+
+  /**
+   * 数据转换的格式，如果有必要的话
+   */
+  String pattern() default "";
 }
