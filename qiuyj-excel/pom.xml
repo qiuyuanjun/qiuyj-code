@@ -12,6 +12,12 @@
 
   <dependencies>
     <dependency>
+      <groupId>com.qiuyj</groupId>
+      <artifactId>qiuyj-commons</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+
+    <dependency>
       <groupId>org.apache.poi</groupId>
       <artifactId>poi</artifactId>
       <version>3.17</version>
