@@ -42,7 +42,8 @@ public class JavaUtilDateConverter extends AbstractDateConverter<Date> {
     DateFormat df = (DateFormat) lookupPattern(pattern);
     try {
       return df.parse(str);
-    } catch (ParseException e) {
+    }
+    catch (ParseException e) {
       throw new IllegalArgumentException("Error date pattern: '" + pattern + "'");
     }
   }
