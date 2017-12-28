@@ -6,6 +6,7 @@ import com.qiuyj.excel.dataconverter.date.pattern.Jsr310DateTimeDatePattern;
 import java.time.temporal.TemporalAccessor;
 
 /**
+ * 主要用于jsr310规范下的时间日期api的转换
  * @author qiuyj
  * @since 2017/12/28
  */
