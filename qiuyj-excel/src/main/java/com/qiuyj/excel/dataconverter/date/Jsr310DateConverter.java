@@ -3,6 +3,7 @@ package com.qiuyj.excel.dataconverter.date;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -12,16 +13,17 @@ import java.util.Map;
  */
 @SuppressWarnings("unchecked")
 public class Jsr310DateConverter extends AbstractDateConverter<TemporalAccessor> {
-  private static final Map CACHED_DATE_TIME_FORMATTER;
+  private static final Map CACHED_JSR310_FORMATTER;
   static {
-    CACHED_DATE_TIME_FORMATTER = new HashMap();
-    CACHED_DATE_TIME_FORMATTER.put("yyyy-MM-dd", DateTimeFormatter.ISO_DATE);
-    CACHED_DATE_TIME_FORMATTER.put("yyyy-MM-dd HH:mm:ss", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+    CACHED_JSR310_FORMATTER = new HashMap();
+    CACHED_JSR310_FORMATTER.put("yyyy-MM-dd", DateTimeFormatter.ISO_DATE);
+    CACHED_JSR310_FORMATTER.put("yyyy-MM-dd HH:mm:ss", DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+    CACHED_JSR310_FORMATTER.put("yyyy年MM月dd日", DateTimeFormatter.ofPattern("yyyy年MM月dd日", Locale.CHINA));
   }
 
   @Override
   protected Map getPatternContainer() {
-    return CACHED_DATE_TIME_FORMATTER;
+    return CACHED_JSR310_FORMATTER;
   }
 
   @Override

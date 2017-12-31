@@ -19,6 +19,7 @@ public class JavaUtilDateConverter extends AbstractDateConverter<Date> {
     CACHED_DATE_FORMAT = new HashMap();
     CACHED_DATE_FORMAT.put("yyyy-MM-dd", new SimpleDateFormat("yyyy-MM-dd"));
     CACHED_DATE_FORMAT.put("yyyy-MM-dd HH:mm:ss", new SimpleDateFormat("yyyy-MM-dd HH:mm:ss"));
+    CACHED_DATE_FORMAT.put("yyyy年MM月dd日", new SimpleDateFormat("yyyy年MM月dd日"));
   }
 
   @Override
