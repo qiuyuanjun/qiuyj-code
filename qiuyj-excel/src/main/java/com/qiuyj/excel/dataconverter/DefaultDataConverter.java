@@ -6,6 +6,11 @@ package com.qiuyj.excel.dataconverter;
  * @since 2017/12/28
  */
 public class DefaultDataConverter implements DataConverter<Object> {
+  private static final DefaultDataConverter INSTANCE = new DefaultDataConverter();
+
+  public static DataConverter<Object> getInstance() {
+    return INSTANCE;
+  }
 
   @Override
   public String convertData(Object data, String pattern) {

@@ -1,6 +1,7 @@
 package com.qiuyj.excel.importer;
 
 import com.qiuyj.commons.ReflectionUtils;
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Workbook;
 
@@ -20,6 +21,10 @@ public class BeanExcelImporter extends AbstractExcelImporter {
 
   @Override
   protected Object excelRowMapping(Row currRow) {
-    return ReflectionUtils.instantiateClass(beanCls);
+    Object bean = ReflectionUtils.instantiateClass(beanCls);
+    for (Cell cell : currRow) {
+      // mapping
+    }
+    return bean;
   }
 }

@@ -1,30 +1,63 @@
 package com.qiuyj.excel.importer;
 
+import com.qiuyj.commons.StringUtils;
+import com.qiuyj.excel.ExcelUtils;
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author qiuyj
  * @since 2017/12/31
  */
 public abstract class AbstractExcelImporter implements ExcelImporter {
-  private static final int DEFAULT_EXCEL_PARSED_CONTENT_SIZE = 32;
-  private final Workbook wb;
+  private final Workbook workbook;
 
-  private List excelContent;
+  /**
+   * 导入excel的表头信息，按顺序
+   */
+  private final List<String> excelHeadInfo;
 
   protected AbstractExcelImporter(Workbook wb) {
-    this.wb = Objects.requireNonNull(wb);
-    excelContent = new ArrayList(DEFAULT_EXCEL_PARSED_CONTENT_SIZE);
+    this.workbook = Objects.requireNonNull(wb);
+    excelHeadInfo = Collections.unmodifiableList(getExcelHeadInfo(wb));
   }
 
   @Override
   public List importExcel() {
+    return importExcel(true);
+  }
+
+  @SuppressWarnings("unchecked")
+  public List importExcel(boolean closeWorkbook) {
+    List excelContent = new ArrayList();
+    for (Sheet sheet : workbook) {
+      if (ExcelUtils.isEmptySheet(sheet)) {
+        continue;
+      }
+      // 跳过头部
+      Iterator<Row> rowIt = skipTopRow(sheet);
+      while (rowIt.hasNext()) {
+        excelContent.add(excelRowMapping(rowIt.next()));
+      }
+    }
+    if (closeWorkbook) {
+      ExcelUtils.closeExcelWorkbookQuietly(workbook);
+    }
     return excelContent;
+  }
+
+  private Iterator<Row> skipTopRow(Sheet sheet) {
+    Iterator<Row> rowIt = sheet.rowIterator();
+    rowIt.next();
+    return rowIt;
+  }
+
+  protected List<String> getExcelHeadInfo() {
+    return excelHeadInfo;
   }
 
   /**
@@ -32,4 +65,22 @@ public abstract class AbstractExcelImporter implements ExcelImporter {
    */
   protected abstract Object excelRowMapping(Row currRow);
 
+  /**
+   * 读取excel的头信息
+   */
+  private static List<String> getExcelHeadInfo(Workbook wb) {
+    Sheet firstSheet = wb.getSheetAt(0);
+    Row row = firstSheet.getRow(firstSheet.getFirstRowNum());
+    List<String> excelHeadInfo = new ArrayList<>(row.getLastCellNum() + 1);
+    for (Cell cell : row) {
+      String cellValue = ExcelUtils.readExcelCellValueAsString(cell);
+      if (StringUtils.isNotBlank(cellValue)) {
+        excelHeadInfo.add(cellValue);
+      }
+      else {
+        excelHeadInfo.add(ExcelImporter.EMPTY_HEAD_INFO);
+      }
+    }
+    return excelHeadInfo;
+  }
 }
