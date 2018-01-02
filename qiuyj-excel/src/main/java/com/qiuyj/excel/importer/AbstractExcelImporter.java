@@ -41,7 +41,13 @@ public abstract class AbstractExcelImporter implements ExcelImporter {
       // 跳过头部
       Iterator<Row> rowIt = skipTopRow(sheet);
       while (rowIt.hasNext()) {
-        excelContent.add(excelRowMapping(rowIt.next()));
+        Object mappingResult = excelRowMapping(rowIt.next());
+        if (Objects.nonNull(mappingResult)) {
+          excelContent.add(mappingResult);
+        }
+        else {
+          throw new IllegalArgumentException("Don't accept null element");
+        }
       }
     }
     if (closeWorkbook) {

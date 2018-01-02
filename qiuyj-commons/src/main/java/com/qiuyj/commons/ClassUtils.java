@@ -168,10 +168,9 @@ public abstract class ClassUtils {
    */
   public static Set<Class<?>> getAllInterfacesIncludingAncestorInterfacesAsSet(Class<?> cls) {
     Objects.requireNonNull(cls);
-    Set<Class<?>> interfaces = new LinkedHashSet<>();
     Class<?>[] superInterfaces = cls.getInterfaces();
     // 首先直接添加当前Class的所有接口
-    interfaces.addAll(Arrays.asList(superInterfaces));
+    Set<Class<?>> interfaces = new LinkedHashSet<>(Arrays.asList(superInterfaces));
     // 遍历当前Class的所有接口，得到这些接口的所有接口
     for (Class<?> superInterface : superInterfaces) {
       interfaces.addAll(getAllInterfacesIncludingAncestorInterfacesAsSet(superInterface));
