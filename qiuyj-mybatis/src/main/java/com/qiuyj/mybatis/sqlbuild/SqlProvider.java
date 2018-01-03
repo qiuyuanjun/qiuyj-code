@@ -123,7 +123,7 @@ public class SqlProvider {
     checkBeanType(sqlInfo.getBeanType(), args);
     BeanExampleResolver exampleResolver = new BeanExampleResolver(args, sqlInfo.getJavaProperties(), sqlInfo.getDatabaseColumns());
     if (!exampleResolver.hasPrimaryKeyAndNotDefault()) {
-      throw new NoPrimaryKeyException("primary key is defaultimpl value");
+      throw new NoPrimaryKeyException("primary key is default value");
     }
     else {
       List<PropertyColumnMapping> nonNullColumns = exampleResolver.getWithoutPrimaryKey();
