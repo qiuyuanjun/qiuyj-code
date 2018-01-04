@@ -12,12 +12,9 @@ public abstract class PropertyAccessorSupport implements ConfigurablePropertyAcc
 
   private final PropertyConverterRegistry propertyConverterRegistry;
 
-  private final Object bean;
-
-  public PropertyAccessorSupport(Object bean) {
+  public PropertyAccessorSupport() {
     convertIfIsStringValue = true;
     propertyConverterRegistry = new PropertyConverterRegistry();
-    this.bean = bean;
   }
 
   @Override
