@@ -8,48 +8,42 @@ package com.qiuyj.commons.reflection;
 public interface PropertyAccessor {
 
   /**
-   * 添加属性
+   * 内嵌属性分割符
    */
-  void add(PropertyValue pv);
+  String NESTED_PROPERTY_SEPERATOR_STRING = ".";
+  char NESTED_PROPERTY_SEPERATOR_CHAR = '.';
 
   /**
-   * 添加所有的属性
+   * 属性的索引，主要用于数组的访问，集合的访问，map的访问
    */
-  void addAll(PropertyValues pvs);
+  String INDEXED_PROPERTY_PREFIX_STRING = "[";
+  char INDEX_PROPERTY_PREFIX_CHAR = '[';
 
   /**
-   * 根据对应的属性得到对应的值，如果属性不存在，那么返回null
-   * @param property 属性
-   * @return 对应的值
+   * 设置对应属性的值
+   * @param property 要设置值的属性名称
+   * @param value 属性值
    */
-  Object getValue(String property);
+  void setProperty(String property, Object value);
 
   /**
-   * 添加属性
-   * @param property 属性（必须不能为null）
-   * @param value 值（如果为null，那么将会移除对应的属性）
+   * 设置对应属性的值（可能需要转换类型）
+   * @param property 要设置值的属性名称
+   * @param strValue 属性值（字符串形式，需要进一步转换）
    */
-  void addValue(String property, Object value);
+  void setProperty(String property, String strValue);
 
   /**
-   * 移除属性，必须同时满足属性和值都完全相等才会移除
+   * 得到对应的属性值
+   * @param property 属性名称
+   * @return 属性值
    */
-  boolean remove(PropertyValue pv);
+  Object getProperty(String property);
 
   /**
-   * 移除属性
-   * @param property 要移除的属性
+   * 得到对应的属性值作为字符串的形式返回
+   * @param property 属性名称
+   * @return 字符串形式的属性值
    */
-  boolean removeValue(String property);
-
-  /**
-   * 是否有对应的属性（一定是不为null的属性）
-   * @param property 属性
-   */
-  boolean hasProperty(String property);
-
-  /**
-   * 得到所有不为null的属性
-   */
-  String[] properties();
+  String getPropertyAsString(String property);
 }
