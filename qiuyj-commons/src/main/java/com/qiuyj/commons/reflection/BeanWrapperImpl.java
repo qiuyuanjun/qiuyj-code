@@ -102,17 +102,6 @@ public class BeanWrapperImpl<T> extends NestedPropertyAccessor implements Object
         || (boxingType == Double.class && primitiveType == Double.TYPE);
   }
 
-  /*@Override
-  protected Object doGetProperty(String property) {
-    PropertyDescriptor pd = getPropertyDescriptor(property);
-    if (Objects.nonNull(pd)) {
-      return ReflectionUtils.invokeMethod(bean, pd.getReadMethod());
-    }
-    else {
-      throw new ReflectionException("Can not found property: " + property + " in object: " + bean);
-    }
-  }*/
-
   @Override
   protected Class<?> getPropertyType(String property) {
     PropertyDescriptor pd = getPropertyDescriptor(property);
