@@ -1,5 +1,7 @@
 package com.qiuyj.commons.reflection;
 
+import com.qiuyj.commons.ReflectionUtils;
+
 import java.beans.PropertyDescriptor;
 import java.util.Objects;
 
@@ -8,15 +10,18 @@ import java.util.Objects;
  * @since 2018/1/4
  */
 @SuppressWarnings("unchecked")
-public class BeanWrapperImpl<T> extends PropertyAccessorSupport implements ObjectWrapper<T> {
+public class BeanWrapperImpl<T> extends NestedPropertyAccessor implements ObjectWrapper<T> {
 
   private final T bean;
 
   private final Class<T> beanCls;
 
+  private final CachedIntrospectResult cachedIntrospectResult;
+
   public BeanWrapperImpl(T bean) {
-    this.bean = bean;
+    this.bean = Objects.requireNonNull(bean);
     beanCls = (Class<T>) bean.getClass();
+    cachedIntrospectResult = new CachedIntrospectResult(beanCls);
   }
 
   @Override
@@ -31,12 +36,70 @@ public class BeanWrapperImpl<T> extends PropertyAccessorSupport implements Objec
 
   @Override
   public PropertyDescriptor[] getPropertyDescriptors() {
-    return new PropertyDescriptor[0];
+    return cachedIntrospectResult.getBeanInfo().getPropertyDescriptors();
   }
 
   @Override
   public PropertyDescriptor getPropertyDescriptor(String property) {
-    return null;
+    return cachedIntrospectResult.getPropertyDescriptor(property);
+  }
+
+  @Override
+  protected void doSetProperty(String property, Object value) {
+    super.doSetProperty(property, value);
+    PropertyDescriptor pd = getPropertyDescriptor(property);
+    if (Objects.nonNull(pd)) {
+      // 判断类型是否一致
+      if (Objects.nonNull(value)) {
+        Class<?> propertyType = pd.getPropertyType();
+        validateType(propertyType, value.getClass());
+      }
+      // 设置值
+      ReflectionUtils.invokeMethod(bean, pd.getWriteMethod(), value);
+    }
+    else {
+      throw new ReflectionException("There are no property found");
+    }
+  }
+
+  static void validateType(Class<?> originType, Class<?> setValueType) {
+    boolean same = true;
+    if (originType != setValueType) {
+      if (setValueType.isPrimitive()) {
+        same = primitiveBoxingTypeEq(originType, setValueType);
+      }
+      else if (originType.isPrimitive()) {
+        same = primitiveBoxingTypeEq(setValueType, originType);
+      }
+      else {
+        same = originType.isAssignableFrom(setValueType);
+      }
+    }
+    if (!same) {
+      throw new ReflectionException("Type not match");
+    }
+  }
+
+  private static boolean primitiveBoxingTypeEq(Class<?> boxingType, Class<?> primitiveType) {
+    return (boxingType == Integer.class && primitiveType == Integer.TYPE)
+        || (boxingType == Long.class && primitiveType == Long.TYPE)
+        || (boxingType == Byte.class && primitiveType == Byte.TYPE)
+        || (boxingType == Boolean.class && primitiveType == Boolean.TYPE)
+        || (boxingType == Character.class && primitiveType == Character.TYPE)
+        || (boxingType == Short.class && primitiveType == Short.TYPE)
+        || (boxingType == Float.class && primitiveType == Float.TYPE)
+        || (boxingType == Double.class && primitiveType == Double.TYPE);
+  }
+
+  @Override
+  protected Object doGetProperty(String property) {
+    PropertyDescriptor pd = getPropertyDescriptor(property);
+    if (Objects.nonNull(pd)) {
+      return ReflectionUtils.invokeMethod(bean, pd.getReadMethod());
+    }
+    else {
+      throw new ReflectionException("Can not found property: " + property + " in object: " + bean);
+    }
   }
 
   @Override

@@ -235,7 +235,8 @@ public abstract class ReflectionUtils {
       }
       // 使用默认构造函数创建对象
       ctor = (Constructor<T>) getDefaultConstructor(cls);
-    } else {
+    }
+    else {
       if (Objects.isNull(ctorArgs)) {
         throw new IllegalArgumentException("Wrong number of arguments");
       }

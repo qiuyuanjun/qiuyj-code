@@ -1,6 +1,11 @@
 package com.qiuyj.commons.reflection;
 
+import com.qiuyj.commons.StringUtils;
+
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * @author qiuyj
@@ -8,13 +13,27 @@ import java.util.Objects;
  */
 public abstract class PropertyAccessorSupport implements ConfigurablePropertyAccessor {
 
+  /**
+   * 如果对应的值是null，那么就会获得这个对象
+   */
+  private static final Object NULL_VALUE = new Object();
+
+  /**
+   * 是否支持字符串类型自动转换，默认支持
+   */
   private boolean convertIfIsStringValue;
 
   private final PropertyConverterRegistry propertyConverterRegistry;
 
+  /**
+   * 属性值的缓存
+   */
+  private final Map<String, Object> propertyValues;
+
   public PropertyAccessorSupport() {
     convertIfIsStringValue = true;
     propertyConverterRegistry = new PropertyConverterRegistry();
+    propertyValues = new HashMap<>();
   }
 
   @Override
@@ -34,7 +53,16 @@ public abstract class PropertyAccessorSupport implements ConfigurablePropertyAcc
 
   @Override
   public void setProperty(String property, Object value) {
+    property = resolvePropertyName(property);
+    Object maskValue = maskValue(value);
+    doSetProperty(property, value);
+    propertyValues.put(property, maskValue);
+  }
 
+  protected abstract void doSetProperty(String property, Object value);
+
+  private static Object maskValue(Object value) {
+    return Optional.ofNullable(value).orElse(NULL_VALUE);
   }
 
   @Override
@@ -55,12 +83,37 @@ public abstract class PropertyAccessorSupport implements ConfigurablePropertyAcc
 
   @Override
   public Object getProperty(String property) {
-    return null;
+    property = resolvePropertyName(property);
+    Object value = unmaskValue(propertyValues.get(property));
+    if (Objects.isNull(value)) {
+      // 自定义查找规则，子类实现
+      value = doGetProperty(property);
+    }
+    return value;
   }
+
+  protected abstract Object doGetProperty(String property);
 
   @Override
   public String getPropertyAsString(String property) {
-    return null;
+    Object unmaskValue = unmaskValue(getProperty(property));
+    if (Objects.nonNull(unmaskValue)) {
+      Class<?> propertyType = getPropertyType(property);
+      PropertyConverter pc = propertyConverterRegistry.getPropertyConverter(propertyType);
+      unmaskValue = pc.asString(unmaskValue);
+    }
+    return (String) unmaskValue;
+  }
+
+  private static Object unmaskValue(Object value) {
+    return value == NULL_VALUE ? null : value;
+  }
+
+  protected String resolvePropertyName(String propertyName) {
+    if (StringUtils.isBlank(propertyName)) {
+      throw new IllegalArgumentException("Property name can not be null");
+    }
+    return propertyName;
   }
 
   /**
