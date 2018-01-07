@@ -55,11 +55,12 @@ public abstract class PropertyAccessorSupport implements ConfigurablePropertyAcc
   public void setProperty(String property, Object value) {
     property = resolvePropertyName(property);
     Object maskValue = maskValue(value);
-    doSetProperty(property, value);
-    propertyValues.put(property, maskValue);
+    if (doSetProperty(property, value)) {
+      propertyValues.put(property, maskValue);
+    }
   }
 
-  protected abstract void doSetProperty(String property, Object value);
+  protected abstract boolean doSetProperty(String property, Object value);
 
   private static Object maskValue(Object value) {
     return Optional.ofNullable(value).orElse(NULL_VALUE);
@@ -72,6 +73,7 @@ public abstract class PropertyAccessorSupport implements ConfigurablePropertyAcc
     }
     else {
       Object value = null;
+      property = resolvePropertyName(property);
       if (Objects.nonNull(strValue)) {
         Class<?> propertyType = getPropertyType(property);
         PropertyConverter converter = propertyConverterRegistry.getPropertyConverter(propertyType);

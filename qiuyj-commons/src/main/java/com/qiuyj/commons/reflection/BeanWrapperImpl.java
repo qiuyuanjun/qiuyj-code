@@ -6,6 +6,7 @@ import java.beans.PropertyDescriptor;
 import java.util.Objects;
 
 /**
+ * 请一定注意，该功能是线程不安全的，请一定要杜绝该类作为共享变量，应该使其作为方法的局部变量
  * @author qiuyj
  * @since 2018/1/4
  */
@@ -45,9 +46,8 @@ public class BeanWrapperImpl<T> extends NestedPropertyAccessor implements Object
   }
 
   @Override
-  protected void doSetProperty(String property, Object value) {
-    super.doSetProperty(property, value);
-    PropertyDescriptor pd = getPropertyDescriptor(property);
+  protected void doSetNestedProperty(String nestedProperty, Object value) {
+    PropertyDescriptor pd = getPropertyDescriptor(nestedProperty);
     if (Objects.nonNull(pd)) {
       // 判断类型是否一致
       if (Objects.nonNull(value)) {
