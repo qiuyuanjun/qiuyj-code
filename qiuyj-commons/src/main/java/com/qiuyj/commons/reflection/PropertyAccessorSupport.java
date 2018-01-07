@@ -85,11 +85,11 @@ public abstract class PropertyAccessorSupport implements ConfigurablePropertyAcc
 
   @Override
   public Object getProperty(String property) {
-    property = resolvePropertyName(property);
-    Object value = unmaskValue(propertyValues.get(property));
-    if (Objects.isNull(value)) {
+    String realPropertyName = resolvePropertyName(property);
+    Object value = unmaskValue(propertyValues.get(realPropertyName));
+    if (Objects.isNull(value) || !realPropertyName.equals(property)) {
       // 自定义查找规则，子类实现
-      value = doGetProperty(property);
+      value = doGetProperty(realPropertyName);
     }
     return value;
   }
@@ -113,9 +113,11 @@ public abstract class PropertyAccessorSupport implements ConfigurablePropertyAcc
 
   protected String resolvePropertyName(String propertyName) {
     if (StringUtils.isBlank(propertyName)) {
-      throw new IllegalArgumentException("Property name can not be null");
+      throw new IllegalArgumentException("Property name can not be null or empty");
     }
-    return propertyName;
+    else {
+      return propertyName;
+    }
   }
 
   /**

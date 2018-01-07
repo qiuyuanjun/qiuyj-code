@@ -58,7 +58,18 @@ public class BeanWrapperImpl<T> extends NestedPropertyAccessor implements Object
       ReflectionUtils.invokeMethod(bean, pd.getWriteMethod(), value);
     }
     else {
-      throw new ReflectionException("There are no property found");
+      throw new ReflectionException("Can not found property: " + nestedProperty + " in object: " + bean);
+    }
+  }
+
+  @Override
+  protected Object doGetNestedProperty(String nestedProperty) {
+    PropertyDescriptor pd = getPropertyDescriptor(nestedProperty);
+    if (Objects.nonNull(pd)) {
+      return ReflectionUtils.invokeMethod(bean, pd.getReadMethod());
+    }
+    else {
+      throw new ReflectionException("Can not found property: " + nestedProperty + " in object: " + bean);
     }
   }
 
@@ -76,7 +87,7 @@ public class BeanWrapperImpl<T> extends NestedPropertyAccessor implements Object
       }
     }
     if (!same) {
-      throw new ReflectionException("Type not match");
+      throw new ReflectionException("Type not match. Expected: " + originType + ", acutal: " + setValueType);
     }
   }
 
@@ -91,7 +102,7 @@ public class BeanWrapperImpl<T> extends NestedPropertyAccessor implements Object
         || (boxingType == Double.class && primitiveType == Double.TYPE);
   }
 
-  @Override
+  /*@Override
   protected Object doGetProperty(String property) {
     PropertyDescriptor pd = getPropertyDescriptor(property);
     if (Objects.nonNull(pd)) {
@@ -100,7 +111,7 @@ public class BeanWrapperImpl<T> extends NestedPropertyAccessor implements Object
     else {
       throw new ReflectionException("Can not found property: " + property + " in object: " + bean);
     }
-  }
+  }*/
 
   @Override
   protected Class<?> getPropertyType(String property) {

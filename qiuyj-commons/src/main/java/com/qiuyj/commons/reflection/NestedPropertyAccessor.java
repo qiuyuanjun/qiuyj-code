@@ -53,6 +53,21 @@ public abstract class NestedPropertyAccessor extends PropertyAccessorSupport {
   protected abstract void doSetNestedProperty(String nestedProperty, Object value);
 
   @Override
+  protected Object doGetProperty(String property) {
+    NestedProperty nestedProperty = nestedRootProperty.get(property);
+    Object propertyValue;
+    if (Objects.nonNull(nestedProperty)) {
+      propertyValue = nestedProperty.getRoot().getProperty(nestedProperty.getNestedPropertyName());
+    }
+    else {
+      propertyValue = doGetNestedProperty(property);
+    }
+    return propertyValue;
+  }
+
+  protected abstract Object doGetNestedProperty(String property);
+
+  @Override
   protected String resolvePropertyName(String propertyName) {
     propertyName = super.resolvePropertyName(propertyName);
     int dotIdx = propertyName.indexOf(PropertyAccessor.NESTED_PROPERTY_SEPERATOR_STRING);
