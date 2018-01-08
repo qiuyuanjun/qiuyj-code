@@ -10,7 +10,7 @@ public class NestedProperty {
 
   private final PropertyAccessor root;
 
-  private final String nestedPropertyName;
+  private String nestedPropertyName;
 
   public NestedProperty(PropertyAccessor root, String nestedPropertyName) {
     this.root = root;
@@ -25,6 +25,10 @@ public class NestedProperty {
     return nestedPropertyName;
   }
 
+  public void setNestedPropertyName(String nestedPropertyName) {
+    this.nestedPropertyName = nestedPropertyName;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -37,6 +41,9 @@ public class NestedProperty {
     return Objects.equals(root, that.root) && Objects.equals(nestedPropertyName, that.nestedPropertyName);
   }
 
+  /**
+   * 由于NestedProperty不做Map的key，所以这里的hashCode方法不是必须的
+   */
   @Override
   public int hashCode() {
     return Objects.hash(nestedPropertyName);

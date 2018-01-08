@@ -84,8 +84,14 @@ public abstract class NestedPropertyAccessor extends PropertyAccessorSupport {
         }
       }
       propertyName = propertyName.substring(dotIdx + 1);
-      PropertyAccessor nestedPropertyAccessor = new BeanWrapperImpl<>(realPropertyValue);
-      nestedRootProperty.put(realPropertyName, new NestedProperty(nestedPropertyAccessor, propertyName));
+      NestedProperty nestedProperty = nestedRootProperty.get(realPropertyName);
+      if (Objects.isNull(nestedProperty)) {
+        nestedProperty = new NestedProperty(new BeanWrapperImpl<>(realPropertyValue), propertyName);
+        nestedRootProperty.put(realPropertyName, nestedProperty);
+      }
+      else {
+        nestedProperty.setNestedPropertyName(propertyName);
+      }
       propertyName = realPropertyName;
     }
     else if (dotIdx == 0) {
