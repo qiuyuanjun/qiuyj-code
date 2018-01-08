@@ -73,22 +73,29 @@ public class BeanWrapperImpl<T> extends NestedPropertyAccessor implements Object
     }
   }
 
-  static void validateType(Class<?> originType, Class<?> setValueType) {
-    boolean same = true;
-    if (originType != setValueType) {
-      if (setValueType.isPrimitive()) {
-        same = primitiveBoxingTypeEq(originType, setValueType);
-      }
-      else if (originType.isPrimitive()) {
-        same = primitiveBoxingTypeEq(setValueType, originType);
-      }
-      else {
-        same = originType.isAssignableFrom(setValueType);
-      }
-    }
-    if (!same) {
+  public static void validateType(Class<?> originType, Class<?> setValueType) {
+    if (!typeCheck(originType, setValueType)) {
       throw new ReflectionException("Type not match. Expected: " + originType + ", acutal: " + setValueType);
     }
+  }
+
+  private static boolean typeCheck(Class<?> expectedType, Class<?> actualType) {
+    boolean same = true;
+    if (expectedType != actualType) {
+      if (actualType.isPrimitive()) {
+        same = primitiveBoxingTypeEq(expectedType, actualType);
+      }
+      else if (expectedType.isPrimitive()) {
+        same = primitiveBoxingTypeEq(actualType, expectedType);
+      }
+      else if (expectedType.isArray() && actualType.isArray()) {
+        same = typeCheck(expectedType.getComponentType(), actualType.getComponentType());
+      }
+      else {
+        same = expectedType.isAssignableFrom(actualType);
+      }
+    }
+    return same;
   }
 
   private static boolean primitiveBoxingTypeEq(Class<?> boxingType, Class<?> primitiveType) {
