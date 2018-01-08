@@ -2,6 +2,7 @@ package com.qiuyj.commons.reflection;
 
 import com.qiuyj.commons.ReflectionUtils;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -86,7 +87,17 @@ public abstract class NestedPropertyAccessor extends PropertyAccessorSupport {
       propertyName = propertyName.substring(dotIdx + 1);
       NestedProperty nestedProperty = nestedRootProperty.get(realPropertyName);
       if (Objects.isNull(nestedProperty)) {
-        nestedProperty = new NestedProperty(new BeanWrapperImpl<>(realPropertyValue), propertyName);
+        PropertyAccessor nestedPropertyAccessor;
+        if (realPropertyValue instanceof Map<?, ?>) {
+          nestedPropertyAccessor = new MapWrapperImpl((Map<?, ?>) realPropertyValue);
+        }
+        else if (realPropertyValue instanceof Collection<?>) {
+          nestedPropertyAccessor = new CollectionWrapperImpl((Collection<?>) realPropertyValue);
+        }
+        else {
+          nestedPropertyAccessor = new BeanWrapperImpl<>(realPropertyValue);
+        }
+        nestedProperty = new NestedProperty(nestedPropertyAccessor, propertyName);
         nestedRootProperty.put(realPropertyName, nestedProperty);
       }
       else {
