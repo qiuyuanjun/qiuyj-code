@@ -45,4 +45,5 @@ public class IndexedProperty extends NestedProperty {
   public int hashCode() {
     return Objects.hash(indexedPropertyName);
   }
+
 }

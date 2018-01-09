@@ -119,4 +119,5 @@ public class BeanWrapperImpl<T> extends IndexedPropertyAccessor implements Objec
       return pd.getPropertyType();
     }
   }
+
 }
