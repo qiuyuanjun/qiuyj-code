@@ -1,9 +1,6 @@
 package com.qiuyj.commons.reflection;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author qiuyj
@@ -18,6 +15,7 @@ public abstract class IndexedPropertyAccessor extends NestedPropertyAccessor {
   }
 
   @Override
+  @SuppressWarnings("unchecked")
   protected String resolveIndexedPropertyName(String indexedPropertyName) {
     int indexedIdx = indexedPropertyName.indexOf(PropertyAccessor.INDEXED_PROPERTY_PREFIX_STRING);
     if (indexedIdx > 0) {
@@ -28,12 +26,15 @@ public abstract class IndexedPropertyAccessor extends NestedPropertyAccessor {
       IndexedProperty nestedProperty = indexedRootProperty.get(realPropertyName);
       indexedPropertyName = indexedPropertyName.substring(indexedIdx + 1);
       if (Objects.isNull(nestedProperty)) {
-        PropertyAccessor pa = null;
+        PropertyAccessor pa;
         if (realPropertyValue instanceof Map) {
-          pa = new MapWrapperImpl((Map<?, ?>) realPropertyValue);
+          pa = new MapWrapperImpl((Map<String, Object>) realPropertyValue);
         }
-        else if (realPropertyValue instanceof Collection || realPropertyValue.getClass().isArray()) {
-          pa = new CollectionArrayWrapperImpl(realPropertyValue);
+        else if (realPropertyValue instanceof List || realPropertyValue.getClass().isArray()) {
+          pa = new ListArrayWrapperImpl(realPropertyValue);
+        }
+        else {
+          throw new ReflectionException("Unsupport type: " + realPropertyValue.getClass());
         }
         nestedProperty = new IndexedProperty(pa, indexedPropertyName);
         setNestedProperty(realPropertyName, nestedProperty);
@@ -51,7 +52,7 @@ public abstract class IndexedPropertyAccessor extends NestedPropertyAccessor {
 
   private static void validateThatIndexingIsSupported(String realPropertyName, Object realPropertyValue) {
     Class<?> cls = realPropertyValue.getClass();
-    if (!cls.isArray() && !Collection.class.isAssignableFrom(cls) && !Map.class.isAssignableFrom(cls)) {
+    if (!cls.isArray() && !List.class.isAssignableFrom(cls) && !Map.class.isAssignableFrom(cls)) {
       throw new ReflectionException("The current property '" + realPropertyName + "' dose not support indexing");
     }
   }

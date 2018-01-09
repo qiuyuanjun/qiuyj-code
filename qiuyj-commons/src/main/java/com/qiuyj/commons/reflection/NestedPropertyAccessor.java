@@ -2,6 +2,7 @@ package com.qiuyj.commons.reflection;
 
 import com.qiuyj.commons.ReflectionUtils;
 
+import java.lang.reflect.Array;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -38,7 +39,7 @@ public abstract class NestedPropertyAccessor extends PropertyAccessorSupport {
     else {
       NestedProperty nestedProperty = nestedRootProperty.get(property);
       if (Objects.nonNull(nestedProperty)) {
-        nestedProperty.getRoot().setProperty(nestedProperty.getNestedPropertyName(), value);
+        nestedProperty.getRoot().setProperty(getNestedOrIndexedPropertyName(nestedProperty), value);
       }
       else {
         realSetValue = true;
@@ -52,12 +53,23 @@ public abstract class NestedPropertyAccessor extends PropertyAccessorSupport {
 
   protected abstract void doSetNestedProperty(String nestedProperty, Object value);
 
+  private static String getNestedOrIndexedPropertyName(NestedProperty nestedProperty) {
+    String indexedOrNestedPropertyName;
+    if (nestedProperty instanceof IndexedProperty) {
+      indexedOrNestedPropertyName = ((IndexedProperty) nestedProperty).getIndexedPropertyName();
+    }
+    else {
+      indexedOrNestedPropertyName = nestedProperty.getNestedPropertyName();
+    }
+    return indexedOrNestedPropertyName;
+  }
+
   @Override
   protected Object doGetProperty(String property) {
     NestedProperty nestedProperty = nestedRootProperty.get(property);
     Object propertyValue;
     if (Objects.nonNull(nestedProperty)) {
-      propertyValue = nestedProperty.getRoot().getProperty(nestedProperty.getNestedPropertyName());
+      propertyValue = nestedProperty.getRoot().getProperty(getNestedOrIndexedPropertyName(nestedProperty));
     }
     else {
       propertyValue = doGetNestedProperty(property);
@@ -106,7 +118,14 @@ public abstract class NestedPropertyAccessor extends PropertyAccessorSupport {
         throw new IllegalStateException("Not support null nested property value");
       }
       else {
-        realPropertyValue = ReflectionUtils.instantiateClass(getPropertyType(propertyName));
+        Class<?> type = getPropertyType(propertyName);
+        if (type.isArray()) {
+          // 如果是数组，那么需要初始化数组，并且给定大小，默认给32个长度
+          realPropertyValue = Array.newInstance(type.getComponentType(), 32);
+        }
+        else {
+          realPropertyValue = ReflectionUtils.instantiateClass(type);
+        }
         setProperty(propertyName, realPropertyValue);
       }
     }
