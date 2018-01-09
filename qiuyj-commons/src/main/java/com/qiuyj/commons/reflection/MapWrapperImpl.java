@@ -8,7 +8,7 @@ import java.util.Objects;
  * @author qiuyj
  * @since 2018/1/8
  */
-public class MapWrapperImpl extends NestedPropertyAccessor implements ObjectWrapper<Map<?, ?>> {
+public class MapWrapperImpl extends IndexedPropertyAccessor implements ObjectWrapper<Map<?, ?>> {
 
   private final Map<?, ?> map;
 

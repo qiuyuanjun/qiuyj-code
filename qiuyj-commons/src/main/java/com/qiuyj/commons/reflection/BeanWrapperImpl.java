@@ -11,7 +11,7 @@ import java.util.Objects;
  * @since 2018/1/4
  */
 @SuppressWarnings("unchecked")
-public class BeanWrapperImpl<T> extends NestedPropertyAccessor implements ObjectWrapper<T> {
+public class BeanWrapperImpl<T> extends IndexedPropertyAccessor implements ObjectWrapper<T> {
 
   private final T bean;
 

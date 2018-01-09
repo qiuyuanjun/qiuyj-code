@@ -8,16 +8,19 @@ import java.util.Objects;
  * @author qiuyj
  * @since 2018/1/8
  */
-public class CollectionWrapperImpl extends NestedPropertyAccessor implements ObjectWrapper<Collection<?>> {
+public class CollectionArrayWrapperImpl extends IndexedPropertyAccessor implements ObjectWrapper<Object> {
 
-  private final Collection<?> collection;
+  private final Object collectionOrArray;
 
-  private final Class<Collection<?>> collectionType;
+  private final Class<Object> collectionOrArrayType;
 
   @SuppressWarnings("unchecked")
-  public CollectionWrapperImpl(Collection<?> collection) {
-    this.collection = Objects.requireNonNull(collection);
-    collectionType = (Class<Collection<?>>) collection.getClass();
+  public CollectionArrayWrapperImpl(Object collectionOrArray) {
+    this.collectionOrArray = Objects.requireNonNull(collectionOrArray);
+    collectionOrArrayType = (Class<Object>) collectionOrArray.getClass();
+    if (!Collection.class.isAssignableFrom(collectionOrArrayType) && !collectionOrArrayType.isArray()) {
+      throw new ReflectionException("Only support collection or array");
+    }
   }
 
   @Override
@@ -31,13 +34,13 @@ public class CollectionWrapperImpl extends NestedPropertyAccessor implements Obj
   }
 
   @Override
-  public Collection<?> getWrappedInstance() {
-    return collection;
+  public Object getWrappedInstance() {
+    return collectionOrArray;
   }
 
   @Override
-  public Class<Collection<?>> getWrappedClass() {
-    return collectionType;
+  public Class<Object> getWrappedClass() {
+    return collectionOrArrayType;
   }
 
   @Override

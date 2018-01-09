@@ -2,7 +2,6 @@ package com.qiuyj.commons.reflection;
 
 import com.qiuyj.commons.ReflectionUtils;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -74,30 +73,16 @@ public abstract class NestedPropertyAccessor extends PropertyAccessorSupport {
     int dotIdx = propertyName.indexOf(PropertyAccessor.NESTED_PROPERTY_SEPERATOR_STRING);
     if (dotIdx > 0) {
       String realPropertyName = propertyName.substring(0, dotIdx);
-      Object realPropertyValue = getProperty(realPropertyName);
-      if (Objects.isNull(realPropertyValue)) {
-        if (!autoInstantiateNestedPropertyNullValue) {
-          throw new IllegalStateException("Not support null nested property value");
-        }
-        else {
-          realPropertyValue = ReflectionUtils.instantiateClass(getPropertyType(realPropertyName));
-          setProperty(realPropertyName, realPropertyValue);
-        }
-      }
+      realPropertyName = resolveIndexedPropertyName(realPropertyName);
+      Object realPropertyValue = getOrInitPropertyValue(realPropertyName);
       propertyName = propertyName.substring(dotIdx + 1);
       NestedProperty nestedProperty = nestedRootProperty.get(realPropertyName);
       if (Objects.isNull(nestedProperty)) {
-        PropertyAccessor nestedPropertyAccessor;
-        if (realPropertyValue instanceof Map<?, ?>) {
-          nestedPropertyAccessor = new MapWrapperImpl((Map<?, ?>) realPropertyValue);
-        }
-        else if (realPropertyValue instanceof Collection<?>) {
-          nestedPropertyAccessor = new CollectionWrapperImpl((Collection<?>) realPropertyValue);
-        }
-        else {
-          nestedPropertyAccessor = new BeanWrapperImpl<>(realPropertyValue);
-        }
-        nestedProperty = new NestedProperty(nestedPropertyAccessor, propertyName);
+        /*
+         * 如果此时NestedProperty为null，那么表明当前的属性一定不是Map，Collection或者数组
+         * 那么直接对应的是BeanWrapperImpl，无需判断realPropertyValue的类型，然后对应实例wrapper对象
+         */
+        nestedProperty = new NestedProperty(new BeanWrapperImpl<>(realPropertyValue), propertyName);
         nestedRootProperty.put(realPropertyName, nestedProperty);
       }
       else {
@@ -106,8 +91,31 @@ public abstract class NestedPropertyAccessor extends PropertyAccessorSupport {
       propertyName = realPropertyName;
     }
     else if (dotIdx == 0) {
-      propertyName = propertyName.substring(1);
+      throw new ReflectionException("Nested property can not be empty. May caused by the nested property flag '.' at the first location of the property string");
+    }
+    else {
+      propertyName = resolveIndexedPropertyName(propertyName);
     }
     return propertyName;
   }
+
+  protected Object getOrInitPropertyValue(String propertyName) {
+    Object realPropertyValue = getProperty(propertyName);
+    if (Objects.isNull(realPropertyValue)) {
+      if (!autoInstantiateNestedPropertyNullValue) {
+        throw new IllegalStateException("Not support null nested property value");
+      }
+      else {
+        realPropertyValue = ReflectionUtils.instantiateClass(getPropertyType(propertyName));
+        setProperty(propertyName, realPropertyValue);
+      }
+    }
+    return realPropertyValue;
+  }
+
+  protected void setNestedProperty(String property, NestedProperty nestedProperty) {
+    nestedRootProperty.put(property, nestedProperty);
+  }
+
+  protected abstract String resolveIndexedPropertyName(String indexedPropertyName);
 }
