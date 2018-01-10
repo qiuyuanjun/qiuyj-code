@@ -38,6 +38,7 @@ public abstract class IndexedPropertyAccessor extends NestedPropertyAccessor {
         }
         nestedProperty = new IndexedProperty(pa, indexedPropertyName);
         setNestedProperty(realPropertyName, nestedProperty);
+        indexedRootProperty.put(realPropertyName, nestedProperty);
       }
       else {
         nestedProperty.setIndexedPropertyName(indexedPropertyName);
