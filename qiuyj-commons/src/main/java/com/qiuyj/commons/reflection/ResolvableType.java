@@ -150,21 +150,9 @@ public final class ResolvableType {
                    .orElse(false);
   }
 
-  public ResolvableType getInterface(int idx) {
-    ResolvableType[] interfaces = getInterfaces();
-    if (Objects.nonNull(interfaces)) {
-      if (idx < 0 || idx > interfaces.length) {
-        throw new ArrayIndexOutOfBoundsException();
-      }
-      else {
-        return interfaces[idx];
-      }
-    }
-    else {
-      return null;
-    }
-  }
-
+  /**
+   * 得到当前ResolvableType所代表的类的所有接口，如果没有，那么返回一个空数组
+   */
   public ResolvableType[] getInterfaces() {
     if (Objects.isNull(interfaces)) {
       Class<?> cls = resolve();
