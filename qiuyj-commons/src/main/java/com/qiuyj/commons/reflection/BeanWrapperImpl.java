@@ -3,6 +3,10 @@ package com.qiuyj.commons.reflection;
 import com.qiuyj.commons.ReflectionUtils;
 
 import java.beans.PropertyDescriptor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -18,6 +22,8 @@ public class BeanWrapperImpl<T> extends IndexedPropertyAccessor implements Objec
   private final Class<T> beanCls;
 
   private final CachedIntrospectResult cachedIntrospectResult;
+
+  private Map<String, Type> indexedGenericPropertyMap;
 
   public BeanWrapperImpl(T bean) {
     this.bean = Objects.requireNonNull(bean);
@@ -120,4 +126,17 @@ public class BeanWrapperImpl<T> extends IndexedPropertyAccessor implements Objec
     }
   }
 
+  @Override
+  protected Type getIndexedPropertyGenericType(String propertyName) {
+    if (Objects.isNull(indexedGenericPropertyMap)) {
+      indexedGenericPropertyMap = new HashMap<>();
+    }
+    Type indexedGenericType = indexedGenericPropertyMap.get(propertyName);
+    if (Objects.isNull(indexedGenericType)) {
+      Field field = ReflectionUtils.getDeclaredField(beanCls, propertyName);
+      indexedGenericType = field.getGenericType();
+      indexedGenericPropertyMap.put(propertyName, indexedGenericType);
+    }
+    return indexedGenericType;
+  }
 }

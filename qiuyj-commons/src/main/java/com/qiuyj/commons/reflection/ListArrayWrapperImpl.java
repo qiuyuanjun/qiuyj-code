@@ -2,6 +2,7 @@ package com.qiuyj.commons.reflection;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Array;
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Objects;
 
@@ -18,6 +19,8 @@ public class ListArrayWrapperImpl extends IndexedPropertyAccessor implements Obj
 
   private Integer ifArrayLen;
 
+  private Class<?> listValueType;
+
   public ListArrayWrapperImpl(Object collectionOrArray) {
     this.collectionOrArray = Objects.requireNonNull(collectionOrArray);
     collectionOrArrayType = (Class<Object>) collectionOrArray.getClass();
@@ -27,6 +30,11 @@ public class ListArrayWrapperImpl extends IndexedPropertyAccessor implements Obj
     if (collectionOrArrayType.isArray()) {
       ifArrayLen = Array.getLength(collectionOrArray);
     }
+  }
+
+  ListArrayWrapperImpl(Object collectionOrArray, ResolvableType rt) {
+    this(collectionOrArray);
+    listValueType = rt.resolveGenericAt(0);
   }
 
   @Override
@@ -42,6 +50,12 @@ public class ListArrayWrapperImpl extends IndexedPropertyAccessor implements Obj
       }
     }
     else {
+      if (Objects.nonNull(listValueType) && Objects.nonNull(value)) {
+        Class<?> currValueType = value.getClass();
+        if (listValueType != currValueType && listValueType.isAssignableFrom(currValueType)) {
+          throw new ReflectionException("Type not match. Expected type is: " + listValueType + ", but actual is: " + currValueType);
+        }
+      }
       ((List<Object>) collectionOrArray).add(idx, value);
     }
   }
@@ -85,5 +99,10 @@ public class ListArrayWrapperImpl extends IndexedPropertyAccessor implements Obj
   @Override
   protected Class<?> getPropertyType(String property) {
     return doGetNestedProperty(property).getClass();
+  }
+
+  @Override
+  protected Type getIndexedPropertyGenericType(String propertyName) {
+    throw new UnsupportedOperationException();
   }
 }

@@ -1,5 +1,6 @@
 package com.qiuyj.commons.reflection;
 
+import java.lang.reflect.Type;
 import java.util.*;
 
 /**
@@ -24,14 +25,17 @@ public abstract class IndexedPropertyAccessor extends NestedPropertyAccessor {
       // 判断是否是支持索引的数据结构（Map，Collection，Array）
       validateThatIndexingIsSupported(realPropertyName, realPropertyValue);
       IndexedProperty nestedProperty = indexedRootProperty.get(realPropertyName);
+      // TODO #issue0001 当索引属性不是最后一个的时候，会出现问题
       indexedPropertyName = indexedPropertyName.substring(indexedIdx + 1);
       if (Objects.isNull(nestedProperty)) {
         PropertyAccessor pa;
         if (realPropertyValue instanceof Map) {
-          pa = new MapWrapperImpl((Map<String, Object>) realPropertyValue);
+          Type indexedPropertyType = getIndexedPropertyGenericType(realPropertyName);
+          pa = new MapWrapperImpl((Map) realPropertyValue, ResolvableType.forType(indexedPropertyType));
         }
         else if (realPropertyValue instanceof List || realPropertyValue.getClass().isArray()) {
-          pa = new ListArrayWrapperImpl(realPropertyValue);
+          Type indexedPropertyType = getIndexedPropertyGenericType(realPropertyName);
+          pa = new ListArrayWrapperImpl(realPropertyValue, ResolvableType.forType(indexedPropertyType));
         }
         else {
           throw new ReflectionException("Unsupport type: " + realPropertyValue.getClass());
@@ -50,6 +54,8 @@ public abstract class IndexedPropertyAccessor extends NestedPropertyAccessor {
     }
     return indexedPropertyName;
   }
+
+  protected abstract Type getIndexedPropertyGenericType(String propertyName);
 
   private static void validateThatIndexingIsSupported(String realPropertyName, Object realPropertyValue) {
     Class<?> cls = realPropertyValue.getClass();
