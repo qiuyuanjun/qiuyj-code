@@ -1,5 +1,6 @@
-package com.qiuyj.commons.bean;
+package com.qiuyj.commons.bean.wrapper;
 
+import com.qiuyj.commons.bean.ReflectionException;
 import com.qiuyj.commons.cache.impl.SoftReferenceCache;
 
 import java.beans.BeanInfo;

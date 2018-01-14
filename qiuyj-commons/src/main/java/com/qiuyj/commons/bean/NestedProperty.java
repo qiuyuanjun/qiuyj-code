@@ -4,21 +4,21 @@ import java.util.Objects;
 
 /**
  * @author qiuyj
- * @since 2018/1/7
+ * @since 2018/1/14
  */
 public class NestedProperty {
 
-  private PropertyAccessor root;
+  private final PropertyAccessor currentObject;
 
   private String nestedPropertyName;
 
-  public NestedProperty(PropertyAccessor root, String nestedPropertyName) {
-    this.root = root;
+  public NestedProperty(PropertyAccessor currentObject, String nestedPropertyName) {
+    this.currentObject = currentObject;
     this.nestedPropertyName = nestedPropertyName;
   }
 
-  public PropertyAccessor getRoot() {
-    return root;
+  public PropertyAccessor getCurrentObject() {
+    return currentObject;
   }
 
   public String getNestedPropertyName() {
@@ -38,18 +38,15 @@ public class NestedProperty {
       return false;
     }
     NestedProperty that = (NestedProperty) o;
-    return Objects.equals(root, that.root) && Objects.equals(nestedPropertyName, that.nestedPropertyName);
+    return Objects.equals(currentObject, that.currentObject) &&
+        Objects.equals(nestedPropertyName, that.nestedPropertyName);
   }
 
   /**
-   * 由于NestedProperty不做Map的key，所以这里的hashCode方法不是必须的
+   * 可以不用重写hashCode方法，因为NestedProperty不会作为Map的key
    */
   @Override
   public int hashCode() {
-    return Objects.hash(nestedPropertyName);
-  }
-
-  public void setRoot(PropertyAccessor root) {
-    this.root = root;
+    return Objects.hash(currentObject, nestedPropertyName);
   }
 }

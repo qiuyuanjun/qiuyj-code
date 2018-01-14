@@ -1,6 +1,8 @@
 package com.qiuyj.commons.bean;
 
 import com.qiuyj.commons.StringUtils;
+import com.qiuyj.commons.bean.propertyconverter.PropertyConverter;
+import com.qiuyj.commons.bean.propertyconverter.PropertyConverterRegistry;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -9,32 +11,23 @@ import java.util.Optional;
 
 /**
  * @author qiuyj
- * @since 2018/1/4
+ * @since 2018/1/14
  */
 public abstract class PropertyAccessorSupport implements ConfigurablePropertyAccessor {
 
   /**
-   * 如果对应的值是null，那么就会获得这个对象
+   * 如果一个值是null，那么将其转换成此对象，缓存中不存储null
    */
-  private static final Object NULL_VALUE = new Object();
+  public static final Object NULL_VALUE = new Object();
+
+  private final PropertyConverterRegistry propertyConverterRegistry = new PropertyConverterRegistry();
+
+  private boolean convertIfIsStringValue = true;
 
   /**
-   * 是否支持字符串类型自动转换，默认支持
+   * 属性值的缓存对象，如果一个值不为null，那么直接从这里获取即可
    */
-  private boolean convertIfIsStringValue;
-
-  private final PropertyConverterRegistry propertyConverterRegistry;
-
-  /**
-   * 属性值的缓存
-   */
-  private final Map<String, Object> propertyValues;
-
-  public PropertyAccessorSupport() {
-    convertIfIsStringValue = true;
-    propertyConverterRegistry = new PropertyConverterRegistry();
-    propertyValues = new HashMap<>();
-  }
+  private final Map<String, Object> cachedPropertyValues = new HashMap<>();
 
   @Override
   public void setConvertIfIsStringValue(boolean convertIfIsStringValue) {
@@ -48,88 +41,96 @@ public abstract class PropertyAccessorSupport implements ConfigurablePropertyAcc
 
   @Override
   public void setAutoInstantiateNestedPropertyNullValue(boolean autoInstantiateNestedPropertyNullValue) {
-    throw new UnsupportedOperationException("Unsupport nested property");
+    throw new UnsupportedOperationException();
   }
 
   @Override
   public void setProperty(String property, Object value) {
-    setProperty(property, value, true);
-  }
-
-  private void setProperty(String property, Object value, boolean resolveName) {
-    if (resolveName) {
-      property = resolvePropertyName(property);
+    String realPropertyName = resolvePropertyExpression(property);
+    value = maskValue(value);
+    if (doSetProperty(realPropertyName, value)) {
+      cachedPropertyValues.put(realPropertyName, value);
     }
-    Object maskValue = maskValue(value);
-    if (doSetProperty(property, value)) {
-      propertyValues.put(property, maskValue);
+    else {
+      cachedPropertyValues.remove(realPropertyName);
     }
   }
 
-  protected abstract boolean doSetProperty(String property, Object value);
-
-  private static Object maskValue(Object value) {
-    return Optional.ofNullable(value).orElse(NULL_VALUE);
-  }
+  protected abstract boolean doSetProperty(String realPropertyName, Object value);
 
   @Override
   public void setProperty(String property, String strValue) {
     if (!convertIfIsStringValue) {
-      throw new IllegalStateException("String conversion injection is not currently supported");
+      throw new ReflectionException("String conversion injection is not currently supported");
     }
     else {
       Object value = null;
-      property = resolvePropertyName(property);
+      property = resolvePropertyExpression(property);
       if (Objects.nonNull(strValue)) {
-        Class<?> propertyType = getPropertyType(property);
+        Class<?> propertyType = getPropertyValueType(property);
         PropertyConverter converter = propertyConverterRegistry.getPropertyConverter(propertyType);
         value = converter.getConvertedPropertyValue(strValue);
       }
-      setProperty(property, value, false);
+      setProperty(property, value);
     }
   }
 
   @Override
   public Object getProperty(String property) {
-    String realPropertyName = resolvePropertyName(property);
-    Object value = unmaskValue(propertyValues.get(realPropertyName));
+    String realPropertyName = resolvePropertyExpression(property);
+    Object value = unmaskValue(cachedPropertyValues.get(realPropertyName));
     if (Objects.isNull(value) || !realPropertyName.equals(property)) {
-      // 自定义查找规则，子类实现
+      // 子类自定义规则查找对应的属性值
       value = doGetProperty(realPropertyName);
     }
     return value;
   }
 
-  protected abstract Object doGetProperty(String property);
-
   @Override
   public String getPropertyAsString(String property) {
-    Object unmaskValue = unmaskValue(getProperty(property));
-    if (Objects.nonNull(unmaskValue)) {
-      Class<?> propertyType = getPropertyType(property);
-      PropertyConverter pc = propertyConverterRegistry.getPropertyConverter(propertyType);
-      unmaskValue = pc.asString(unmaskValue);
-    }
-    return (String) unmaskValue;
-  }
-
-  private static Object unmaskValue(Object value) {
-    return value == NULL_VALUE ? null : value;
-  }
-
-  protected String resolvePropertyName(String propertyName) {
-    if (StringUtils.isBlank(propertyName)) {
-      throw new IllegalArgumentException("Property name can not be null or empty");
+    if (convertIfIsStringValue) {
+      Object unmaskValue = unmaskValue(getProperty(property));
+      if (Objects.nonNull(unmaskValue)) {
+        String realPropertyName = resolvePropertyExpression(property);
+        Class<?> cls = getPropertyValueType(realPropertyName);
+        unmaskValue = propertyConverterRegistry.getPropertyConverter(cls).asString(unmaskValue);
+      }
+      return (String) unmaskValue;
     }
     else {
-      return propertyName;
+      throw new ReflectionException("Don't support convert value as string");
     }
   }
 
   /**
-   * 得到对应的属性的Class类型，有相应的子类去实现
-   * @param property 属性名
-   * @return 对应的Class对象
+   * 解析属性表达式，比如内嵌属性表达式，或者索引属性表达式
    */
-  protected abstract Class<?> getPropertyType(String property);
+  protected String resolvePropertyExpression(String propertyExpression) {
+    if (StringUtils.isBlank(propertyExpression)) {
+      throw new ReflectionException("Property expression or name can not be empty or null");
+    }
+    else {
+      return propertyExpression;
+    }
+  }
+
+  /**
+   * 得到属性对应的值的类型，交给子类处理
+   */
+  protected abstract Class<?> getPropertyValueType(String property);
+
+  /**
+   * 真正实现获取属性值的方法，子类实现
+   * @param realPropertyName 真正的属性名，已经解析过了的（该属性一定存在）
+   * @return 对应的属性值
+   */
+  protected abstract Object doGetProperty(String realPropertyName);
+
+  static Object maskValue(Object originValue) {
+    return Optional.ofNullable(originValue).orElse(NULL_VALUE);
+  }
+
+  static Object unmaskValue(Object value) {
+    return value == NULL_VALUE ? null : value;
+  }
 }

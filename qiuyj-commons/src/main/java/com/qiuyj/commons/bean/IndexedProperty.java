@@ -4,14 +4,14 @@ import java.util.Objects;
 
 /**
  * @author qiuyj
- * @since 2018/1/9
+ * @since 2018/1/14
  */
 public class IndexedProperty extends NestedProperty {
 
   private String indexedPropertyName;
 
-  public IndexedProperty(PropertyAccessor root, String indexedPropertyName) {
-    super(root, null);
+  public IndexedProperty(PropertyAccessor currentObject, String indexedPropertyName) {
+    super(currentObject, null);
     this.indexedPropertyName = indexedPropertyName;
   }
 
@@ -39,11 +39,10 @@ public class IndexedProperty extends NestedProperty {
   }
 
   /**
-   * 由于IndexedProperty不做Map的key，所以这里的hashCode方法不是必须的
+   * 可以不用重写hashCode方法，因为IndexedProperty不会作为Map的key
    */
   @Override
   public int hashCode() {
-    return Objects.hash(indexedPropertyName);
+    return Objects.hash(super.hashCode(), indexedPropertyName);
   }
-
 }

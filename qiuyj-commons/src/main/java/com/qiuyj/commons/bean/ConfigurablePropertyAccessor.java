@@ -1,5 +1,7 @@
 package com.qiuyj.commons.bean;
 
+import com.qiuyj.commons.bean.propertyconverter.PropertyConverter;
+
 /**
  * @author qiuyj
  * @since 2018/1/4

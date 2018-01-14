@@ -1,27 +1,21 @@
 package com.qiuyj.commons.bean;
 
 import com.qiuyj.commons.ReflectionUtils;
+import com.qiuyj.commons.bean.wrapper.BeanWrapperImpl;
 
-import java.lang.reflect.Array;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
 /**
- * 内嵌属性访问器
  * @author qiuyj
- * @since 2018/1/5
+ * @since 2018/1/14
  */
 public abstract class NestedPropertyAccessor extends PropertyAccessorSupport {
 
-  private boolean autoInstantiateNestedPropertyNullValue;
+  private boolean autoInstantiateNestedPropertyNullValue = true;
 
-  private final Map<String, NestedProperty> nestedRootProperty;
-
-  protected NestedPropertyAccessor() {
-    autoInstantiateNestedPropertyNullValue = true;
-    nestedRootProperty = new HashMap<>();
-  }
+  private Map<String, NestedProperty> nestedPropertyMap = new HashMap<>();
 
   @Override
   public void setAutoInstantiateNestedPropertyNullValue(boolean autoInstantiateNestedPropertyNullValue) {
@@ -29,29 +23,97 @@ public abstract class NestedPropertyAccessor extends PropertyAccessorSupport {
   }
 
   @Override
-  protected boolean doSetProperty(String property, Object value) {
-    boolean realSetValue = false;
-    if (Objects.isNull(value)) {
-      // 如果设置的值是null，那么移除对应的nestedPropertyValue
-      nestedRootProperty.remove(property);
-      realSetValue = true;
+  protected String resolvePropertyExpression(String propertyExpression) {
+    String realPropertyName = super.resolvePropertyExpression(propertyExpression);
+    int nestedIdx = propertyExpression.indexOf(PropertyAccessor.NESTED_PROPERTY_SEPARATOR);
+    if (nestedIdx > 0) {
+      realPropertyName = realPropertyName.substring(0, nestedIdx);
+      if (realPropertyName.contains(PropertyAccessor.INDEXED_PROPERTY_PREFIX)) {
+        // 表明此时是索引属性，索引属性里面又嵌套内嵌属性，此时交给处理索引属性的子类处理
+        realPropertyName = resolveIndexedPropertyExpression(propertyExpression);
+      }
+      else {
+        String nestedPropertyPart = propertyExpression.substring(nestedIdx + 1);
+        resolveNestedPropertyExpressionRelationShip(realPropertyName, nestedPropertyPart);
+      }
+    }
+    else if (nestedIdx == 0) {
+      throw new ReflectionException("Nested property can not be empty. May caused by the nested property flag '.' at the first location of the property string");
     }
     else {
-      NestedProperty nestedProperty = nestedRootProperty.get(property);
-      if (Objects.nonNull(nestedProperty)) {
-        nestedProperty.getRoot().setProperty(getNestedOrIndexedPropertyName(nestedProperty), value);
+      // 处理索引属性
+      realPropertyName = resolveIndexedPropertyExpression(propertyExpression);
+    }
+    return realPropertyName;
+  }
+
+  private void resolveNestedPropertyExpressionRelationShip(String realPropertyName, String nestedPropertyPart) {
+    NestedProperty np = nestedPropertyMap.get(realPropertyName);
+    if (Objects.nonNull(np)) {
+      np.setNestedPropertyName(nestedPropertyPart);
+    }
+    else {
+      Object nestedValue = getProperty(realPropertyName);
+      if (Objects.isNull(nestedValue)) {
+        if (!autoInstantiateNestedPropertyNullValue) {
+          throw new ReflectionException("Does not support null property value instantiation");
+        }
+        else {
+          nestedValue = ReflectionUtils.instantiateClass(getPropertyValueType(realPropertyName));
+          setProperty(realPropertyName, nestedValue);
+        }
+      }
+      /*
+       * 这里直接new BeanWrapperImpl，因为如果是索引属性的话，子类IndexedPropertyAccessor会创建
+       */
+      np = new NestedProperty(new BeanWrapperImpl<>(nestedValue), nestedPropertyPart);
+      nestedPropertyMap.put(realPropertyName, np);
+    }
+  }
+
+  @Override
+  protected Object doGetProperty(String realPropertyName) {
+    NestedProperty np = nestedPropertyMap.get(realPropertyName);
+    Object realValue;
+    if (Objects.nonNull(np)) {
+      realValue = np.getCurrentObject().getProperty(realPropertyName);
+    }
+    else {
+      realValue = getDirectProperty(realPropertyName);
+    }
+    return realValue;
+  }
+
+  @Override
+  protected boolean doSetProperty(String realPropertyName, Object value) {
+    boolean realSetValue = false,
+        cacheResult = true;
+    if (PropertyAccessorSupport.NULL_VALUE == value) {
+      nestedPropertyMap.remove(realPropertyName);
+      realSetValue = true;
+      cacheResult = false;
+    }
+    else {
+      NestedProperty np = nestedPropertyMap.get(realPropertyName);
+      if (Objects.nonNull(np)) {
+        np.getCurrentObject().setProperty(getNestedOrIndexedPropertyName(np), value);
       }
       else {
         realSetValue = true;
       }
     }
     if (realSetValue) {
-      doSetNestedProperty(property, value);
+      setDirectPropertyValue(realPropertyName, value);
     }
-    return realSetValue;
+    return cacheResult;
   }
 
-  protected abstract void doSetNestedProperty(String nestedProperty, Object value);
+  /**
+   * 直接设置被包装对象的对应属性的值
+   * @param realPropertyName 要设置的属性名称
+   * @param value 属性值
+   */
+  protected abstract void setDirectPropertyValue(String realPropertyName, Object value);
 
   private String getNestedOrIndexedPropertyName(NestedProperty nestedProperty) {
     String indexedOrNestedPropertyName;
@@ -64,77 +126,15 @@ public abstract class NestedPropertyAccessor extends PropertyAccessorSupport {
     return indexedOrNestedPropertyName;
   }
 
-  @Override
-  protected Object doGetProperty(String property) {
-    NestedProperty nestedProperty = nestedRootProperty.get(property);
-    Object propertyValue;
-    if (Objects.nonNull(nestedProperty)) {
-      propertyValue = nestedProperty.getRoot().getProperty(getNestedOrIndexedPropertyName(nestedProperty));
-    }
-    else {
-      propertyValue = doGetNestedProperty(property);
-    }
-    return propertyValue;
+  /**
+   * 直接从被包装的对象里面获取结果，交给子类重写
+   */
+  protected abstract Object getDirectProperty(String directPropertName);
+
+  /**
+   * 处理索引属性的表达式，交给子类重写
+   */
+  protected String resolveIndexedPropertyExpression(String indexedPropertyExpression) {
+    return indexedPropertyExpression;
   }
-
-  protected abstract Object doGetNestedProperty(String property);
-
-  @Override
-  protected String resolvePropertyName(String propertyName) {
-    propertyName = super.resolvePropertyName(propertyName);
-    int dotIdx = propertyName.indexOf(PropertyAccessor.NESTED_PROPERTY_SEPERATOR_STRING);
-    if (dotIdx > 0) {
-      String realPropertyName = propertyName.substring(0, dotIdx);
-      realPropertyName = resolveIndexedPropertyName(realPropertyName);
-      Object realPropertyValue = getOrInitPropertyValue(realPropertyName);
-      propertyName = propertyName.substring(dotIdx + 1);
-      NestedProperty nestedProperty = nestedRootProperty.get(realPropertyName);
-      if (Objects.isNull(nestedProperty)) {
-        /*
-         * 如果此时NestedProperty为null，那么表明当前的属性一定不是Map，Collection或者数组
-         * 那么直接对应的是BeanWrapperImpl，无需判断realPropertyValue的类型，然后对应实例wrapper对象
-         */
-        nestedProperty = new NestedProperty(new BeanWrapperImpl<>(realPropertyValue), propertyName);
-        nestedRootProperty.put(realPropertyName, nestedProperty);
-      }
-      else {
-        nestedProperty.setNestedPropertyName(propertyName);
-      }
-      propertyName = realPropertyName;
-    }
-    else if (dotIdx == 0) {
-      throw new ReflectionException("Nested property can not be empty. May caused by the nested property flag '.' at the first location of the property string");
-    }
-    else {
-      propertyName = resolveIndexedPropertyName(propertyName);
-    }
-    return propertyName;
-  }
-
-  protected Object getOrInitPropertyValue(String propertyName) {
-    Object realPropertyValue = getProperty(propertyName);
-    if (Objects.isNull(realPropertyValue)) {
-      if (!autoInstantiateNestedPropertyNullValue) {
-        throw new IllegalStateException("Not support null nested property value");
-      }
-      else {
-        Class<?> type = getPropertyType(propertyName);
-        if (type.isArray()) {
-          // 如果是数组，那么需要初始化数组，并且给定大小，默认给32个长度
-          realPropertyValue = Array.newInstance(type.getComponentType(), 32);
-        }
-        else {
-          realPropertyValue = ReflectionUtils.instantiateClass(type);
-        }
-        setProperty(propertyName, realPropertyValue);
-      }
-    }
-    return realPropertyValue;
-  }
-
-  protected void setNestedProperty(String property, NestedProperty nestedProperty) {
-    nestedRootProperty.put(property, nestedProperty);
-  }
-
-  protected abstract String resolveIndexedPropertyName(String indexedPropertyName);
 }

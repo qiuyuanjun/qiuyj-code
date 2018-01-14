@@ -1,4 +1,6 @@
-package com.qiuyj.commons.bean;
+package com.qiuyj.commons.bean.wrapper;
+
+import com.qiuyj.commons.bean.ConfigurablePropertyAccessor;
 
 import java.beans.PropertyDescriptor;
 
@@ -6,17 +8,7 @@ import java.beans.PropertyDescriptor;
  * @author qiuyj
  * @since 2018/1/3
  */
-public interface ObjectWrapper<T> extends ConfigurablePropertyAccessor {
-
-  /**
-   * 得到被包装的对象
-   */
-  T getWrappedInstance();
-
-  /**
-   * 得到被包装的对象的Class对象
-   */
-  Class<T> getWrappedClass();
+public interface BeanWrapper<T> extends ConfigurablePropertyAccessor, WrappedObjectInfo<T> {
 
   /**
    * 得到所有的属性描述器

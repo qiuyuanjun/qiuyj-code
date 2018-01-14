@@ -9,15 +9,16 @@ public interface PropertyAccessor {
 
   /**
    * 内嵌属性分割符
+   * 属性表达式形如abc.xyz
    */
-  String NESTED_PROPERTY_SEPERATOR_STRING = ".";
-  char NESTED_PROPERTY_SEPERATOR_CHAR = '.';
+  String NESTED_PROPERTY_SEPARATOR = ".";
 
   /**
    * 属性的索引，主要用于数组的访问，集合的访问，map的访问
+   * 属性表达式形如
    */
-  String INDEXED_PROPERTY_PREFIX_STRING = "[";
-  char INDEX_PROPERTY_PREFIX_CHAR = '[';
+  String INDEXED_PROPERTY_PREFIX = "[";
+  String INDEXED_RPOPERTY_SUFFIX = "]";
 
   /**
    * 设置对应属性的值

@@ -1,4 +1,4 @@
-package com.qiuyj.commons.bean;
+package com.qiuyj.commons.bean.propertyconverter;
 
 import com.qiuyj.commons.ClassUtils;
 
