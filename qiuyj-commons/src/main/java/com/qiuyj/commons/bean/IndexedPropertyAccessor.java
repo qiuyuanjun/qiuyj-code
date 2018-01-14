@@ -1,4 +1,4 @@
-package com.qiuyj.commons.reflection;
+package com.qiuyj.commons.bean;
 
 import java.lang.reflect.Type;
 import java.util.*;
@@ -25,7 +25,6 @@ public abstract class IndexedPropertyAccessor extends NestedPropertyAccessor {
       // 判断是否是支持索引的数据结构（Map，Collection，Array）
       validateThatIndexingIsSupported(realPropertyName, realPropertyValue);
       IndexedProperty nestedProperty = indexedRootProperty.get(realPropertyName);
-      // TODO #issue0001 当索引属性不是最后一个的时候，会出现问题
       indexedPropertyName = indexedPropertyName.substring(indexedIdx + 1);
       if (Objects.isNull(nestedProperty)) {
         PropertyAccessor pa;

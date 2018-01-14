@@ -1,9 +1,10 @@
-package com.qiuyj.commons.reflection;
+package com.qiuyj.commons.bean;
 
 import com.qiuyj.commons.ReflectionUtils;
 
 import java.lang.reflect.Array;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -53,10 +54,35 @@ public abstract class NestedPropertyAccessor extends PropertyAccessorSupport {
 
   protected abstract void doSetNestedProperty(String nestedProperty, Object value);
 
-  private static String getNestedOrIndexedPropertyName(NestedProperty nestedProperty) {
+  private String getNestedOrIndexedPropertyName(NestedProperty nestedProperty) {
     String indexedOrNestedPropertyName;
     if (nestedProperty instanceof IndexedProperty) {
       indexedOrNestedPropertyName = ((IndexedProperty) nestedProperty).getIndexedPropertyName();
+      String nestedPropertyName = nestedProperty.getNestedPropertyName();
+      if (Objects.nonNull(nestedPropertyName)) {
+        PropertyAccessor pa = nestedProperty.getRoot();
+        Object indexedPropertyNestedValue = pa.getProperty(indexedOrNestedPropertyName);
+        if (Objects.isNull(indexedPropertyNestedValue)) {
+          if (!autoInstantiateNestedPropertyNullValue) {
+            throw new IllegalStateException("Not support null nested property value");
+          }
+          else if (pa instanceof BeanWrapperImpl) {
+            throw new ReflectionException("BeanWrapperImpl does not support indexed property nested access");
+          }
+          else {
+            Class<?> cls = ((IndexedObjectWrapper) pa).getIndexedPropertyValueType();
+            if (Map.class.isAssignableFrom(cls) || List.class.isAssignableFrom(cls) || cls.isArray()) {
+              throw new ReflectionException("Indexed property '" + indexedOrNestedPropertyName + "'s nested property '" + nestedPropertyName + "' can not be Map or List or Array");
+            }
+            else {
+              indexedPropertyNestedValue = ReflectionUtils.instantiateClass(cls);
+              pa.setProperty(indexedOrNestedPropertyName, indexedPropertyNestedValue);
+            }
+          }
+        }
+        nestedProperty.setRoot(new BeanWrapperImpl<>(indexedPropertyNestedValue));
+        indexedOrNestedPropertyName = nestedPropertyName;
+      }
     }
     else {
       indexedOrNestedPropertyName = nestedProperty.getNestedPropertyName();

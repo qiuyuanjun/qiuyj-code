@@ -1,33 +1,33 @@
-package com.qiuyj.commons.reflection.propertyconverter;
+package com.qiuyj.commons.bean.propertyconverter;
 
-import com.qiuyj.commons.reflection.PropertyConverter;
+import com.qiuyj.commons.bean.PropertyConverter;
 
 /**
  * @author qiuyj
  * @since 2018/1/4
  */
-public class DoublePropertyConverter implements PropertyConverter {
+public class LongPropertyConverter implements PropertyConverter {
 
   private final boolean primitive;
 
-  public DoublePropertyConverter(boolean primitive) {
+  public LongPropertyConverter(boolean primitive) {
     this.primitive = primitive;
   }
 
   @Override
   public Object getConvertedPropertyValue(String strValue) {
     if (primitive) {
-      return Double.parseDouble(strValue);
+      return Long.parseLong(strValue);
     }
     else {
-      return Double.valueOf(strValue);
+      return Long.valueOf(strValue);
     }
   }
 
   @Override
   public String asString(Object value) {
     if (primitive) {
-      return String.valueOf((double) value);
+      return String.valueOf((long) value);
     }
     else {
       return value.toString();

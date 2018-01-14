@@ -1,6 +1,6 @@
-package com.qiuyj.commons.reflection;
+package com.qiuyj.commons.bean;
 
-import com.qiuyj.commons.reflection.propertyconverter.*;
+import com.qiuyj.commons.bean.propertyconverter.*;
 
 import java.util.HashMap;
 import java.util.Map;

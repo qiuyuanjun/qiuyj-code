@@ -1,4 +1,4 @@
-package com.qiuyj.commons.reflection;
+package com.qiuyj.commons.bean;
 
 /**
  * 反射异常

@@ -1,33 +1,33 @@
-package com.qiuyj.commons.reflection.propertyconverter;
+package com.qiuyj.commons.bean.propertyconverter;
 
-import com.qiuyj.commons.reflection.PropertyConverter;
+import com.qiuyj.commons.bean.PropertyConverter;
 
 /**
  * @author qiuyj
  * @since 2018/1/4
  */
-public class BooleanPropertyConverter implements PropertyConverter {
+public class FloatPropertyConverter implements PropertyConverter {
 
   private final boolean primitive;
 
-  public BooleanPropertyConverter(boolean primitive) {
+  public FloatPropertyConverter(boolean primitive) {
     this.primitive = primitive;
   }
 
   @Override
   public Object getConvertedPropertyValue(String strValue) {
     if (primitive) {
-      return Boolean.parseBoolean(strValue);
+      return Float.parseFloat(strValue);
     }
     else {
-      return Boolean.valueOf(strValue);
+      return Float.valueOf(strValue);
     }
   }
 
   @Override
   public String asString(Object value) {
     if (primitive) {
-      return String.valueOf((boolean) value);
+      return String.valueOf((float) value);
     }
     else {
       return value.toString();

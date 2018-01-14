@@ -1,4 +1,4 @@
-package com.qiuyj.commons.reflection;
+package com.qiuyj.commons.bean;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Array;
@@ -11,7 +11,7 @@ import java.util.Objects;
  * @since 2018/1/8
  */
 @SuppressWarnings("unchecked")
-public class ListArrayWrapperImpl extends IndexedPropertyAccessor implements ObjectWrapper<Object> {
+public class ListArrayWrapperImpl extends IndexedPropertyAccessor implements ObjectWrapper<Object>, IndexedObjectWrapper {
 
   private final Object collectionOrArray;
 
@@ -104,5 +104,10 @@ public class ListArrayWrapperImpl extends IndexedPropertyAccessor implements Obj
   @Override
   protected Type getIndexedPropertyGenericType(String propertyName) {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Class<?> getIndexedPropertyValueType() {
+    return Objects.isNull(listValueType) ? Object.class : listValueType;
   }
 }

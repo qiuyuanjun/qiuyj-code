@@ -1,4 +1,4 @@
-package com.qiuyj.commons.reflection;
+package com.qiuyj.commons.bean;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Type;
@@ -10,7 +10,7 @@ import java.util.Objects;
  * @since 2018/1/8
  */
 @SuppressWarnings("unchecked")
-public class MapWrapperImpl<V> extends IndexedPropertyAccessor implements ObjectWrapper<Map<String, V>> {
+public class MapWrapperImpl<V> extends IndexedPropertyAccessor implements ObjectWrapper<Map<String, V>>, IndexedObjectWrapper {
 
   private final Map<String, V> map;
 
@@ -73,5 +73,10 @@ public class MapWrapperImpl<V> extends IndexedPropertyAccessor implements Object
   @Override
   protected Type getIndexedPropertyGenericType(String propertyName) {
     throw new UnsupportedOperationException();
+  }
+
+  @Override
+  public Class<?> getIndexedPropertyValueType() {
+    return valueType;
   }
 }

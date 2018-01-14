@@ -1,8 +1,8 @@
-package com.qiuyj.commons.reflection.propertyconverter;
+package com.qiuyj.commons.bean.propertyconverter;
 
 import com.qiuyj.commons.StringUtils;
-import com.qiuyj.commons.reflection.PropertyConverter;
-import com.qiuyj.commons.reflection.PropertyConverterRegistry;
+import com.qiuyj.commons.bean.PropertyConverter;
+import com.qiuyj.commons.bean.PropertyConverterRegistry;
 
 import java.lang.reflect.Array;
 import java.util.Objects;

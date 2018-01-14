@@ -1,6 +1,6 @@
-package com.qiuyj.commons.reflection.propertyconverter;
+package com.qiuyj.commons.bean.propertyconverter;
 
-import com.qiuyj.commons.reflection.PropertyConverter;
+import com.qiuyj.commons.bean.PropertyConverter;
 
 /**
  * @author qiuyj

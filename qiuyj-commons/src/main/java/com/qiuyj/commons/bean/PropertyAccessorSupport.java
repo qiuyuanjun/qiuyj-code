@@ -1,4 +1,4 @@
-package com.qiuyj.commons.reflection;
+package com.qiuyj.commons.bean;
 
 import com.qiuyj.commons.StringUtils;
 
@@ -53,7 +53,13 @@ public abstract class PropertyAccessorSupport implements ConfigurablePropertyAcc
 
   @Override
   public void setProperty(String property, Object value) {
-    property = resolvePropertyName(property);
+    setProperty(property, value, true);
+  }
+
+  private void setProperty(String property, Object value, boolean resolveName) {
+    if (resolveName) {
+      property = resolvePropertyName(property);
+    }
     Object maskValue = maskValue(value);
     if (doSetProperty(property, value)) {
       propertyValues.put(property, maskValue);
@@ -79,7 +85,7 @@ public abstract class PropertyAccessorSupport implements ConfigurablePropertyAcc
         PropertyConverter converter = propertyConverterRegistry.getPropertyConverter(propertyType);
         value = converter.getConvertedPropertyValue(strValue);
       }
-      setProperty(property, value);
+      setProperty(property, value, false);
     }
   }
 

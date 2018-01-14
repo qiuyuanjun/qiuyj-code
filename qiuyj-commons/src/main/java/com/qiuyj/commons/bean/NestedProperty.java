@@ -1,4 +1,4 @@
-package com.qiuyj.commons.reflection;
+package com.qiuyj.commons.bean;
 
 import java.util.Objects;
 
@@ -8,7 +8,7 @@ import java.util.Objects;
  */
 public class NestedProperty {
 
-  private final PropertyAccessor root;
+  private PropertyAccessor root;
 
   private String nestedPropertyName;
 
@@ -47,5 +47,9 @@ public class NestedProperty {
   @Override
   public int hashCode() {
     return Objects.hash(nestedPropertyName);
+  }
+
+  public void setRoot(PropertyAccessor root) {
+    this.root = root;
   }
 }
