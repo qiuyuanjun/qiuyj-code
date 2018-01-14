@@ -76,7 +76,7 @@ public abstract class NestedPropertyAccessor extends PropertyAccessorSupport {
     NestedProperty np = nestedPropertyMap.get(realPropertyName);
     Object realValue;
     if (Objects.nonNull(np)) {
-      realValue = np.getCurrentObject().getProperty(realPropertyName);
+      realValue = np.getCurrentObject().getProperty(getNestedOrIndexedPropertyName(np));
     }
     else {
       realValue = getDirectProperty(realPropertyName);
