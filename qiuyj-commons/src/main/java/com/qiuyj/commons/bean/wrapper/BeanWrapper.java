@@ -6,17 +6,11 @@ import java.beans.PropertyDescriptor;
 
 /**
  * @author qiuyj
- * @since 2018/1/3
+ * @since 2018/1/19
  */
-public interface BeanWrapper<T> extends ConfigurablePropertyAccessor, WrappedObjectInfo<T> {
+public interface BeanWrapper extends ConfigurablePropertyAccessor {
 
-  /**
-   * 得到所有的属性描述器
-   */
-  PropertyDescriptor[] getPropertyDescriptors();
-
-  /**
-   * 得到某一个属性对应的属性描述器
-   */
   PropertyDescriptor getPropertyDescriptor(String property);
+
+  PropertyDescriptor[] getPropertyDescriptors();
 }

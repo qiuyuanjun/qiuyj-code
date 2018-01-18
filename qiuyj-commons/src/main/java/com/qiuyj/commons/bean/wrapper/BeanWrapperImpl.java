@@ -1,81 +1,43 @@
 package com.qiuyj.commons.bean.wrapper;
 
 import com.qiuyj.commons.ReflectionUtils;
-import com.qiuyj.commons.bean.IndexedPropertyAccessor;
-import com.qiuyj.commons.bean.PropertyAccessorSupport;
-import com.qiuyj.commons.bean.ReflectionException;
+import com.qiuyj.commons.bean.AbstractNestedPropertyAccessor;
+import com.qiuyj.commons.bean.exception.ReflectionException;
 
 import java.beans.PropertyDescriptor;
-import java.lang.reflect.Type;
-import java.util.Map;
+import java.lang.reflect.Method;
 import java.util.Objects;
 
 /**
  * @author qiuyj
- * @since 2018/1/14
+ * @since 2018/1/19
  */
-@SuppressWarnings("unchecked")
-public class BeanWrapperImpl<T> extends IndexedPropertyAccessor implements BeanWrapper<T> {
+public class BeanWrapperImpl extends AbstractNestedPropertyAccessor implements BeanWrapper {
 
-  private final T bean;
+  public BeanWrapperImpl(Class<?> wrappedClass) {
+    super(wrappedClass);
+  }
 
-  private final Class<T> beanCls;
-
-  private final CachedIntrospectResult cachedIntrospectResult;
-
-  private Map<String, Type> indexedGenericPropertyMap;
-
-  public BeanWrapperImpl(T bean) {
-    this.bean = Objects.requireNonNull(bean);
-    beanCls = (Class<T>) bean.getClass();
-    cachedIntrospectResult = new CachedIntrospectResult(beanCls);
+  public BeanWrapperImpl(Object wrappedInstance) {
+    super(wrappedInstance);
   }
 
   @Override
-  public PropertyDescriptor[] getPropertyDescriptors() {
-    return cachedIntrospectResult.getBeanInfo().getPropertyDescriptors();
+  protected AbstractNestedPropertyAccessor newNestedPropertyAccessor(Object value) {
+    return null;
   }
 
   @Override
-  public PropertyDescriptor getPropertyDescriptor(String property) {
-    return cachedIntrospectResult.getPropertyDescriptor(property);
-  }
-
-  @Override
-  public Class<T> getWrappedClass() {
-    return beanCls;
-  }
-
-  @Override
-  public T getWrappedInstance() {
-    return bean;
-  }
-
-  @Override
-  protected Class<?> getPropertyValueType(String property) {
+  protected void doSetPropertyValue(String property, Object value) {
     PropertyDescriptor pd = getPropertyDescriptor(property);
     if (Objects.isNull(pd)) {
-      throw new ReflectionException("Can not find property '" + property + "' in class: " + beanCls);
+      throw new ReflectionException("Can not found property: " + property + " in class: " + wrappedClass);
     }
     else {
-      return pd.getPropertyType();
-    }
-  }
-
-  @Override
-  protected void setDirectPropertyValue(String property, Object value) {
-    PropertyDescriptor pd = getPropertyDescriptor(property);
-    if (Objects.isNull(pd)) {
-      throw new ReflectionException("Can not find property '" + property + "' in class: " + beanCls);
-    }
-    else {
-      // 判断类型是否一致
-      if (value != PropertyAccessorSupport.NULL_VALUE) {
-        Class<?> propertyType = pd.getPropertyType();
-        validateType(propertyType, value.getClass());
-      }
-      // 设置值
-      ReflectionUtils.invokeMethod(bean, pd.getWriteMethod(), value);
+      validateType(pd.getPropertyType(), value.getClass());
+      Method writeMethod = pd.getWriteMethod();
+      ReflectionUtils.makeAccessible(writeMethod);
+      ReflectionUtils.invokeMethod(wrappedInstance, writeMethod, value);
     }
   }
 
@@ -116,13 +78,23 @@ public class BeanWrapperImpl<T> extends IndexedPropertyAccessor implements BeanW
   }
 
   @Override
-  protected Object getDirectProperty(String directPropertName) {
-    PropertyDescriptor pd = getPropertyDescriptor(directPropertName);
-    if (Objects.nonNull(pd)) {
-      return ReflectionUtils.invokeMethod(bean, pd.getReadMethod());
+  protected Class<?> getPropertyType(String property) {
+    PropertyDescriptor pd = getPropertyDescriptor(property);
+    if (Objects.isNull(pd)) {
+      throw new ReflectionException("Can not find property '" + property + "' in class: " + wrappedClass);
     }
     else {
-      throw new ReflectionException("Can not found property: " + directPropertName + " in object: " + bean);
+      return pd.getPropertyType();
     }
+  }
+
+  @Override
+  public PropertyDescriptor getPropertyDescriptor(String property) {
+    return null;
+  }
+
+  @Override
+  public PropertyDescriptor[] getPropertyDescriptors() {
+    return new PropertyDescriptor[0];
   }
 }

@@ -1,4 +1,4 @@
-package com.qiuyj.commons.bean;
+package com.qiuyj.commons.bean.exception;
 
 /**
  * 反射异常
