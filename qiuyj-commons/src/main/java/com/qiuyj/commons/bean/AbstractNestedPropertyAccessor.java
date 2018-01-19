@@ -4,8 +4,11 @@ import com.qiuyj.commons.ReflectionUtils;
 import com.qiuyj.commons.bean.exception.NestedValueIsNullException;
 import com.qiuyj.commons.bean.exception.ReflectionException;
 import com.qiuyj.commons.bean.wrapper.BeanWrapperImpl;
+import com.qiuyj.commons.bean.wrapper.ListArrayWrapperImpl;
+import com.qiuyj.commons.bean.wrapper.MapWrapperImpl;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,7 +22,7 @@ public abstract class AbstractNestedPropertyAccessor extends PropertyAccessorSup
 
   private boolean autoInstantiationNestedNullValue = true;
 
-  protected final Object wrappedInstance;
+  protected Object wrappedInstance;
 
   protected final Class<?> wrappedClass;
 
@@ -93,7 +96,7 @@ public abstract class AbstractNestedPropertyAccessor extends PropertyAccessorSup
         }
         setPropertyValue(nestedProperty, currValue);
       }
-      nestedPropertyAccessor = newNestedPropertyAccessor(nestedPropertyType, currValue);
+      nestedPropertyAccessor = newNestedPropertyAccessor(nestedPropertyType, currValue, nestedProperty);
       nestedPropertyAccessors.put(nestedProperty, nestedPropertyAccessor);
     }
     return nestedPropertyAccessor;
@@ -101,10 +104,23 @@ public abstract class AbstractNestedPropertyAccessor extends PropertyAccessorSup
 
   protected abstract void doSetPropertyValue(String property, Object value);
 
-  protected AbstractNestedPropertyAccessor newNestedPropertyAccessor(Class<?> nestedPropertyType, Object nestedPropertyValue) {
+  @SuppressWarnings("unchecked")
+  protected AbstractNestedPropertyAccessor newNestedPropertyAccessor(Class<?> nestedPropertyType, Object nestedPropertyValue, String nestedPropertyName) {
     AbstractNestedPropertyAccessor nestedPropertyAccessor;
-    if (Map.class.isAssignableFrom(nestedPropertyType) || List.class.isAssignableFrom(nestedPropertyType) || nestedPropertyType.isArray()) {
-      nestedPropertyAccessor = null;
+    if (Map.class.isAssignableFrom(nestedPropertyType)) {
+      Field field = ReflectionUtils.getDeclaredField(wrappedClass, nestedPropertyName);
+      nestedPropertyAccessor = new MapWrapperImpl((Map<String, ?>) nestedPropertyValue, ResolvableType.forField(field));
+    }
+    else if (List.class.isAssignableFrom(nestedPropertyType) || nestedPropertyType.isArray()) {
+      Class<?> componentType;
+      if (List.class.isAssignableFrom(nestedPropertyType)) {
+        Field field = ReflectionUtils.getDeclaredField(wrappedClass, nestedPropertyName);
+        componentType = ResolvableType.forField(field).resolveGenericAt(0);
+      }
+      else {
+        componentType = nestedPropertyType.getComponentType();
+      }
+      nestedPropertyAccessor = new ListArrayWrapperImpl(nestedPropertyValue, componentType);
     }
     else {
       nestedPropertyAccessor = new BeanWrapperImpl(nestedPropertyValue);
@@ -131,7 +147,7 @@ public abstract class AbstractNestedPropertyAccessor extends PropertyAccessorSup
         nestedPropertyAccessor = nestedPropertyAccessors.get(sph.getCurrentProperty());
       }
       if (Objects.isNull(nestedPropertyAccessor)) {
-        nestedPropertyAccessor = newNestedPropertyAccessor(getPropertyType(sph.getCurrentProperty()), currValue);
+        nestedPropertyAccessor = newNestedPropertyAccessor(getPropertyType(sph.getCurrentProperty()), currValue, sph.getCurrentProperty());
         nestedPropertyAccessors.put(sph.getCurrentProperty(), nestedPropertyAccessor);
       }
       String nestedPath = null;
