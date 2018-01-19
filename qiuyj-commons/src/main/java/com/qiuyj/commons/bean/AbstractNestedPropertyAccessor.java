@@ -3,9 +3,11 @@ package com.qiuyj.commons.bean;
 import com.qiuyj.commons.ReflectionUtils;
 import com.qiuyj.commons.bean.exception.NestedValueIsNullException;
 import com.qiuyj.commons.bean.exception.ReflectionException;
+import com.qiuyj.commons.bean.wrapper.BeanWrapperImpl;
 
 import java.lang.reflect.Array;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -45,7 +47,7 @@ public abstract class AbstractNestedPropertyAccessor extends PropertyAccessorSup
     String nestedPath = null;
     if (Objects.isNull(sph.getNestedPropertyPath()) && Objects.isNull(sph.getIndexedProperty())) {
       doSetPropertyValue(sph.getCurrentProperty(), value);
-      if (Objects.isNull(value)) {
+      if (Objects.isNull(value) && Objects.nonNull(nestedPropertyAccessors)) {
         nestedPropertyAccessors.remove(sph.getCurrentProperty());
       }
     }
@@ -58,17 +60,15 @@ public abstract class AbstractNestedPropertyAccessor extends PropertyAccessorSup
       // TODO check whether is map, list or array?
       nestedPath = sph.getIndexedProperty();
     }
-    else {
+    else if (Objects.nonNull(sph.getNestedPropertyPath()) && Objects.nonNull(sph.getIndexedProperty())) {
       nestedPropertyAccessor = getNestedPropertyAccessor(sph.getCurrentProperty());
       // TODO check whether is map, list or array?
-      nestedPath = sph.getIndexedProperty() + sph.getNestedPropertyPath();
+      nestedPath = sph.getIndexedProperty() + PropertyAccessor.NESTED_PROPERTY_SEPARATOR + sph.getNestedPropertyPath();
     }
     if (Objects.nonNull(nestedPropertyAccessor)) {
       nestedPropertyAccessor.setPropertyValue(nestedPath, value);
     }
   }
-
-  protected abstract AbstractNestedPropertyAccessor newNestedPropertyAccessor(Object value);
 
   private AbstractNestedPropertyAccessor getNestedPropertyAccessor(String nestedProperty) {
     AbstractNestedPropertyAccessor nestedPropertyAccessor = null;
@@ -78,23 +78,22 @@ public abstract class AbstractNestedPropertyAccessor extends PropertyAccessorSup
     else {
       nestedPropertyAccessor = nestedPropertyAccessors.get(nestedProperty);
     }
+    Class<?> nestedPropertyType = getPropertyType(nestedProperty);
     if (Objects.isNull(nestedPropertyAccessor)) {
       Object currValue = getPropertyValue(nestedProperty);
       if (Objects.isNull(currValue)) {
         if (!autoInstantiationNestedNullValue) {
           throw new NestedValueIsNullException(wrappedInstance, nestedProperty);
         }
-        else {
-          Class<?> nestedPropertyType = getPropertyType(nestedProperty);
-          if (nestedPropertyType.isArray()) {
-            currValue = Array.newInstance(nestedPropertyType.getComponentType(), 1);
-          }
-          else {
-            currValue = ReflectionUtils.instantiateClass(nestedPropertyType);
-          }
+        else if (nestedPropertyType.isArray()) {
+          currValue = Array.newInstance(nestedPropertyType.getComponentType(), 1);
         }
+        else {
+          currValue = ReflectionUtils.instantiateClass(nestedPropertyType);
+        }
+        setPropertyValue(nestedProperty, currValue);
       }
-      nestedPropertyAccessor = newNestedPropertyAccessor(currValue);
+      nestedPropertyAccessor = newNestedPropertyAccessor(nestedPropertyType, currValue);
       nestedPropertyAccessors.put(nestedProperty, nestedPropertyAccessor);
     }
     return nestedPropertyAccessor;
@@ -102,11 +101,54 @@ public abstract class AbstractNestedPropertyAccessor extends PropertyAccessorSup
 
   protected abstract void doSetPropertyValue(String property, Object value);
 
+  protected AbstractNestedPropertyAccessor newNestedPropertyAccessor(Class<?> nestedPropertyType, Object nestedPropertyValue) {
+    AbstractNestedPropertyAccessor nestedPropertyAccessor;
+    if (Map.class.isAssignableFrom(nestedPropertyType) || List.class.isAssignableFrom(nestedPropertyType) || nestedPropertyType.isArray()) {
+      nestedPropertyAccessor = null;
+    }
+    else {
+      nestedPropertyAccessor = new BeanWrapperImpl(nestedPropertyValue);
+    }
+    return nestedPropertyAccessor;
+  }
+
   @Override
   public Object getPropertyValue(String property) {
     SinglePropertyHolder sph = parseProperty(property);
-    return null;
+    if (Objects.isNull(sph.getNestedPropertyPath()) && Objects.isNull(sph.getIndexedProperty())) {
+      return doGetPropertyValue(sph.getCurrentProperty());
+    }
+    Object currValue = getPropertyValue(sph.getCurrentProperty());
+    if (Objects.isNull(currValue)) {
+      return null;
+    }
+    else {
+      AbstractNestedPropertyAccessor nestedPropertyAccessor = null;
+      if (Objects.isNull(nestedPropertyAccessors)) {
+        nestedPropertyAccessors = new HashMap<>();
+      }
+      else {
+        nestedPropertyAccessor = nestedPropertyAccessors.get(sph.getCurrentProperty());
+      }
+      if (Objects.isNull(nestedPropertyAccessor)) {
+        nestedPropertyAccessor = newNestedPropertyAccessor(getPropertyType(sph.getCurrentProperty()), currValue);
+        nestedPropertyAccessors.put(sph.getCurrentProperty(), nestedPropertyAccessor);
+      }
+      String nestedPath = null;
+      if (Objects.isNull(sph.getIndexedProperty())) {
+        nestedPath = sph.getNestedPropertyPath();
+      }
+      else if (Objects.isNull(sph.getNestedPropertyPath())) {
+        nestedPath = sph.getIndexedProperty();
+      }
+      else if (Objects.nonNull(sph.getNestedPropertyPath()) && Objects.nonNull(sph.getIndexedProperty())) {
+        nestedPath = sph.getIndexedProperty() + PropertyAccessor.NESTED_PROPERTY_SEPARATOR + sph.getNestedPropertyPath();
+      }
+      return nestedPropertyAccessor.getPropertyValue(nestedPath);
+    }
   }
+
+  protected abstract Object doGetPropertyValue(String property);
 
   @Override
   public Object getWrappedInstance() {

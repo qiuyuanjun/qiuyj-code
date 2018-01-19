@@ -2,6 +2,7 @@ package com.qiuyj.commons.bean.wrapper;
 
 import com.qiuyj.commons.ReflectionUtils;
 import com.qiuyj.commons.bean.AbstractNestedPropertyAccessor;
+import com.qiuyj.commons.bean.CachedIntrospectorResults;
 import com.qiuyj.commons.bean.exception.ReflectionException;
 
 import java.beans.PropertyDescriptor;
@@ -14,17 +15,16 @@ import java.util.Objects;
  */
 public class BeanWrapperImpl extends AbstractNestedPropertyAccessor implements BeanWrapper {
 
+  private final CachedIntrospectorResults introspectorResults;
+
   public BeanWrapperImpl(Class<?> wrappedClass) {
     super(wrappedClass);
+    introspectorResults = new CachedIntrospectorResults(wrappedClass);
   }
 
   public BeanWrapperImpl(Object wrappedInstance) {
     super(wrappedInstance);
-  }
-
-  @Override
-  protected AbstractNestedPropertyAccessor newNestedPropertyAccessor(Object value) {
-    return null;
+    introspectorResults = new CachedIntrospectorResults(wrappedClass);
   }
 
   @Override
@@ -34,10 +34,25 @@ public class BeanWrapperImpl extends AbstractNestedPropertyAccessor implements B
       throw new ReflectionException("Can not found property: " + property + " in class: " + wrappedClass);
     }
     else {
-      validateType(pd.getPropertyType(), value.getClass());
+      if (Objects.nonNull(value)) {
+        validateType(pd.getPropertyType(), value.getClass());
+      }
       Method writeMethod = pd.getWriteMethod();
       ReflectionUtils.makeAccessible(writeMethod);
       ReflectionUtils.invokeMethod(wrappedInstance, writeMethod, value);
+    }
+  }
+
+  @Override
+  protected Object doGetPropertyValue(String property) {
+    PropertyDescriptor pd = getPropertyDescriptor(property);
+    if (Objects.isNull(pd)) {
+      throw new ReflectionException("Can not found property: " + property + " in class: " + wrappedClass);
+    }
+    else {
+      Method readMethod = pd.getReadMethod();
+      ReflectionUtils.makeAccessible(readMethod);
+      return ReflectionUtils.invokeMethod(wrappedInstance, readMethod);
     }
   }
 
@@ -90,11 +105,11 @@ public class BeanWrapperImpl extends AbstractNestedPropertyAccessor implements B
 
   @Override
   public PropertyDescriptor getPropertyDescriptor(String property) {
-    return null;
+    return introspectorResults.getPropertyDescriptor(property);
   }
 
   @Override
   public PropertyDescriptor[] getPropertyDescriptors() {
-    return new PropertyDescriptor[0];
+    return introspectorResults.getBeanInfo().getPropertyDescriptors();
   }
 }
