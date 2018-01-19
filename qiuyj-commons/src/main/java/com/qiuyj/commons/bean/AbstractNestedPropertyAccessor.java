@@ -4,6 +4,7 @@ import com.qiuyj.commons.ReflectionUtils;
 import com.qiuyj.commons.bean.exception.NestedValueIsNullException;
 import com.qiuyj.commons.bean.exception.ReflectionException;
 import com.qiuyj.commons.bean.wrapper.BeanWrapperImpl;
+import com.qiuyj.commons.bean.wrapper.IndexedObjectWrapper;
 import com.qiuyj.commons.bean.wrapper.ListArrayWrapperImpl;
 import com.qiuyj.commons.bean.wrapper.MapWrapperImpl;
 
@@ -60,16 +61,22 @@ public abstract class AbstractNestedPropertyAccessor extends PropertyAccessorSup
     }
     else if (Objects.isNull(sph.getNestedPropertyPath())) {
       nestedPropertyAccessor = getNestedPropertyAccessor(sph.getCurrentProperty());
-      // TODO check whether is map, list or array?
+      requireMustBeIndexedObjectWrapper(nestedPropertyAccessor);
       nestedPath = sph.getIndexedProperty();
     }
     else if (Objects.nonNull(sph.getNestedPropertyPath()) && Objects.nonNull(sph.getIndexedProperty())) {
       nestedPropertyAccessor = getNestedPropertyAccessor(sph.getCurrentProperty());
-      // TODO check whether is map, list or array?
+      requireMustBeIndexedObjectWrapper(nestedPropertyAccessor);
       nestedPath = sph.getIndexedProperty() + PropertyAccessor.NESTED_PROPERTY_SEPARATOR + sph.getNestedPropertyPath();
     }
     if (Objects.nonNull(nestedPropertyAccessor)) {
       nestedPropertyAccessor.setPropertyValue(nestedPath, value);
+    }
+  }
+
+  private static void requireMustBeIndexedObjectWrapper(AbstractNestedPropertyAccessor nestedPropertyAccessor) {
+    if (!(nestedPropertyAccessor instanceof IndexedObjectWrapper)) {
+      throw new ReflectionException("Indexed property access must be an instance of class 'IndexedObjectWrapper'");
     }
   }
 
