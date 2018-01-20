@@ -38,6 +38,9 @@ public class ListArrayWrapperImpl extends AbstractNestedPropertyAccessor impleme
 
   @Override
   protected void doSetPropertyValue(String property, Object value) {
+    if (Objects.nonNull(value) && Objects.nonNull(componentType)) {
+      BeanWrapperImpl.validateType(componentType, value.getClass());
+    }
     int idx = Integer.parseInt(property);
     if (wrappedClass.isArray()) {
       int len = Array.getLength(wrappedInstance);

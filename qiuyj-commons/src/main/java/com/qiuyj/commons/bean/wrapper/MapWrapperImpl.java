@@ -33,6 +33,9 @@ public class MapWrapperImpl extends AbstractNestedPropertyAccessor implements In
 
   @Override
   protected void doSetPropertyValue(String property, Object value) {
+    if (Objects.nonNull(value) && Objects.nonNull(valueType)) {
+      BeanWrapperImpl.validateType(valueType, value.getClass());
+    }
     ((Map) wrappedInstance).put(property, value);
   }
 
