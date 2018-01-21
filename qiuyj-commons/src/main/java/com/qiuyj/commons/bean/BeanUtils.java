@@ -3,6 +3,7 @@ package com.qiuyj.commons.bean;
 import com.qiuyj.commons.bean.wrapper.BeanWrapper;
 import com.qiuyj.commons.bean.wrapper.BeanWrapperImpl;
 
+import java.beans.PropertyDescriptor;
 import java.util.Map;
 import java.util.Objects;
 
@@ -49,5 +50,21 @@ public abstract class BeanUtils {
     BeanWrapper beanWrapper = new BeanWrapperImpl(beanCls);
     beanData.forEach(beanWrapper::convertAndSetPropertyValueString);
     return (T) beanWrapper.getWrappedInstance();
+  }
+
+  public static void copyProperties(Object src, Object dest) {
+    BeanWrapper srcBeanWrapper = new BeanWrapperImpl(src);
+    BeanWrapper destBeanWrapper = new BeanWrapperImpl(dest);
+    PropertyDescriptor[] pds = srcBeanWrapper.getPropertyDescriptors();
+    if (Objects.nonNull(pds)) {
+      for (PropertyDescriptor pd : pds) {
+        try {
+          destBeanWrapper.setPropertyValue(pd.getName(), srcBeanWrapper.getPropertyValue(pd.getName()));
+        }
+        catch (Exception e) {
+          // ignore
+        }
+      }
+    }
   }
 }
