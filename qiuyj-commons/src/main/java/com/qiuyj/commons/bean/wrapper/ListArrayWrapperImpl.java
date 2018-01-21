@@ -46,8 +46,7 @@ public class ListArrayWrapperImpl extends AbstractNestedPropertyAccessor impleme
       int len = Array.getLength(wrappedInstance);
       if (len <= idx) {
         // 扩容
-        len = len + (len >> 1);
-        Object newArray = Array.newInstance(componentType, len);
+        Object newArray = Array.newInstance(componentType, len + (len >> 1));
         System.arraycopy(wrappedInstance, 0, newArray, 0, len);
         wrappedInstance = newArray;
       }
