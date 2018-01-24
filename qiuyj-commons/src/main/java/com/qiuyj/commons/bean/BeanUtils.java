@@ -101,18 +101,21 @@ public abstract class BeanUtils {
         PropertyDescriptor destPd;
         for (PropertyDescriptor srcPd : pds) {
           readMethod = srcPd.getReadMethod();
-          destPd = destIntrospectorResults.getPropertyDescriptor(srcPd.getName());
-          if (Objects.nonNull(destPd)) {
-            writeMethod = destPd.getWriteMethod();
-            if (readMethod.getReturnType() == writeMethod.getParameterTypes()[0]
-                || writeMethod.getParameterTypes()[0].isAssignableFrom(readMethod.getReturnType())) {
-              ReflectionUtils.makeAccessible(readMethod);
-              ReflectionUtils.makeAccessible(writeMethod);
-              try {
-                ReflectionUtils.invokeMethod(dest, writeMethod, ReflectionUtils.invokeMethod(src, readMethod));
-              }
-              catch (Exception e) {
-                // ignore
+          if (Objects.nonNull(readMethod) && readMethod.getDeclaringClass() != Object.class) {
+            destPd = destIntrospectorResults.getPropertyDescriptor(srcPd.getName());
+            if (Objects.nonNull(destPd)) {
+              writeMethod = destPd.getWriteMethod();
+              if (Objects.nonNull(writeMethod) &&
+                  (readMethod.getReturnType() == writeMethod.getParameterTypes()[0]
+                  || writeMethod.getParameterTypes()[0].isAssignableFrom(readMethod.getReturnType()))) {
+                ReflectionUtils.makeAccessible(readMethod);
+                ReflectionUtils.makeAccessible(writeMethod);
+                try {
+                  ReflectionUtils.invokeMethod(dest, writeMethod, ReflectionUtils.invokeMethod(src, readMethod));
+                }
+                catch (Exception e) {
+                  // ignore
+                }
               }
             }
           }
