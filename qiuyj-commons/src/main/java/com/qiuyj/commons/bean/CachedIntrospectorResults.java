@@ -1,7 +1,6 @@
 package com.qiuyj.commons.bean;
 
 import com.qiuyj.commons.StringUtils;
-import com.qiuyj.commons.bean.exception.ReflectionException;
 import com.qiuyj.commons.cache.Cache;
 import com.qiuyj.commons.cache.impl.SoftReferenceCache;
 
@@ -19,20 +18,27 @@ import java.util.Optional;
  */
 public class CachedIntrospectorResults {
 
-  private static final Cache<Class<?>, BeanInfo> BEAN_INFO_CACHE = new SoftReferenceCache<>();
+  private static final Cache<Class<?>, CachedIntrospectorResults> BEAN_INTROSPECTOR_RESULTS = new SoftReferenceCache<>();
 
   private BeanInfo currBeanInfo;
 
-  public CachedIntrospectorResults(Class<?> cls) {
-    Objects.requireNonNull(cls);
-    currBeanInfo = BEAN_INFO_CACHE.getValue(cls);
-    if (Objects.isNull(currBeanInfo)) {
+  private CachedIntrospectorResults(BeanInfo beanInfo) {
+    currBeanInfo = beanInfo;
+  }
+
+  public static CachedIntrospectorResults forClass(Class<?> cls) {
+    CachedIntrospectorResults rs = BEAN_INTROSPECTOR_RESULTS.getValue(cls);
+    if (Objects.isNull(rs)) {
+      BeanInfo beanInfo;
       try {
-        currBeanInfo = Introspector.getBeanInfo(cls);
+        beanInfo = Introspector.getBeanInfo(cls);
       } catch (IntrospectionException e) {
-        throw new ReflectionException("Error getting bean info of class: " + cls + ".\n Caused by: " + e, e);
+        throw new IllegalStateException("Error getting bean info of class: " + cls.getName() + ".\n Caused by: " + e, e);
       }
+      rs = new CachedIntrospectorResults(beanInfo);
+      BEAN_INTROSPECTOR_RESULTS.setValue(cls, rs);
     }
+    return rs;
   }
 
   public PropertyDescriptor getPropertyDescriptor(String property) {

@@ -19,12 +19,12 @@ public class BeanWrapperImpl extends AbstractNestedPropertyAccessor implements B
 
   public BeanWrapperImpl(Class<?> wrappedClass) {
     super(wrappedClass);
-    introspectorResults = new CachedIntrospectorResults(wrappedClass);
+    introspectorResults = CachedIntrospectorResults.forClass(wrappedClass);
   }
 
   public BeanWrapperImpl(Object wrappedInstance) {
     super(wrappedInstance);
-    introspectorResults = new CachedIntrospectorResults(wrappedClass);
+    introspectorResults = CachedIntrospectorResults.forClass(wrappedClass);
   }
 
   @Override
