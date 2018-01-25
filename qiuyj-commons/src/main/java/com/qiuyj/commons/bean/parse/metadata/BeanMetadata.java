@@ -31,4 +31,8 @@ public class BeanMetadata extends AbstractMetadata {
   public BeanMetadata(Class<?> beanCls) {
     this.beanCls = Objects.requireNonNull(beanCls);
   }
+
+  public void setParent(BeanMetadata parent) {
+    this.parent = parent;
+  }
 }
