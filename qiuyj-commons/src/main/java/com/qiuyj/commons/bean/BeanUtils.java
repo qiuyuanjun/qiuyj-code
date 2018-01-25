@@ -111,7 +111,8 @@ public abstract class BeanUtils {
                 ReflectionUtils.makeAccessible(readMethod);
                 ReflectionUtils.makeAccessible(writeMethod);
                 try {
-                  ReflectionUtils.invokeMethod(dest, writeMethod, ReflectionUtils.invokeMethod(src, readMethod));
+//                  ReflectionUtils.invokeMethod(dest, writeMethod, ReflectionUtils.invokeMethod(src, readMethod));
+                  writeMethod.invoke(dest, readMethod.invoke(src));
                 }
                 catch (Exception e) {
                   // ignore
