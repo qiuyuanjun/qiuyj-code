@@ -77,7 +77,7 @@ public abstract class BeanUtils {
 
   public static <T> T stringValueMapToBean(Map<String, String> beanData, Class<T> beanCls) {
     BeanWrapper beanWrapper = new BeanWrapperImpl(beanCls);
-    beanData.forEach((propertyName, propertyValue) ->{
+    beanData.forEach((propertyName, propertyValue) -> {
       try {
         beanWrapper.convertAndSetPropertyValueString(propertyName, propertyValue);
       }
