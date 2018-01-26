@@ -1,6 +1,6 @@
-package com.qiuyj.commons.bean.parse.visitor;
+package com.qiuyj.asm.bean.visitor;
 
-import jdk.internal.org.objectweb.asm.Opcodes;
+import com.qiuyj.asm.ASMVersion;
 import org.objectweb.asm.MethodVisitor;
 
 /**
@@ -10,6 +10,6 @@ import org.objectweb.asm.MethodVisitor;
 public class MethodMetadataVisitor extends MethodVisitor {
 
   public MethodMetadataVisitor() {
-    super(Opcodes.ASM5);
+    super(ASMVersion.ASM_VERSION);
   }
 }

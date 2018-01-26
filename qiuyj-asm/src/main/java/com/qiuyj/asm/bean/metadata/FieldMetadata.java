@@ -1,4 +1,4 @@
-package com.qiuyj.commons.bean.parse.metadata;
+package com.qiuyj.asm.bean.metadata;
 
 /**
  * @author qiuyj

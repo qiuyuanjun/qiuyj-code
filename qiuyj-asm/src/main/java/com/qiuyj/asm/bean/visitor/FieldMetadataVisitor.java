@@ -1,7 +1,7 @@
-package com.qiuyj.commons.bean.parse.visitor;
+package com.qiuyj.asm.bean.visitor;
 
+import com.qiuyj.asm.ASMVersion;
 import org.objectweb.asm.FieldVisitor;
-import org.objectweb.asm.Opcodes;
 
 /**
  * @author qiuyj
@@ -10,6 +10,6 @@ import org.objectweb.asm.Opcodes;
 public class FieldMetadataVisitor extends FieldVisitor {
 
   public FieldMetadataVisitor() {
-    super(Opcodes.ASM5);
+    super(ASMVersion.ASM_VERSION);
   }
 }
