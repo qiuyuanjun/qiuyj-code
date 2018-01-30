@@ -1,7 +1,11 @@
 package com.qiuyj.asm.bean.visitor;
 
 import com.qiuyj.asm.ASMVersion;
-import org.objectweb.asm.MethodVisitor;
+import com.qiuyj.asm.bean.metadata.BeanMetadata;
+import com.qiuyj.asm.bean.metadata.MethodMetadata;
+import jdk.internal.org.objectweb.asm.AnnotationVisitor;
+import jdk.internal.org.objectweb.asm.MethodVisitor;
+import jdk.internal.org.objectweb.asm.Opcodes;
 
 /**
  * @author qiuyj
@@ -9,7 +13,33 @@ import org.objectweb.asm.MethodVisitor;
  */
 public class MethodMetadataVisitor extends MethodVisitor {
 
-  public MethodMetadataVisitor() {
+  private final MethodMetadata methodMetadata;
+
+  private final String methodName;
+
+  private boolean ignore;
+
+  public MethodMetadataVisitor(BeanMetadata declaredBean, int access, String name, String mappingFieldName) {
     super(ASMVersion.ASM_VERSION);
+    methodMetadata = new MethodMetadata(declaredBean, access, name, mappingFieldName);
+    methodName = name;
+  }
+
+  @Override
+  public void visitParameter(String parameterDesc, int i) {
+    ignore = true;
+  }
+
+  @Override
+  public AnnotationVisitor visitAnnotation(String annotationDesc, boolean visible) {
+    return super.visitAnnotation(annotationDesc, visible);
+  }
+
+  @Override
+  public void visitEnd() {
+    if (!ignore) {
+      BeanMetadata bean = methodMetadata.getDeclaredBean();
+      bean.addMethodInternal(methodName, methodMetadata);
+    }
   }
 }

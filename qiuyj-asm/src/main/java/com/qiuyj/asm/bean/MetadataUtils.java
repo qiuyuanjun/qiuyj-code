@@ -4,7 +4,7 @@ import com.qiuyj.asm.bean.metadata.BeanMetadata;
 import com.qiuyj.asm.bean.visitor.BeanMetadataVisitor;
 import com.qiuyj.commons.cache.Cache;
 import com.qiuyj.commons.cache.impl.SoftReferenceCache;
-import org.objectweb.asm.ClassReader;
+import jdk.internal.org.objectweb.asm.ClassReader;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -23,7 +23,7 @@ public abstract class MetadataUtils {
     if (Objects.isNull(visitor)) {
       ClassReader cr = new ClassReader(className);
       visitor = new BeanMetadataVisitor(loader);
-      cr.accept(visitor, ClassReader.SKIP_DEBUG);
+      cr.accept(visitor, 0);
       CACHED_BEAN_METADATA_VISITOR.setValue(cncl, visitor);
     }
     return visitor.getBeanMetadata();

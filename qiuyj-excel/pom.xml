@@ -13,7 +13,7 @@
   <dependencies>
     <dependency>
       <groupId>com.qiuyj</groupId>
-      <artifactId>qiuyj-commons</artifactId>
+      <artifactId>qiuyj-asm</artifactId>
       <version>1.0.0</version>
     </dependency>
 

@@ -3,8 +3,9 @@ package com.qiuyj.asm.bean.visitor;
 import com.qiuyj.asm.ASMVersion;
 import com.qiuyj.asm.bean.metadata.BeanMetadata;
 import com.qiuyj.commons.ClassUtils;
-import org.objectweb.asm.*;
+import jdk.internal.org.objectweb.asm.*;
 
+import java.beans.Introspector;
 import java.util.Objects;
 
 /**
@@ -37,30 +38,27 @@ public class BeanMetadataVisitor extends ClassVisitor {
       String className = name.replace("/", ".");
       try {
         beanMetadata = new BeanMetadata(classLoader.loadClass(className));
-      } catch (ClassNotFoundException e) {
+      }
+      catch (ClassNotFoundException e) {
         throw new IllegalStateException("Class: " + className + " is invisible for class loader: " + classLoader);
       }
       beanMetadata.setParent(superName);
-      // 读取泛型
-      if (Objects.nonNull(signature)) {
-
-      }
     }
   }
 
   @Override
   public void visitSource(String source, String debug) {
-    super.visitSource(source, debug);
+    // no-op
   }
 
   @Override
   public void visitOuterClass(String owner, String name, String desc) {
-    // non-op
+    // no-op
   }
 
   @Override
   public AnnotationVisitor visitAnnotation(String desc, boolean visible) {
-    return super.visitAnnotation(desc, visible);
+    return visible ? new AnnotationMetadataVisitor(beanMetadata, Type.getType(desc).getClassName()) : null;
   }
 
   @Override
@@ -70,7 +68,7 @@ public class BeanMetadataVisitor extends ClassVisitor {
 
   @Override
   public void visitAttribute(Attribute attr) {
-    super.visitAttribute(attr);
+    // no-op
   }
 
   @Override
@@ -80,17 +78,31 @@ public class BeanMetadataVisitor extends ClassVisitor {
 
   @Override
   public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
-    return super.visitField(access, name, desc, signature, value);
+    // 如果当前访问的field的类型是static或者static final的，那么直接跳过
+    boolean isStaticFinal = (access & Opcodes.ACC_STATIC) != 0 && (access & Opcodes.ACC_FINAL) != 0;
+    return isStaticFinal ? null : new FieldMetadataVisitor(beanMetadata, access, name);
   }
 
   @Override
-  public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-    return super.visitMethod(access, name, desc, signature, exceptions);
+  public MethodVisitor visitMethod(int access,
+                                   String name,
+                                   String desc,
+                                   String signature,
+                                   String[] exceptions) {
+    // 只处理getter方法
+    String methodMappingFieldName = null;
+    if (name.startsWith("get")) {
+      methodMappingFieldName = Introspector.decapitalize(name.substring(3));
+    }
+    else if (name.startsWith("is")) {
+      methodMappingFieldName = Introspector.decapitalize(name.substring(2));
+    }
+    return Objects.isNull(methodMappingFieldName) ? null : new MethodMetadataVisitor(beanMetadata, access, name, methodMappingFieldName);
   }
 
   @Override
   public void visitEnd() {
-    super.visitEnd();
+    // no-op
   }
 
   public BeanMetadata getBeanMetadata() {

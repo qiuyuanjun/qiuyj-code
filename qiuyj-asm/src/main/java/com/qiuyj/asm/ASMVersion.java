@@ -1,6 +1,6 @@
 package com.qiuyj.asm;
 
-import org.objectweb.asm.Opcodes;
+import jdk.internal.org.objectweb.asm.Opcodes;
 
 /**
  * @author qiuyj

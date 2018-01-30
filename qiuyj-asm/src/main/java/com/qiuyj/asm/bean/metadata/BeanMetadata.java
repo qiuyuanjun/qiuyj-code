@@ -3,7 +3,10 @@ package com.qiuyj.asm.bean.metadata;
 import com.qiuyj.asm.bean.MetadataUtils;
 
 import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * @author qiuyj
@@ -20,14 +23,14 @@ public class BeanMetadata extends AbstractMetadata {
   private Object parentSource;
 
   /**
-   * 当前bean的所有自己声明的set和get方法
+   * 当前bean的所有自己声明的get方法
    */
-  private MethodMetadata[] methods;
+  private Map<String, MethodMetadata> getterMethods = new LinkedHashMap<>();
 
   /**
    * 当前bean的所有自己声明的非static final的属性
    */
-  private FieldMetadata[] fields;
+  private Map<String, FieldMetadata> fields = new LinkedHashMap<>();
 
   /**
    * 当前bean的Class对象
@@ -51,7 +54,8 @@ public class BeanMetadata extends AbstractMetadata {
       // 通过ASM得到对应的BeanMetadata对象
       try {
         parentSource = MetadataUtils.newBeanMetadata(parentClassName, parentClassLoader);
-      } catch (IOException e) {
+      }
+      catch (IOException e) {
         throw new IllegalStateException("Error parsing class: " + parentClassName + ".\n Caused by: " + e, e);
       }
     }
@@ -62,4 +66,33 @@ public class BeanMetadata extends AbstractMetadata {
     return getParent(null);
   }
 
+  public AnnotationMetadata getAnnotation(String propertyName, String annotationName) {
+    return null;
+  }
+
+  public AnnotationMetadata getAnnotation(String propertyName) {
+    return null;
+  }
+
+  public FieldMetadata getField(String fieldName) throws NoSuchFieldException {
+    return Optional.ofNullable(fields.get(fieldName)).orElseThrow(NoSuchFieldException::new);
+  }
+
+  /**
+   * 添加字段，内部方法，用户请勿使用
+   * @param fieldName 字段名
+   * @param fieldMetadata FieldMetadata对象
+   */
+  public void addFieldInternal(String fieldName, FieldMetadata fieldMetadata) {
+    fields.put(fieldName, fieldMetadata);
+  }
+
+  /**
+   * 添加getter方法，内部方法，用户请勿使用
+   * @param methodName 方法名
+   * @param methodMetadata MethodMetadata对象
+   */
+  public void addMethodInternal(String methodName, MethodMetadata methodMetadata) {
+    getterMethods.put(methodName, methodMetadata);
+  }
 }
