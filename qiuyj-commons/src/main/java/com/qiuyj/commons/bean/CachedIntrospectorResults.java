@@ -32,7 +32,8 @@ public class CachedIntrospectorResults {
       BeanInfo beanInfo;
       try {
         beanInfo = Introspector.getBeanInfo(cls);
-      } catch (IntrospectionException e) {
+      }
+      catch (IntrospectionException e) {
         throw new IllegalStateException("Error getting bean info of class: " + cls.getName() + ".\n Caused by: " + e, e);
       }
       rs = new CachedIntrospectorResults(beanInfo);

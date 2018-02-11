@@ -281,6 +281,22 @@ public abstract class ReflectionUtils {
   }
 
   /**
+   * 如果存在对应的Field对象，那么返回，否则返回null
+   */
+  public static Field getDeclaredFieldIfAvaliable(Class<?> cls, String fieldName) {
+    while (Objects.nonNull(cls) && cls != Object.class) {
+      try {
+        return cls.getDeclaredField(fieldName);
+      }
+      catch (NoSuchFieldException e) {
+        // ignore
+      }
+      cls = cls.getSuperclass();
+    }
+    return null;
+  }
+
+  /**
    * 设置当前Field对象屏蔽java语法检查
    */
   public static void makeAccessible(Field field) {

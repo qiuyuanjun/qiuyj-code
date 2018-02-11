@@ -5,7 +5,9 @@ import com.qiuyj.commons.bean.AbstractNestedPropertyAccessor;
 import com.qiuyj.commons.bean.CachedIntrospectorResults;
 import com.qiuyj.commons.bean.exception.ReflectionException;
 
+import java.beans.IntrospectionException;
 import java.beans.PropertyDescriptor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Objects;
 
@@ -16,6 +18,11 @@ import java.util.Objects;
 public class BeanWrapperImpl extends AbstractNestedPropertyAccessor implements BeanWrapper {
 
   private final CachedIntrospectorResults introspectorResults;
+
+  /**
+   * 默认不支持字段操作，必须得通过对应的getter和setter
+   */
+  private boolean fieldOperationSupport = false;
 
   public BeanWrapperImpl(Class<?> wrappedClass) {
     super(wrappedClass);
@@ -37,23 +44,81 @@ public class BeanWrapperImpl extends AbstractNestedPropertyAccessor implements B
       if (Objects.nonNull(value)) {
         validateType(pd.getPropertyType(), value.getClass());
       }
-      Method writeMethod = pd.getWriteMethod();
-      ReflectionUtils.makeAccessible(writeMethod);
-      ReflectionUtils.invokeMethod(wrappedInstance, writeMethod, value);
+      if (pd instanceof NoGetterSetterPropertyDescriptor) {
+        Field propertyField = ((NoGetterSetterPropertyDescriptor) pd).getPropertyField();
+        ReflectionUtils.makeAccessible(propertyField);
+        try {
+          propertyField.set(wrappedInstance, value);
+        }
+        catch (IllegalAccessException e) {
+          // ignore
+        }
+      }
+      else {
+        Method writeMethod = pd.getWriteMethod();
+        if (Objects.isNull(writeMethod)) {
+          if (fieldOperationSupport) {
+            Field propertyField = ReflectionUtils.getDeclaredField(wrappedClass, property);
+            ReflectionUtils.makeAccessible(propertyField);
+            try {
+              propertyField.set(wrappedInstance, value);
+            }
+            catch (IllegalAccessException e) {
+              // ingore
+            }
+          }
+          else {
+            throw new IllegalStateException("Property '" + property + "' is an readonly property.");
+          }
+        }
+        else {
+          ReflectionUtils.makeAccessible(writeMethod);
+          ReflectionUtils.invokeMethod(wrappedInstance, writeMethod, value);
+        }
+      }
     }
   }
 
   @Override
   protected Object doGetPropertyValue(String property) {
     PropertyDescriptor pd = getPropertyDescriptor(property);
+    Object getterValue = null;
     if (Objects.isNull(pd)) {
       throw new ReflectionException("Can not found property: " + property + " in class: " + wrappedClass);
     }
+    else if (pd instanceof NoGetterSetterPropertyDescriptor) {
+      Field propertyField = ((NoGetterSetterPropertyDescriptor) pd).getPropertyField();
+      ReflectionUtils.makeAccessible(propertyField);
+      try {
+        getterValue = propertyField.get(wrappedInstance);
+      }
+      catch (IllegalAccessException e) {
+        // ignore
+      }
+    }
     else {
       Method readMethod = pd.getReadMethod();
-      ReflectionUtils.makeAccessible(readMethod);
-      return ReflectionUtils.invokeMethod(wrappedInstance, readMethod);
+      if (Objects.isNull(readMethod)) {
+        if (fieldOperationSupport) {
+          Field propertyField = ReflectionUtils.getDeclaredField(wrappedClass, property);
+          ReflectionUtils.makeAccessible(propertyField);
+          try {
+            getterValue = propertyField.get(wrappedInstance);
+          }
+          catch (IllegalAccessException e) {
+            // ignore
+          }
+        }
+        else {
+          throw new ReflectionException("Property '" + property + "' is an reading invisible property.");
+        }
+      }
+      else {
+        ReflectionUtils.makeAccessible(readMethod);
+        getterValue = ReflectionUtils.invokeMethod(wrappedInstance, readMethod);
+      }
     }
+    return getterValue;
   }
 
   public static void validateType(Class<?> originType, Class<?> setValueType) {
@@ -105,11 +170,28 @@ public class BeanWrapperImpl extends AbstractNestedPropertyAccessor implements B
 
   @Override
   public PropertyDescriptor getPropertyDescriptor(String property) {
-    return introspectorResults.getPropertyDescriptor(property);
+    PropertyDescriptor pd = introspectorResults.getPropertyDescriptor(property);
+    if (Objects.isNull(pd) && fieldOperationSupport) {
+      Field propertyField = ReflectionUtils.getDeclaredFieldIfAvaliable(wrappedClass, property);
+      if (Objects.nonNull(propertyField)) {
+        try {
+          pd = new NoGetterSetterPropertyDescriptor(property, propertyField);
+        }
+        catch (IntrospectionException e) {
+          throw new ReflectionException("Error getting '" + property + "'s property descriptor.\n Caused by: " + e, e);
+        }
+      }
+    }
+    return pd;
   }
 
   @Override
   public PropertyDescriptor[] getPropertyDescriptors() {
     return introspectorResults.getBeanInfo().getPropertyDescriptors();
+  }
+
+  @Override
+  public void setFieldOperationSupport(boolean fieldOperationSupport) {
+    this.fieldOperationSupport = fieldOperationSupport;
   }
 }
