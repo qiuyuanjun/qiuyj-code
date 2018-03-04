@@ -1,5 +1,6 @@
 package com.qiuyj.excel;
 
+import com.qiuyj.commons.DateUtils;
 import com.qiuyj.commons.StringUtils;
 import com.qiuyj.excel.config.ExcelExportConfig;
 
@@ -15,7 +16,7 @@ public class ExcelFilenameGenerator {
   public static String generateExportFilename(ExcelExportConfig config) {
     String exportFilename = config.getExportFilename();
     if (StringUtils.isNotBlank(exportFilename)) {
-      exportFilename = StringUtils.getDateTimeString();
+      exportFilename = DateUtils.getDateTimeString();
     }
     return exportFilename;
   }

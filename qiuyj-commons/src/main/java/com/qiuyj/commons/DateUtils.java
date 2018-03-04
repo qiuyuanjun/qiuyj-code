@@ -1,6 +1,7 @@
 package com.qiuyj.commons;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.chrono.IsoChronology;
 import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
@@ -8,6 +9,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import static java.time.temporal.ChronoField.MILLI_OF_SECOND;
 import static java.time.temporal.ChronoField.MONTH_OF_YEAR;
 import static java.time.temporal.ChronoField.YEAR;
 
@@ -118,4 +120,51 @@ public abstract class DateUtils {
     return day;
   }
 
+  /**
+   * 生成类似yyyyMMddHHmmssSSS的字符串
+   */
+  public static String getDateTimeString() {
+    LocalDateTime now = LocalDateTime.now();
+    StringBuilder sb = new StringBuilder(17);
+    int value = now.getYear();
+    sb.append(value);
+    value = now.getMonthValue();
+    if (value < 10 && value > 0) {
+      sb.append("0");
+    }
+    sb.append(value);
+    value = now.getDayOfMonth();
+    if (value < 10 && value > 0) {
+      sb.append("0");
+    }
+    sb.append(value);
+    value = now.getHour();
+    if (value < 10) {
+      sb.append("0");
+    }
+    sb.append(value);
+    value = now.getMinute();
+    if (value < 10) {
+      sb.append("0");
+    }
+    sb.append(value);
+    value = now.getSecond();
+    if (value < 10) {
+      sb.append("0");
+    }
+    sb.append(value);
+    value = now.get(MILLI_OF_SECOND);
+    if (value < 10 && value >= 0) {
+      sb.append("00");
+    }
+    else if (value < 100 && value >= 10) {
+      sb.append("0");
+    }
+    sb.append(value);
+    return sb.toString();
+  }
+
+  public static void main(String[] args) {
+    System.out.println(getDateTimeString());
+  }
 }
