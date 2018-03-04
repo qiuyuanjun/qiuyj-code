@@ -10,12 +10,17 @@ public abstract class EnumUtils {
 
   public static <E extends Enum> E getByOridnal(Class<E> type, int ordinal) {
     Objects.requireNonNull(type);
-    E[] enumConstants = type.getEnumConstants();
-    if (ordinal < 0 || ordinal >= enumConstants.length) {
-      throw new IllegalArgumentException("Index bound of enum type: " + type);
+    if (ordinal < 0) {
+      throw new IllegalArgumentException("Negative ordinal: " + ordinal);
     }
     else {
-      return enumConstants[ordinal];
+      E[] enumConstants = type.getEnumConstants();
+      if (ordinal >= enumConstants.length) {
+        throw new IllegalArgumentException("Index bound of enum type: " + type);
+      }
+      else {
+        return enumConstants[ordinal];
+      }
     }
   }
 }
