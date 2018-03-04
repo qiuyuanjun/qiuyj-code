@@ -164,7 +164,4 @@ public abstract class DateUtils {
     return sb.toString();
   }
 
-  public static void main(String[] args) {
-    System.out.println(getDateTimeString());
-  }
 }
