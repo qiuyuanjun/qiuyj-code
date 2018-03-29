@@ -14,7 +14,7 @@ public class MapperTest implements ResolverUtil.Test {
   private final Class<? extends Mapper> baseMapperClass;
 
   public MapperTest(Class<? extends Mapper> baseMapperClass) {
-    this.baseMapperClass = baseMapperClass;
+    this.baseMapperClass = Objects.requireNonNull(baseMapperClass);
   }
 
   @Override
