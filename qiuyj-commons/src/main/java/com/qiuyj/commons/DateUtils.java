@@ -129,12 +129,12 @@ public abstract class DateUtils {
     int value = now.getYear();
     sb.append(value);
     value = now.getMonthValue();
-    if (value < 10 && value > 0) {
+    if (value < 10) {
       sb.append("0");
     }
     sb.append(value);
     value = now.getDayOfMonth();
-    if (value < 10 && value > 0) {
+    if (value < 10) {
       sb.append("0");
     }
     sb.append(value);
