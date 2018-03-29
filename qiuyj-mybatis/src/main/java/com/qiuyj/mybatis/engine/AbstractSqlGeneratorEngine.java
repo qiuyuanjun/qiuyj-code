@@ -62,6 +62,21 @@ public abstract class AbstractSqlGeneratorEngine implements SqlGeneratorEngine {
      * 那么就解析所有属性生成对应的ResultMap
      */
     SqlInfo currentSqlInfo = getSqlInfo(actualMapperClass);
+
+    // 这里判断下，sqlinfo里面的Configuration是否为null，如果为null，那么需要设置
+    if (Objects.isNull(currentSqlInfo.getConfiguration())) {
+      currentSqlInfo.setConfiguration(configuration);
+      // 此时需要设置sqlInfo里面的
+      if (Objects.isNull(currentSqlInfo.getPrimaryKey().getTypeHandler())) {
+        currentSqlInfo.getPrimaryKey().setTypeHandler(configuration.getTypeHandlerRegistry().getTypeHandler(currentSqlInfo.getPrimaryKey().getTargetClass()));
+      }
+      for (PropertyColumnMapping pcm : currentSqlInfo.getPropertyColumnMappings()) {
+        if (Objects.isNull(pcm.getTypeHandler())) {
+          pcm.setTypeHandler(configuration.getTypeHandlerRegistry().getTypeHandler(pcm.getTargetClass()));
+        }
+      }
+    }
+
     if (currentSqlInfo.hasEnumField() && !resultMaps.containsKey(actualMapperClass)) {
       synchronized (resultMapWriteLock) {
         if (!resultMaps.containsKey(actualMapperClass)) {

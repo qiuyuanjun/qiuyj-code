@@ -8,11 +8,20 @@ import org.apache.ibatis.type.TypeHandler;
  * @since 2017/11/15
  */
 public class PropertyColumnMapping {
+
   private String javaClassPropertyName;
+
   private String databaseColumnName;
+
+  // @Nullable
   private Object value;
+
   private TypeHandler typeHandler;
+
+  // @Nullable
   private JdbcType jdbcType;
+
+  private Class<?> targetClass;
 
   public PropertyColumnMapping() {}
 
@@ -74,6 +83,14 @@ public class PropertyColumnMapping {
 
   public void setJdbcType(JdbcType jdbcType) {
     this.jdbcType = jdbcType;
+  }
+
+  public Class<?> getTargetClass() {
+    return targetClass;
+  }
+
+  public void setTargetClass(Class<?> targetClass) {
+    this.targetClass = targetClass;
   }
 
   @Override

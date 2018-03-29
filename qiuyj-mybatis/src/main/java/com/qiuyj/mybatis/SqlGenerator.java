@@ -3,17 +3,21 @@ package com.qiuyj.mybatis;
 import com.qiuyj.commons.ClassUtils;
 import com.qiuyj.commons.StringUtils;
 import com.qiuyj.mybatis.config.SqlGeneratorConfig;
+import com.qiuyj.mybatis.engine.AbstractSqlGeneratorEngine;
 import com.qiuyj.mybatis.engine.SqlGeneratorEngine;
 import com.qiuyj.mybatis.mapper.Mapper;
 import org.apache.ibatis.builder.annotation.ProviderSqlSource;
 import org.apache.ibatis.executor.Executor;
+import org.apache.ibatis.io.ResolverUtil;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.plugin.*;
 import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 
 import java.lang.reflect.Method;
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
 
 /**
  * @author qiuyj
@@ -73,8 +77,21 @@ public class SqlGenerator implements Interceptor {
     engine = SqlGeneratorEngine.determineSqlGenerator(config, resolver);
     // 如果设置了entityPackageScanPath，那么解析所有的实体类，得到对应的SqlInfo
     if (StringUtils.isNotBlank(config.getMapperPackageScanPath())) {
-      // TODO 解析包名下的所有mapper，生成对应的SqlInfo
-//      ((AbstractSqlGeneratorEngine) engine).addSqlInfo(null, null);
+      String[] paths = StringUtils.delimiteToStringArray(config.getMapperPackageScanPath(), ", \t:;");
+      ResolverUtil.Test test = new MapperTest(config.getBaseMapperClass());
+      Set<Class<? extends Mapper>> mapperClassSet = new HashSet<>();
+      for (String path : paths) {
+        // 使用mybatis封装好的类去获取所有class
+        ResolverUtil<? extends Mapper> ru = new ResolverUtil<>();
+        ru.setClassLoader(Thread.currentThread().getContextClassLoader());
+        mapperClassSet.addAll(ru.find(test, path).getClasses());
+      }
+      AbstractSqlGeneratorEngine asge = (AbstractSqlGeneratorEngine) engine;
+      for (Class<? extends Mapper> mapperClass : mapperClassSet) {
+        // 由于此时还无法获取到Mybatis的Configuration对象，所以这里暂时设置null
+        // 后面运行阶段，一定要重新设置configuraiton为null的sqlInfo
+        asge.addSqlInfo(mapperClass, new SqlInfo(mapperClass, config.getCheckerChain(), null));
+      }
     }
   }
 }

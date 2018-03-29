@@ -17,13 +17,21 @@ import java.util.stream.Collectors;
  * @since 2017/11/15
  */
 public final class SqlInfo {
-  private final Configuration configuration;
+
+  private Configuration configuration;
+
   private String tableName;
+
   private final List<PropertyColumnMapping> withoutPrimaryKey = new ArrayList<>();
+
   private PropertyColumnMapping primaryKey;
+
   private final Class<?> beanType;
+
   private int fieldCount;
+
   private boolean hasEnumField;
+
   private String sequenceName;
 
   /*
@@ -231,5 +239,9 @@ public final class SqlInfo {
 
   public Configuration getConfiguration() {
     return configuration;
+  }
+
+  public void setConfiguration(Configuration configuration) {
+    this.configuration = configuration;
   }
 }
