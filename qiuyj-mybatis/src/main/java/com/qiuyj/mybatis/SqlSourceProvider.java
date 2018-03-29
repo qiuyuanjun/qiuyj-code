@@ -11,10 +11,10 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface SqlProvider {
+public @interface SqlSourceProvider {
 
   /**
    * sql提供类的类路径
    */
-  String value() default "";
+  String sqlSource() default "";
 }

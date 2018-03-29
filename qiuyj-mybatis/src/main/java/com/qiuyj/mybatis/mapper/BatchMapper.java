@@ -1,9 +1,7 @@
 package com.qiuyj.mybatis.mapper;
 
-import com.qiuyj.mybatis.Example;
 import org.apache.ibatis.annotations.DeleteProvider;
 import org.apache.ibatis.annotations.InsertProvider;
-import org.apache.ibatis.annotations.UpdateProvider;
 
 import java.util.List;
 
@@ -20,11 +18,11 @@ public interface BatchMapper<ID, T> {
   @InsertProvider(type = Mapper.SqlProvider.class, method = "dynamicSql")
   int batchInsert(List<T> insertionList);
 
-  /**
-   * 批量更新
+  /*
+   * 批量更新，暂时无法支持
    */
-  @UpdateProvider(type = Mapper.SqlProvider.class, method = "dynamicSql")
-  void batchUpdate(@Example List<T> updationList);
+//  @UpdateProvider(type = Mapper.SqlProvider.class, method = "dynamicSql")
+//  void batchUpdate(@Example List<T> updationList);
 
   /**
    * 批量删除

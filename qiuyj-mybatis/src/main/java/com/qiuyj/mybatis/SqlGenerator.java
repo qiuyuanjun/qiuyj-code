@@ -1,6 +1,7 @@
 package com.qiuyj.mybatis;
 
 import com.qiuyj.commons.ClassUtils;
+import com.qiuyj.commons.StringUtils;
 import com.qiuyj.mybatis.config.SqlGeneratorConfig;
 import com.qiuyj.mybatis.engine.SqlGeneratorEngine;
 import com.qiuyj.mybatis.mapper.Mapper;
@@ -70,5 +71,10 @@ public class SqlGenerator implements Interceptor {
     resolver = new MapperMethodResolver(config.getBaseMapperClass());
     // 得到对应的Sql生成引擎
     engine = SqlGeneratorEngine.determineSqlGenerator(config, resolver);
+    // 如果设置了entityPackageScanPath，那么解析所有的实体类，得到对应的SqlInfo
+    if (StringUtils.isNotBlank(config.getMapperPackageScanPath())) {
+      // TODO 解析包名下的所有mapper，生成对应的SqlInfo
+//      ((AbstractSqlGeneratorEngine) engine).addSqlInfo(null, null);
+    }
   }
 }

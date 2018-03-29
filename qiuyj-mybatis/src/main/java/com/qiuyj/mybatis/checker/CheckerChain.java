@@ -50,9 +50,9 @@ public final class CheckerChain {
     chain.add(checker);
   }
 
-  public void addCheckerUnsorted(List<ConditionChecker> unsortedCheckerList) {
+  public void addAndSortCheckers(List<ConditionChecker> unsortedCheckerList) {
     Objects.requireNonNull(unsortedCheckerList);
-    if (unsortedCheckerList.size() != 0) {
+    if (unsortedCheckerList.size() > 0) {
       unsortedCheckerList.sort(DEFAULT_ORDERD_COMPARATOR);
       chain.addAll(unsortedCheckerList);
     }

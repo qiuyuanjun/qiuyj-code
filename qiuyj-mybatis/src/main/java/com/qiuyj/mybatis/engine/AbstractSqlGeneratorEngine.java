@@ -22,12 +22,17 @@ import java.util.*;
  * @since 2017/11/15
  */
 public abstract class AbstractSqlGeneratorEngine implements SqlGeneratorEngine {
+
   private final Object sqlInfoWriteLock = new Object();
   private final Map<Class<? extends Mapper>, SqlInfo> sqlInfos;
+
   private final Object resultMapWriteLock = new Object();
   private final Map<Class<? extends Mapper>, ResultMap> resultMaps;
+
   private final CheckerChain chain;
+
   private final SqlProvider baseSqlProvider;
+
   private final MapperMethodResolver resolver;
 
   protected AbstractSqlGeneratorEngine(CheckerChain chain, SqlProvider sqlProvider, MapperMethodResolver resolver) {
@@ -46,7 +51,6 @@ public abstract class AbstractSqlGeneratorEngine implements SqlGeneratorEngine {
           /*
            * 这里生成SqlInfo会非常的耗时
            * 所以这里一定要将结果缓存起来
-           * 实验证明，缓存结果将换来将近10倍的性能提升
            */
           SqlInfo mapperSqlInfo = new SqlInfo(actualMapperClass, chain, configuration);
           sqlInfos.put(actualMapperClass, mapperSqlInfo);
@@ -163,5 +167,16 @@ public abstract class AbstractSqlGeneratorEngine implements SqlGeneratorEngine {
 
   private boolean parameterObjectIsArrayOrCollection(Object paramObj) {
     return paramObj instanceof DefaultSqlSession.StrictMap;
+  }
+
+  public void addSqlInfo(Class<? extends Mapper> mapper, SqlInfo sqlInfo) {
+    if (Objects.nonNull(mapper)) {
+      if (Objects.isNull(sqlInfo)) {
+        sqlInfos.remove(mapper);
+      }
+      else {
+        sqlInfos.putIfAbsent(mapper, sqlInfo);
+      }
+    }
   }
 }
