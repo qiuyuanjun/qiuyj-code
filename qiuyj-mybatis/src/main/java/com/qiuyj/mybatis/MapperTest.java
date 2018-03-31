@@ -21,7 +21,7 @@ public class MapperTest implements ResolverUtil.Test {
   public boolean matches(Class<?> type) {
     return Objects.nonNull(type)
         && type.isInterface()
-        && baseMapperClass.isAssignableFrom(type)
-        && type != baseMapperClass;
+        && type != baseMapperClass
+        && baseMapperClass.isAssignableFrom(type);
   }
 }

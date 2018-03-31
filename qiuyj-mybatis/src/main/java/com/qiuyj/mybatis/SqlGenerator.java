@@ -79,19 +79,15 @@ public class SqlGenerator implements Interceptor {
     if (StringUtils.isNotBlank(config.getMapperPackageScanPath())) {
       String[] paths = StringUtils.delimiteToStringArray(config.getMapperPackageScanPath(), ", \t:;");
       ResolverUtil.Test test = new MapperTest(config.getBaseMapperClass());
-      Set<Class<? extends Mapper>> mapperClassSet = new HashSet<>();
+      Set<Class<? extends Mapper<?, ?>>> mapperClassSet = new HashSet<>();
+      ClassLoader cls = ClassUtils.getDefaultClassLoader();
       for (String path : paths) {
         // 使用mybatis封装好的类去获取所有class
-        ResolverUtil<? extends Mapper> ru = new ResolverUtil<>();
-        ru.setClassLoader(Thread.currentThread().getContextClassLoader());
+        ResolverUtil<? extends Mapper<?, ?>> ru = new ResolverUtil<>();
+        ru.setClassLoader(cls);
         mapperClassSet.addAll(ru.find(test, path).getClasses());
       }
-      AbstractSqlGeneratorEngine asge = (AbstractSqlGeneratorEngine) engine;
-      for (Class<? extends Mapper> mapperClass : mapperClassSet) {
-        // 由于此时还无法获取到Mybatis的Configuration对象，所以这里暂时设置null
-        // 后面运行阶段，一定要重新设置configuraiton为null的sqlInfo
-        asge.addSqlInfo(mapperClass, new SqlInfo(mapperClass, config.getCheckerChain(), null));
-      }
+      ((AbstractSqlGeneratorEngine) engine).addSqlInfos(mapperClassSet);
     }
   }
 }

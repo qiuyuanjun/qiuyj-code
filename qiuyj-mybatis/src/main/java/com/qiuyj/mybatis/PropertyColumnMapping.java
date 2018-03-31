@@ -21,6 +21,7 @@ public class PropertyColumnMapping {
   // @Nullable
   private JdbcType jdbcType;
 
+  // @Nullable
   private Class<?> targetClass;
 
   public PropertyColumnMapping() {}
@@ -43,6 +44,11 @@ public class PropertyColumnMapping {
   public PropertyColumnMapping(String javaClassPropertyName, String databaseColumnName, TypeHandler typeHandler, JdbcType jdbcType) {
     this(javaClassPropertyName, databaseColumnName, typeHandler);
     this.jdbcType = jdbcType;
+  }
+
+  public PropertyColumnMapping(String javaClassPropertyName, String databaseColumnName, Class<?> targetType) {
+    this(javaClassPropertyName, databaseColumnName);
+    this.targetClass = targetType;
   }
 
   public String getJavaClassPropertyName() {

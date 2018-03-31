@@ -77,7 +77,7 @@ public final class SqlGeneratorConfig {
    */
   private static void parseDatabaseType(SqlGeneratorConfig config, Properties prop) {
     String db = prop.getProperty(DATABASE_TYPE_KEY);
-    if (Objects.nonNull(db)) {
+    if (StringUtils.isNotBlank(db)) {
       try {
         config.databaseType = Database.valueOf(db.toUpperCase(Locale.ENGLISH));
       }

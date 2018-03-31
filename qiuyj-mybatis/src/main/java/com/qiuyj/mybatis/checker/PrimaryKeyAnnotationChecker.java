@@ -60,13 +60,25 @@ public class PrimaryKeyAnnotationChecker implements ConditionChecker {
         if (StringUtils.isBlank(columnName)) {
           columnName = StringUtils.camelCaseToUnderscore(field.getName());
         }
-        sqlInfo.setPrimaryKey(
-            new PropertyColumnMapping(
-                field.getName(),
-                columnName,
-                sqlInfo.getConfiguration().getTypeHandlerRegistry().getTypeHandler(getFieldJavaType(field))
-            )
-        );
+        Class<?> fieldType = getFieldJavaType(field);
+        if (Objects.isNull(sqlInfo.getConfiguration())) {
+          sqlInfo.setPrimaryKey(
+              new PropertyColumnMapping(
+                  field.getName(),
+                  columnName,
+                  fieldType
+              )
+          );
+        }
+        else {
+          sqlInfo.setPrimaryKey(
+              new PropertyColumnMapping(
+                  field.getName(),
+                  columnName,
+                  sqlInfo.getConfiguration().getTypeHandlerRegistry().getTypeHandler(fieldType)
+              )
+          );
+        }
         // 解析@Sequence注解
         Sequence sequence = AnnotationUtils.findAnnotation(field, Sequence.class);
         if (Objects.isNull(sequence)) {
