@@ -69,16 +69,19 @@ public final class SqlGeneratorEngineLoader {
   private static void initSqlGeneratorEngineInstance0(String sqlGeneratorEngineStr, String dbType, ClassLoader clsToUse, Object... args) {
     if (Objects.isNull(sqlGeneratorEngineStr)) {
       throw new IllegalStateException("Unsupported database types: " + dbType.toUpperCase(Locale.ENGLISH) + "\nThe currently supported database type is: " + allSupportedSqlGeneratorEngine.keySet());
-    } else {
+    }
+    else {
       Class<?> cls;
       try {
         cls = Objects.isNull(clsToUse) ? Class.forName(sqlGeneratorEngineStr) : clsToUse.loadClass(sqlGeneratorEngineStr);
-      } catch (ClassNotFoundException e) {
+      }
+      catch (ClassNotFoundException e) {
         throw new IllegalStateException("Can not found class: " + sqlGeneratorEngineStr);
       }
       if (!SqlGeneratorEngine.class.isAssignableFrom(cls)) {
         throw new IllegalStateException("Only support SqlGeneratorEngine's subclass");
-      } else {
+      }
+      else {
         sqlGeneratorEngineInstance = ReflectionUtils.instantiateClass((Class<? extends SqlGeneratorEngine>) cls, args, CONSTRUCTOR_ARGS_TYPE);
       }
     }

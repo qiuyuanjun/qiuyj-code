@@ -46,12 +46,7 @@
         <version>3.0.2</version>
         <configuration>
           <archive>
-            <addMavenDescriptor>true</addMavenDescriptor>
-            <index>true</index>
-            <manifest>
-              <addDefaultSpecificationEntries>true</addDefaultSpecificationEntries>
-              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-            </manifest>
+            <addMavenDescriptor>false</addMavenDescriptor>
           </archive>
         </configuration>
       </plugin>
