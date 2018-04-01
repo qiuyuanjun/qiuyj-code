@@ -184,8 +184,8 @@ public abstract class ReflectionUtils {
 
   /**
    * 通过默认构造函数实例化给定的类全名
-   * @param className 要实例化的类全名
    * @param <T> 类类型
+   * @param className 要实例化的类全名
    * @return 实例化的对象
    */
   public static<T> T instantiateClass(String className) {

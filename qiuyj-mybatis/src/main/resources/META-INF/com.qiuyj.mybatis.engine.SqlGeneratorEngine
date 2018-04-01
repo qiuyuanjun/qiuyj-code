@@ -1,0 +1,2 @@
+MYSQL=com.qiuyj.mybatis.engine.MySQLSqlGeneratorEngine
+ORACLE=com.qiuyj.mybatis.engine.OracleSqlGeneratorEngine

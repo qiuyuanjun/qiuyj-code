@@ -39,13 +39,13 @@ public final class SqlGeneratorConfig {
    */
   private static final String CONDITION_CHECKERS_KEY = "onditionCheckers";
 
-  private Database databaseType;  // 默认mysql数据库
+  private String databaseType;  // 默认mysql数据库
 
   private Class<? extends Mapper> baseMapperClass;
 
   private final CheckerChain chain = new CheckerChain();  // 检查器链
 
-  private SqlProvider baseSqlProvider; // sql提供类
+  private Object baseSqlProvider; // sql提供类
 
   /**
    * mapper类扫描路径
@@ -77,17 +77,11 @@ public final class SqlGeneratorConfig {
    */
   private static void parseDatabaseType(SqlGeneratorConfig config, Properties prop) {
     String db = prop.getProperty(DATABASE_TYPE_KEY);
-    if (StringUtils.isNotBlank(db)) {
-      try {
-        config.databaseType = Database.valueOf(db.toUpperCase(Locale.ENGLISH));
-      }
-      catch (IllegalArgumentException e) {
-        throw new IllegalArgumentException("Unsupported database type: " + db);
-      }
+    if (StringUtils.isBlank(db)) {
+      // 默认是mysql
+      db = "MYSQL";
     }
-    else {
-      config.databaseType = Database.MYSQL;
-    }
+    config.databaseType = db;
   }
 
   /**
@@ -138,12 +132,12 @@ public final class SqlGeneratorConfig {
       config.baseSqlProvider = ReflectionUtils.instantiateClass(
           (Class<SqlProvider>) ClassUtils.resolveClassName(sqlProviderStr, SqlGeneratorConfig.class.getClassLoader()),
           new Object[] {config.databaseType},
-          new Class<?>[] {Database.class}
+          new Class<?>[] {String.class}
       );
     }
   }
 
-  public Database getDatabaseType() {
+  public String getDatabaseType() {
     return databaseType;
   }
 
@@ -155,7 +149,7 @@ public final class SqlGeneratorConfig {
     return chain;
   }
 
-  public SqlProvider getBaseSqlProvider() {
+  public Object getBaseSqlProvider() {
     return baseSqlProvider;
   }
 

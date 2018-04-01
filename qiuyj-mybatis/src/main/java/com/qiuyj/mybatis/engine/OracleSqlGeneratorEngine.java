@@ -17,7 +17,7 @@ import org.apache.ibatis.reflection.MetaObject;
 public class OracleSqlGeneratorEngine extends AbstractSqlGeneratorEngine {
   private final SequenceDialect oracleSequenceDialect;
 
-  protected OracleSqlGeneratorEngine(CheckerChain chain, SqlProvider sqlProvider, MapperMethodResolver resolver) {
+  public OracleSqlGeneratorEngine(CheckerChain chain, SqlProvider sqlProvider, MapperMethodResolver resolver) {
     super(chain, sqlProvider, resolver);
     oracleSequenceDialect = new OracleSequenceDialect();
   }

@@ -1,7 +1,5 @@
 package com.qiuyj.mybatis.engine;
 
-import com.qiuyj.mybatis.MapperMethodResolver;
-import com.qiuyj.mybatis.config.SqlGeneratorConfig;
 import com.qiuyj.mybatis.mapper.Mapper;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.session.Configuration;
@@ -13,16 +11,6 @@ import java.lang.reflect.Method;
  * @since 2017/11/15
  */
 public interface SqlGeneratorEngine {
-
-  static SqlGeneratorEngine determineSqlGenerator(SqlGeneratorConfig config, MapperMethodResolver resolver) {
-    switch (config.getDatabaseType()) {
-      case ORACLE:
-        return new OracleSqlGeneratorEngine(config.getCheckerChain(), config.getBaseSqlProvider(), resolver);
-      case MYSQL:
-      default:
-        return new MySQLSqlGeneratorEngine(config.getCheckerChain(), config.getBaseSqlProvider(), resolver);
-    }
-  }
 
   /**
    * 生成对应的sql

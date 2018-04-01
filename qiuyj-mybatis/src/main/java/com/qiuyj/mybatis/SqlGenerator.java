@@ -5,6 +5,7 @@ import com.qiuyj.commons.StringUtils;
 import com.qiuyj.mybatis.config.SqlGeneratorConfig;
 import com.qiuyj.mybatis.engine.AbstractSqlGeneratorEngine;
 import com.qiuyj.mybatis.engine.SqlGeneratorEngine;
+import com.qiuyj.mybatis.engine.SqlGeneratorEngineLoader;
 import com.qiuyj.mybatis.mapper.Mapper;
 import org.apache.ibatis.builder.annotation.ProviderSqlSource;
 import org.apache.ibatis.executor.Executor;
@@ -28,8 +29,20 @@ import java.util.Set;
     @Signature(type = Executor.class, method = "query", args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class})
 })
 public class SqlGenerator implements Interceptor {
+
+  /**
+   * mapper全局配置
+   */
   private SqlGeneratorConfig config;
+
+  /**
+   * mapper方法解析器
+   */
   private MapperMethodResolver resolver;
+
+  /**
+   * sql生成引擎
+   */
   private SqlGeneratorEngine engine;
 
   @Override
@@ -74,7 +87,10 @@ public class SqlGenerator implements Interceptor {
     // 得到所有的mapper方法名
     resolver = new MapperMethodResolver(config.getBaseMapperClass());
     // 得到对应的Sql生成引擎
-    engine = SqlGeneratorEngine.determineSqlGenerator(config, resolver);
+    engine = SqlGeneratorEngineLoader.load(config.getDatabaseType(),
+                                           config.getCheckerChain(),
+                                           config.getBaseSqlProvider(),
+                                           resolver);
     // 如果设置了entityPackageScanPath，那么解析所有的实体类，得到对应的SqlInfo
     if (StringUtils.isNotBlank(config.getMapperPackageScanPath())) {
       String[] paths = StringUtils.delimiteToStringArray(config.getMapperPackageScanPath(), ", \t:;");

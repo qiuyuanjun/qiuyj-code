@@ -13,7 +13,7 @@ import org.apache.ibatis.reflection.MetaObject;
  */
 public class MySQLSqlGeneratorEngine extends AbstractSqlGeneratorEngine {
 
-  protected MySQLSqlGeneratorEngine(CheckerChain chain, SqlProvider sqlProvider, MapperMethodResolver resolver) {
+  public MySQLSqlGeneratorEngine(CheckerChain chain, SqlProvider sqlProvider, MapperMethodResolver resolver) {
     super(chain, sqlProvider, resolver);
   }
 

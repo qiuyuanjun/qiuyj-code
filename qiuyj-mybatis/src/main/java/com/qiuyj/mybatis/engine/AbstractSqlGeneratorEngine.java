@@ -35,7 +35,7 @@ public abstract class AbstractSqlGeneratorEngine implements SqlGeneratorEngine {
 
   private final MapperMethodResolver resolver;
 
-  protected AbstractSqlGeneratorEngine(CheckerChain chain, SqlProvider sqlProvider, MapperMethodResolver resolver) {
+  public AbstractSqlGeneratorEngine(CheckerChain chain, SqlProvider sqlProvider, MapperMethodResolver resolver) {
     this.chain = chain;
     baseSqlProvider = sqlProvider;
     this.resolver = resolver;

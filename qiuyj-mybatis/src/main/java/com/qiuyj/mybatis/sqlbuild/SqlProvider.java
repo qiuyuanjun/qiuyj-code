@@ -7,7 +7,6 @@ import com.qiuyj.mybatis.sqlbuild.customer.BatchDeleteParameterObjectResolver;
 import com.qiuyj.mybatis.sqlbuild.dialect.MySqlDialect;
 import com.qiuyj.mybatis.sqlbuild.dialect.OracleDialect;
 import com.qiuyj.mybatis.sqlbuild.dialect.SqlDialect;
-import com.qiuyj.mybatis.config.Database;
 import org.apache.ibatis.jdbc.SQL;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.mapping.ParameterMapping;
@@ -18,11 +17,13 @@ import org.apache.ibatis.type.TypeHandlerRegistry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * @author qiuyj
  * @since 2017/11/21
  */
+@Deprecated
 public class SqlProvider {
   public static final String PREPARE_FLAG = "?";
   private final SqlDialect sqlDialect;
@@ -31,12 +32,12 @@ public class SqlProvider {
    * 这里传入一个Database的参数，那么可以通过这个Database判断当前数据库的类型
    * 同时如果用户继承了SqlProvider实现自己的SqlProvider，那么该参数也可以给用户判断数据库
    */
-  public SqlProvider(Database databaseType) {
-    switch (databaseType) {
-      case ORACLE:
+  public SqlProvider(String dbType) {
+    switch (dbType.toUpperCase(Locale.ENGLISH)) {
+      case "ORACLE":
         sqlDialect = new OracleDialect();
         break;
-      case MYSQL:
+      case "MYSQL":
       default:
         sqlDialect = new MySqlDialect();
     }
