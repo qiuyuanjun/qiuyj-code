@@ -33,10 +33,6 @@ public final class SqlGeneratorEngineLoader {
       if (Objects.isNull(sqlGeneratorEngineInstance)) {
         String clsStr = allSupportedSqlGeneratorEngine.get(dbType.toUpperCase(Locale.ENGLISH));
         initSqlGeneratorEngineInstance0(clsStr, dbType, clsToUse, args);
-        return sqlGeneratorEngineInstance;
-      }
-      else {
-        return sqlGeneratorEngineInstance;
       }
     }
     else {
@@ -48,8 +44,8 @@ public final class SqlGeneratorEngineLoader {
         throw new IllegalStateException("Error while parsing file: " + LOAD_FILE_NAME + "\nCaused by: " + e, e);
       }
       initSqlGeneratorEngine(prop, dbType, clsToUse, args);
-      return sqlGeneratorEngineInstance;
     }
+    return sqlGeneratorEngineInstance;
   }
 
   public static SqlGeneratorEngine load(String dbType, Object... args) {
