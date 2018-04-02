@@ -4,10 +4,10 @@ import com.qiuyj.commons.ReflectionUtils;
 import com.qiuyj.mybatis.MapperMethodResolver;
 import com.qiuyj.mybatis.PropertyColumnMapping;
 import com.qiuyj.mybatis.SqlInfo;
-import com.qiuyj.mybatis.sqlbuild.ReturnValueWrapper;
-import com.qiuyj.mybatis.sqlbuild.SqlProvider;
 import com.qiuyj.mybatis.checker.CheckerChain;
 import com.qiuyj.mybatis.mapper.Mapper;
+import com.qiuyj.mybatis.sqlbuild.ReturnValueWrapper;
+import com.qiuyj.mybatis.sqlbuild.SqlProvider;
 import org.apache.ibatis.builder.annotation.ProviderSqlSource;
 import org.apache.ibatis.mapping.*;
 import org.apache.ibatis.reflection.MetaObject;
@@ -29,16 +29,13 @@ public abstract class AbstractSqlGeneratorEngine implements SqlGeneratorEngine {
   private final Object resultMapWriteLock = new Object();
   private final Map<Class<? extends Mapper>, ResultMap> resultMaps;
 
-  private final CheckerChain chain;
+  private CheckerChain chain;
 
-  private final SqlProvider baseSqlProvider;
+  private Object baseSqlProvider;
 
-  private final MapperMethodResolver resolver;
+  private MapperMethodResolver resolver;
 
-  public AbstractSqlGeneratorEngine(CheckerChain chain, SqlProvider sqlProvider, MapperMethodResolver resolver) {
-    this.chain = chain;
-    baseSqlProvider = sqlProvider;
-    this.resolver = resolver;
+  public AbstractSqlGeneratorEngine() {
     resultMaps = new HashMap<>();
   }
 
@@ -215,5 +212,11 @@ public abstract class AbstractSqlGeneratorEngine implements SqlGeneratorEngine {
 //        }
       }
     }
+  }
+
+  public void initInternal(CheckerChain chain, Object sqlProvider, MapperMethodResolver resolver) {
+    this.chain = chain;
+    this.baseSqlProvider = sqlProvider;
+    this.resolver = resolver;
   }
 }

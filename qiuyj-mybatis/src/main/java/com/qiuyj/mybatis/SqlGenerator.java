@@ -2,10 +2,10 @@ package com.qiuyj.mybatis;
 
 import com.qiuyj.commons.ClassUtils;
 import com.qiuyj.commons.StringUtils;
+import com.qiuyj.mybatis.config.MetaInfExtensionConfigLoader;
 import com.qiuyj.mybatis.config.SqlGeneratorConfig;
 import com.qiuyj.mybatis.engine.AbstractSqlGeneratorEngine;
 import com.qiuyj.mybatis.engine.SqlGeneratorEngine;
-import com.qiuyj.mybatis.engine.SqlGeneratorEngineLoader;
 import com.qiuyj.mybatis.mapper.Mapper;
 import org.apache.ibatis.builder.annotation.ProviderSqlSource;
 import org.apache.ibatis.executor.Executor;
@@ -87,10 +87,9 @@ public class SqlGenerator implements Interceptor {
     // 得到所有的mapper方法名
     resolver = new MapperMethodResolver(config.getBaseMapperClass());
     // 得到对应的Sql生成引擎
-    engine = SqlGeneratorEngineLoader.load(config.getDatabaseType(),
-                                           config.getCheckerChain(),
-                                           config.getBaseSqlProvider(),
-                                           resolver);
+    engine = MetaInfExtensionConfigLoader.loadExtensionConfig(SqlGeneratorEngine.class).getActivatedInstance(config.getDatabaseType(),
+        instance ->
+            ((AbstractSqlGeneratorEngine) instance).initInternal(config.getCheckerChain(), config.getBaseSqlProvider(), resolver));
     // 如果设置了entityPackageScanPath，那么解析所有的实体类，得到对应的SqlInfo
     if (StringUtils.isNotBlank(config.getMapperPackageScanPath())) {
       String[] paths = StringUtils.delimiteToStringArray(config.getMapperPackageScanPath(), ", \t:;");

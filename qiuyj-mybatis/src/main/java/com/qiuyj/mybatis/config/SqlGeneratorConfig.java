@@ -41,7 +41,7 @@ public final class SqlGeneratorConfig {
 
   private String databaseType;  // 默认mysql数据库
 
-  private Class<? extends Mapper> baseMapperClass;
+  private Class<? extends Mapper> baseMapperClass; // 默认com.qiuyj.mybatis.mapper.Mapper
 
   private final CheckerChain chain = new CheckerChain();  // 检查器链
 
@@ -92,8 +92,13 @@ public final class SqlGeneratorConfig {
     String baseMapperClassName = prop.getProperty(BASE_MAPPER_CLASS_NAME_KEY);
     if (StringUtils.isNotBlank(baseMapperClassName)
         && !"com.qiuyj.mybatis.mapper.Mapper".equals(baseMapperClassName)) {
-      config.baseMapperClass =
-          (Class<? extends Mapper>) ClassUtils.resolveClassName(baseMapperClassName, Thread.currentThread().getContextClassLoader());
+      Class<?> cls = ClassUtils.resolveClassName(baseMapperClassName, Thread.currentThread().getContextClassLoader());
+      if (!Mapper.class.isAssignableFrom(cls)) {
+        throw new IllegalStateException("Only support Mapper's subclass");
+      }
+      else {
+        config.baseMapperClass = (Class<? extends Mapper>) cls;
+      }
     }
     else {
       config.baseMapperClass = Mapper.class;

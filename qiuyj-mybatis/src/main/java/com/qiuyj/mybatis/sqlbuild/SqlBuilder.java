@@ -11,7 +11,7 @@ import com.qiuyj.mybatis.SqlInfo;
  * @author qiuyj
  * @since 2018/4/1
  */
-public interface MapperSqlBuilder {
+public interface SqlBuilder {
 
   Object insert(SqlInfo sqlInfo, Object args);
 

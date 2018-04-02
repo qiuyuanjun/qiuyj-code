@@ -11,7 +11,7 @@ import static com.qiuyj.mybatis.sqlbuild.SqlProvider.PREPARE_FLAG;
  * @author qiuyj
  * @since 2018/4/1
  */
-public class DefaultMapperSqlBuilder implements MapperSqlBuilder {
+public abstract class AbstractCommonSqlBuilder implements SqlBuilder {
 
   @Override
   public Object insert(SqlInfo sqlInfo, Object args) {
@@ -51,11 +51,6 @@ public class DefaultMapperSqlBuilder implements MapperSqlBuilder {
 
   @Override
   public Object delete(SqlInfo sqlInfo, Object args) {
-    return null;
-  }
-
-  @Override
-  public Object batchInsert(SqlInfo sqlInfo, Object args) {
     return null;
   }
 
