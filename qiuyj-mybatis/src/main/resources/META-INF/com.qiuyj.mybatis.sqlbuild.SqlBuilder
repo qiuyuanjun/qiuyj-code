@@ -1,2 +1,0 @@
-MYSQL=com.qiuyj.mybatis.sqlbuild.MysqlSqlBuilder
-ORACLE=com.qiuyj.mybatis.sqlbuild.OracleSqlBuilder
