@@ -3,7 +3,7 @@
   <parent>
     <artifactId>qiuyj-code</artifactId>
     <groupId>com.qiuyj</groupId>
-    <version>1.0.0</version>
+    <version>1.1.1</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
@@ -14,7 +14,7 @@
     <dependency>
       <groupId>com.qiuyj</groupId>
       <artifactId>qiuyj-commons</artifactId>
-      <version>1.0.0</version>
+      <version>1.1.1</version>
     </dependency>
   </dependencies>
 </project>
