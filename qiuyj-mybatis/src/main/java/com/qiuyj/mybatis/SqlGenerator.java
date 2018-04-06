@@ -7,6 +7,7 @@ import com.qiuyj.mybatis.config.SqlGeneratorConfig;
 import com.qiuyj.mybatis.engine.AbstractSqlGeneratorEngine;
 import com.qiuyj.mybatis.engine.SqlGeneratorEngine;
 import com.qiuyj.mybatis.mapper.Mapper;
+import com.qiuyj.mybatis.sqlbuild.SqlBuilder;
 import org.apache.ibatis.builder.annotation.ProviderSqlSource;
 import org.apache.ibatis.executor.Executor;
 import org.apache.ibatis.io.ResolverUtil;
@@ -31,11 +32,6 @@ import java.util.Set;
 public class SqlGenerator implements Interceptor {
 
   /**
-   * mapper全局配置
-   */
-  private SqlGeneratorConfig config;
-
-  /**
    * mapper方法解析器
    */
   private MapperMethodResolver resolver;
@@ -58,8 +54,8 @@ public class SqlGenerator implements Interceptor {
     if (ms.getSqlSource() instanceof ProviderSqlSource
           || ms.getSqlSource() instanceof MapperSqlSource) {
       int lastDot = ms.getId().lastIndexOf(".");
-      Class<? extends Mapper<?, ?>> mapperClass//
-          = (Class<? extends Mapper<?, ?>>) ClassUtils.resolveClassName(ms.getId().substring(0, lastDot), Thread.currentThread().getContextClassLoader());
+      Class<? extends Mapper<?, ?>> mapperClass =
+          (Class<? extends Mapper<?, ?>>) Class.forName(ms.getId().substring(0, lastDot));
       String methodStr = ms.getId().substring(lastDot + 1);
       Object parameterObject = invocation.getArgs()[1];
       // 得到对应的mapper方法
@@ -83,13 +79,19 @@ public class SqlGenerator implements Interceptor {
   @Override
   public void setProperties(Properties properties) {
     // 初始化配置信息
-    config = SqlGeneratorConfig.init(properties);
+    SqlGeneratorConfig config = SqlGeneratorConfig.init(properties);
+
     // 得到所有的mapper方法名
     resolver = new MapperMethodResolver(config.getBaseMapperClass());
+
+    // 得到对应的sql构造器
+    Object sqlBuilder = MetaInfExtensionConfigLoader.loadExtensionConfig(SqlBuilder.class).getActivatedInstance(config.getDatabaseType());
+
     // 得到对应的Sql生成引擎
     engine = MetaInfExtensionConfigLoader.loadExtensionConfig(SqlGeneratorEngine.class).getActivatedInstance(config.getDatabaseType(),
         instance ->
-            ((AbstractSqlGeneratorEngine) instance).initInternal(config.getCheckerChain(), config.getBaseSqlProvider(), resolver));
+            ((AbstractSqlGeneratorEngine) instance).initInternal(config.getCheckerChain(), sqlBuilder, resolver));
+
     // 如果设置了entityPackageScanPath，那么解析所有的实体类，得到对应的SqlInfo
     if (StringUtils.isNotBlank(config.getMapperPackageScanPath())) {
       String[] paths = StringUtils.delimiteToStringArray(config.getMapperPackageScanPath(), ", \t:;");

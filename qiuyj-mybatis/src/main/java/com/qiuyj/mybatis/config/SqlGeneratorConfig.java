@@ -1,16 +1,15 @@
 package com.qiuyj.mybatis.config;
 
-import com.qiuyj.commons.AnnotationUtils;
 import com.qiuyj.commons.ClassUtils;
 import com.qiuyj.commons.ReflectionUtils;
 import com.qiuyj.commons.StringUtils;
-import com.qiuyj.mybatis.SqlSourceProvider;
-import com.qiuyj.mybatis.sqlbuild.SqlProvider;
 import com.qiuyj.mybatis.checker.CheckerChain;
 import com.qiuyj.mybatis.checker.ConditionChecker;
 import com.qiuyj.mybatis.mapper.Mapper;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 /**
  * 解析通用mapper配置的工具类
@@ -45,8 +44,6 @@ public final class SqlGeneratorConfig {
 
   private final CheckerChain chain = new CheckerChain();  // 检查器链
 
-  private Object baseSqlProvider; // sql提供类
-
   /**
    * mapper类扫描路径
    */
@@ -63,7 +60,6 @@ public final class SqlGeneratorConfig {
     parseDatabaseType(config, prop);
     parseBaseMapperClass(config, prop);
     parseConditionCheckers(config, prop);
-    parseSqlProvider(config);
     parseEntityPackageScanPath(config, prop);
     return config;
   }
@@ -77,11 +73,8 @@ public final class SqlGeneratorConfig {
    */
   private static void parseDatabaseType(SqlGeneratorConfig config, Properties prop) {
     String db = prop.getProperty(DATABASE_TYPE_KEY);
-    if (StringUtils.isBlank(db)) {
-      // 默认是mysql
-      db = "MYSQL";
-    }
-    config.databaseType = db;
+    // 默认是mysql数据库
+    config.databaseType = StringUtils.isBlank(db) ? "MYSQL" : db;
   }
 
   /**
@@ -120,28 +113,6 @@ public final class SqlGeneratorConfig {
     }
   }
 
-  /**
-   * 解析sqlProvider
-   */
-  @SuppressWarnings("unchecked")
-  private static void parseSqlProvider(SqlGeneratorConfig config) {
-    SqlSourceProvider sqlProviderAnno = AnnotationUtils.findAnnotation(config.getBaseMapperClass(), SqlSourceProvider.class);
-    String sqlProviderStr = "";
-    if (Objects.nonNull(sqlProviderAnno)) {
-      sqlProviderStr = sqlProviderAnno.sqlSource();
-    }
-    if ("".equals(sqlProviderStr)) {
-      config.baseSqlProvider = new SqlProvider(config.databaseType);
-    }
-    else {
-      config.baseSqlProvider = ReflectionUtils.instantiateClass(
-          (Class<SqlProvider>) ClassUtils.resolveClassName(sqlProviderStr, SqlGeneratorConfig.class.getClassLoader()),
-          new Object[] {config.databaseType},
-          new Class<?>[] {String.class}
-      );
-    }
-  }
-
   public String getDatabaseType() {
     return databaseType;
   }
@@ -152,10 +123,6 @@ public final class SqlGeneratorConfig {
 
   public CheckerChain getCheckerChain() {
     return chain;
-  }
-
-  public Object getBaseSqlProvider() {
-    return baseSqlProvider;
   }
 
   public String getMapperPackageScanPath() {

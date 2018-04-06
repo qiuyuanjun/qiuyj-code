@@ -19,8 +19,11 @@ import java.util.stream.Collectors;
  * @since 2017/11/13
  */
 public class MapperMethodResolver {
+
   private final Class<? extends Mapper> baseMapperClass;
+
   private final Set<String> mapperMethodSignatures;
+
   private final Set<Method> exampleMapperMethods = Collections.newSetFromMap(new HashMap<>());
 
   MapperMethodResolver(Class<? extends Mapper> baseMapperClass) {

@@ -6,6 +6,7 @@ import org.apache.ibatis.io.ResolverUtil;
 import java.util.Objects;
 
 /**
+ * 判断一个接口是否是Mapper接口
  * @author qiuyj
  * @since 2018/3/29
  */

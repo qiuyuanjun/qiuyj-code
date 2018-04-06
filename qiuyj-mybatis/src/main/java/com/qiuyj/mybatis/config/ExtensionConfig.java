@@ -13,7 +13,7 @@ import java.util.*;
  */
 public class ExtensionConfig<T> {
 
-  private static Map<String, String> allSupportedExtensionNames;
+  private Map<String, String> allSupportedExtensionNames;
 
   private T activatedInstance;
 
@@ -33,10 +33,9 @@ public class ExtensionConfig<T> {
     if (Objects.nonNull(activatedInstance)) {
       return activatedInstance;
     }
-    boolean needInitialization = Objects.nonNull(initializer) && !initialized;
     if (Objects.nonNull(allSupportedExtensionNames)) {
       String clsStr = allSupportedExtensionNames.get(dbType.toUpperCase(Locale.ENGLISH));
-      initInstance(clsStr, needInitialization, initializer, dbType);
+      initInstance(clsStr, initializer, dbType);
     }
     else {
       String resourceLocation = MetaInfExtensionConfigLoader.META_INF_PREFIX + extensionConfigInterface.getName();
@@ -47,7 +46,7 @@ public class ExtensionConfig<T> {
         throw new IllegalStateException("Error while parsing file: " + resourceLocation + ".\nCaused by: " + e, e);
       }
       String clsStr = allSupportedExtensionNames.get(dbType.toUpperCase(Locale.ENGLISH));
-      initInstance(clsStr, needInitialization, initializer, dbType);
+      initInstance(clsStr, initializer, dbType);
     }
     return activatedInstance;
   }
@@ -57,7 +56,7 @@ public class ExtensionConfig<T> {
   }
 
   @SuppressWarnings("unchecked")
-  private void initInstance(String clsStr, boolean needInitialization, ExtensionConfigInitializer<T> initializer, String dbType) {
+  private void initInstance(String clsStr, ExtensionConfigInitializer<T> initializer, String dbType) {
     if (Objects.isNull(clsStr)) {
       throw new IllegalStateException("Unsupported database type: " + dbType.toUpperCase(Locale.ENGLISH) + "\nThe currently supported database type is: " + allSupportedExtensionNames.keySet());
     }
@@ -71,14 +70,14 @@ public class ExtensionConfig<T> {
         throw new IllegalStateException("Can not find extension config interface: " + extensionConfigInterface + "'s subclass: " + clsStr);
       }
       activatedInstance = ReflectionUtils.instantiateClass(cls);
-      if (needInitialization) {
+      if (Objects.nonNull(initializer) && !initialized) {
         initializer.initExtensionConfig(activatedInstance);
         initialized = true;
       }
     }
   }
 
-  private static void parse(String resourceLocation, ClassLoader clsToUse) throws IOException {
+  private void parse(String resourceLocation, ClassLoader clsToUse) throws IOException {
     Properties prop = new Properties();
     Enumeration<URL> resourceUrls = Objects.isNull(clsToUse) ? ClassLoader.getSystemResources(resourceLocation) : clsToUse.getResources(resourceLocation);
     while (resourceUrls.hasMoreElements()) {

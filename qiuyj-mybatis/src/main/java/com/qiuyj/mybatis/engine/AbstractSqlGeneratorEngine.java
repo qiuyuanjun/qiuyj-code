@@ -2,15 +2,19 @@ package com.qiuyj.mybatis.engine;
 
 import com.qiuyj.commons.ReflectionUtils;
 import com.qiuyj.mybatis.MapperMethodResolver;
+import com.qiuyj.mybatis.MapperSqlSource;
 import com.qiuyj.mybatis.PropertyColumnMapping;
 import com.qiuyj.mybatis.SqlInfo;
 import com.qiuyj.mybatis.checker.CheckerChain;
 import com.qiuyj.mybatis.mapper.Mapper;
-import com.qiuyj.mybatis.sqlbuild.ReturnValueWrapper;
-import com.qiuyj.mybatis.sqlbuild.SqlProvider;
+import org.apache.ibatis.builder.StaticSqlSource;
 import org.apache.ibatis.builder.annotation.ProviderSqlSource;
 import org.apache.ibatis.mapping.*;
 import org.apache.ibatis.reflection.MetaObject;
+import org.apache.ibatis.scripting.xmltags.DynamicContext;
+import org.apache.ibatis.scripting.xmltags.DynamicSqlSource;
+import org.apache.ibatis.scripting.xmltags.SqlNode;
+import org.apache.ibatis.scripting.xmltags.StaticTextSqlNode;
 import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.defaults.DefaultSqlSession;
 
@@ -31,7 +35,14 @@ public abstract class AbstractSqlGeneratorEngine implements SqlGeneratorEngine {
 
   private CheckerChain chain;
 
-  private Object baseSqlProvider;
+  /**
+   * 这里之所以不写SqlBuilder而写Object，主要是为了考虑到用户自定义的SqlBuilder方法
+   * 可能已经不是SqlBuilder类型，当然这里写SqlBuilder也没有问题，但是当前运行的mapper方法
+   * 可能不是SqlBuilder接口定义的，所以为了更加严谨，这里采用Object类型接收，虽然写SqlBuilder方法
+   * 也可以通过反射获取到那个mapper的方法，并且这个方法不是SqlBuilder接口定义的（因为实际运行的类里面有这个方法）
+   * 但是很不习惯也很不友好
+   */
+  private Object sqlBuilder;
 
   private MapperMethodResolver resolver;
 
@@ -66,7 +77,7 @@ public abstract class AbstractSqlGeneratorEngine implements SqlGeneratorEngine {
     // 这里判断下，sqlinfo里面的Configuration是否为null，如果为null，那么需要设置
     if (Objects.isNull(currentSqlInfo.getConfiguration())) {
       currentSqlInfo.setConfiguration(configuration);
-      // 此时需要设置sqlInfo里面的
+      // 此时需要设置sqlInfo里面的属性的typehandler
       if (Objects.isNull(currentSqlInfo.getPrimaryKey().getTypeHandler())) {
         currentSqlInfo.getPrimaryKey().setTypeHandler(configuration.getTypeHandlerRegistry().getTypeHandler(currentSqlInfo.getPrimaryKey().getTargetClass()));
       }
@@ -130,20 +141,23 @@ public abstract class AbstractSqlGeneratorEngine implements SqlGeneratorEngine {
     // 得到当前实体类的映射数据库的信息
     SqlInfo sqlInfo = getSqlInfo(mapperClass);
     // 得到返回值
-    ReturnValueWrapper returnValue = getReturnValue(sqlInfo, ms, mapperMethod, args);
+    Object returnValue = getReturnValue(sqlInfo, ms, mapperMethod, args);
     if (Objects.nonNull(returnValue)) {
-      // 处理自定义生成ParameterMapping，如果没有自定义，那么该方法犹如一个空方法
-      returnValue.customizedResolveParameterObject(sqlInfo, args, ms.getConfiguration());
+      // 根据返回值得到对应的SqlSource
+      SqlSource sqlSource = generateSqlSource(sqlInfo, returnValue, args);
       MetaObject msMetaObject = ms.getConfiguration().newMetaObject(ms);
-      // 重新设置sqlSource
-      msMetaObject.setValue("sqlSource", returnValue.generateSqlSource(ms.getConfiguration()));
+      // 重新设置sqlSource，这里全部使用MapperSqlSource，方便后面判断
+      msMetaObject.setValue("sqlSource", new MapperSqlSource(sqlSource));
       // 如果类型是Select的，那么还需要设置resultMap
       if (sqlInfo.hasEnumField() && ms.getSqlCommandType() == SqlCommandType.SELECT) {
         msMetaObject.setValue("resultMaps", getResultMap(mapperClass));
       }
+      // 如果全局设置了useGeneratedKeys，那么无需设置主键查询
       // 如果类型是Insert，那么有可能需要设置KeyGenerator
       // 当然，前提是当前的主键标注了@Sequence注解
-      else if (Objects.nonNull(sqlInfo.getSequenceName()) && ms.getSqlCommandType() == SqlCommandType.INSERT) {
+      else if (!ms.getConfiguration().isUseGeneratedKeys()
+          && Objects.nonNull(sqlInfo.getSequenceName())
+          && ms.getSqlCommandType() == SqlCommandType.INSERT) {
         generateSequenceKey(ms, msMetaObject, sqlInfo);
       }
     }
@@ -155,29 +169,69 @@ public abstract class AbstractSqlGeneratorEngine implements SqlGeneratorEngine {
   protected abstract void generateSequenceKey(MappedStatement ms, MetaObject msMetaObject, SqlInfo sqlInfo);
 
   /**
-   * 根据不同的情况得到对应的SqlNode
+   * 得到返回值，返回值有如下可能的情况：
+   * SqlSource，直接构建对应的SqlSource
+   * String，对应的sql字符串（如果是这种情况，所有需要传参数的均使用？做占位符）
+   *        需要特别注意的是，如果返回值是String，那么应该是以主键作为参数的时候的返回值
+   * SqlNode，对应的SqlNode（如果返回值是StaticTextSqlNode，那么也必须是主键作为参数的返回值）
    */
-  private ReturnValueWrapper getReturnValue(SqlInfo sqlInfo, MappedStatement ms, Method mapperMethod, Object args) {
-    ReturnValueWrapper returnValue = null;
-    if (resolver.isExampleMethod(mapperMethod)) {
-      // 这里需要解析参数
-      Method reflectionMethod = ReflectionUtils.getDeclaredMethod(baseSqlProvider.getClass(), mapperMethod.getName(), ms.getClass(), SqlInfo.class, Object.class);
-      returnValue = (ReturnValueWrapper) ReflectionUtils.invokeMethod(baseSqlProvider, reflectionMethod, ms, sqlInfo, args);
-    }
-    else {
-      // 这里需要注意，有些mapper方法只需要生成一次即可，不用每次都生成
-      // 需要每次都生成sql的mapper方法是那些参数带了@Example注解的方法
-      // 所以这里需要分开讨论，判断mapper方法是否是第一次调用
-      // 如果参数是数组或者集合类型，那么依然还需要重新生成sqlSource
+  private Object getReturnValue(SqlInfo sqlInfo, MappedStatement ms, Method mapperMethod, Object args) {
+    Object returnValue = null;
+    // 这里需要注意，有些mapper方法只需要生成一次即可，不用每次都生成
+    // 需要每次都生成sql的mapper方法是那些参数带了@Example注解的方法
+    // 所以这里需要分开讨论，判断mapper方法是否是第一次调用
+    // 如果参数是数组或者集合类型，那么依然还需要重新生成sqlSource
 //      if (Mapper.DEFAULT_MAPPER_SQL.equals(ms.getSqlSource().getBoundSql(args).getSql())) {
-      // 如果还是ProviderSqlSource，那么需要重新生成Sql，这么判断比上面那种方式更好，效率也更快
-      if (ms.getSqlSource().getClass() == ProviderSqlSource.class || parameterObjectIsArrayOrCollection(args)) {
-        // 这里需要重新生成sqlNode
-        Method reflectionMethod = ReflectionUtils.getDeclaredMethod(baseSqlProvider.getClass(), mapperMethod.getName(), ms.getClass(), SqlInfo.class);
-        returnValue = (ReturnValueWrapper) ReflectionUtils.invokeMethod(baseSqlProvider, reflectionMethod, ms, sqlInfo);
-      }
+    // 如果还是ProviderSqlSource，那么需要重新生成Sql，这么判断比上面那种方式更好，效率也更快
+    if (ms.getSqlSource().getClass() == ProviderSqlSource.class
+            || parameterObjectIsArrayOrCollection(args)
+            || resolver.isExampleMethod(mapperMethod)) {
+      // 这里需要重新生成sqlNode
+      Method reflectionMethod = ReflectionUtils.getDeclaredMethod(sqlBuilder.getClass(), mapperMethod.getName(), SqlInfo.class, Object.class);
+      returnValue = ReflectionUtils.invokeMethod(sqlBuilder, reflectionMethod, sqlInfo, args);
     }
     return returnValue;
+  }
+
+  /**
+   * 生成mybatis实际运行时候的sqlSource
+   * @param returnValue 返回值
+   * @param args 参数
+   * @return 对应的SqlSource
+   */
+  private SqlSource generateSqlSource(SqlInfo sqlInfo, Object returnValue, Object args) {
+    if (returnValue instanceof SqlSource) {
+      return (SqlSource) returnValue;
+    }
+    else if (returnValue instanceof String) {
+      return new StaticSqlSource(sqlInfo.getConfiguration(), (String) returnValue, getPrimaryKeyParameterMappings(sqlInfo));
+    }
+    else if (returnValue instanceof SqlNode) {
+      SqlSource ss;
+      // 进一步判断如果是StaticTextSqlNode，那么另外做处理
+      if (returnValue instanceof StaticTextSqlNode) {
+        DynamicContext context = new DynamicContext(sqlInfo.getConfiguration(), args);
+        ((StaticTextSqlNode) returnValue).apply(context);
+        ss = new StaticSqlSource(sqlInfo.getConfiguration(), context.getSql(), getPrimaryKeyParameterMappings(sqlInfo));
+      }
+      else {
+        ss = new DynamicSqlSource(sqlInfo.getConfiguration(), (SqlNode) returnValue);
+      }
+      return ss;
+    }
+    else {
+      throw new IllegalStateException("Unsupported return type: " + returnValue.getClass().getName() + ". [SqlSource, String, SqlNode] are support.");
+    }
+  }
+
+  private static List<ParameterMapping> getPrimaryKeyParameterMappings(SqlInfo sqlInfo) {
+    return Collections.singletonList(
+        new ParameterMapping.Builder(
+            sqlInfo.getConfiguration(),
+            sqlInfo.getPrimaryKey().getJavaClassPropertyName(),
+            sqlInfo.getPrimaryKey().getTypeHandler()
+        ).build()
+    );
   }
 
   private boolean parameterObjectIsArrayOrCollection(Object paramObj) {
@@ -214,9 +268,12 @@ public abstract class AbstractSqlGeneratorEngine implements SqlGeneratorEngine {
     }
   }
 
-  public void initInternal(CheckerChain chain, Object sqlProvider, MapperMethodResolver resolver) {
+  /**
+   * 内部初始化方法，该方法不用改被用户调用
+   */
+  public void initInternal(CheckerChain chain, Object sqlBuilder, MapperMethodResolver resolver) {
     this.chain = chain;
-    this.baseSqlProvider = sqlProvider;
+    this.sqlBuilder = sqlBuilder;
     this.resolver = resolver;
   }
 }
