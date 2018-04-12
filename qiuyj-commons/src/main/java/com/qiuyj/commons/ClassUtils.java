@@ -132,7 +132,7 @@ public abstract class ClassUtils {
    */
   public static Field[] getAllDeclaredFields(Class<?> cls) {
     List<Field> fields = getAllDeclaredFieldsAsList(cls);
-    return fields.toArray(new Field[fields.size()]);
+    return fields.toArray(new Field[0]);
   }
 
   /**
@@ -160,7 +160,7 @@ public abstract class ClassUtils {
    */
   public static Class<?>[] getAllInterfacesIncludingAncestorInterfaces(Class<?> cls) {
     Set<Class<?>> interfaces = getAllInterfacesIncludingAncestorInterfacesAsSet(cls);
-    return interfaces.toArray(new Class<?>[interfaces.size()]);
+    return interfaces.toArray(new Class<?>[0]);
   }
 
   /**
@@ -199,7 +199,7 @@ public abstract class ClassUtils {
    */
   public static Class<?>[] getAllInterfaces(Class<?> cls) {
     Set<Class<?>> interfaces = getAllInterfacesAsSet(cls);
-    return interfaces.toArray(new Class<?>[interfaces.size()]);
+    return interfaces.toArray(new Class<?>[0]);
   }
 
   /**

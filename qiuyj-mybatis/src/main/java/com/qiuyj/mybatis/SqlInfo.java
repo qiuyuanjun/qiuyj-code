@@ -94,7 +94,7 @@ public final class SqlInfo {
         .map(PropertyColumnMapping::getDatabaseColumnName)
         .collect(Collectors.toList());
     list.add(0, primaryKey.getDatabaseColumnName());
-    allColumnsWithoutAlias = list.toArray(new String[list.size()]);
+    allColumnsWithoutAlias = list.toArray(new String[0]);
   }
 
   private void AllColumnsWithAlias() {
@@ -102,7 +102,7 @@ public final class SqlInfo {
         .map(PropertyColumnMapping::toString)
         .collect(Collectors.toList());
     list.add(0, primaryKey.toString());
-    allColumnsWithAlias = list.toArray(new String[list.size()]);
+    allColumnsWithAlias = list.toArray(new String[0]);
   }
 
   /**

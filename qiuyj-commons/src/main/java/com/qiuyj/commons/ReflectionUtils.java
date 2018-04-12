@@ -20,7 +20,7 @@ public abstract class ReflectionUtils {
    */
   public static Class<?>[] getParameterizedTypesAsClass(Class<?> cls) {
     Set<Class<?>> sets = getParameterizedTypesAsClassAsSet(cls);
-    return sets.toArray(new Class<?>[sets.size()]);
+    return sets.toArray(new Class<?>[0]);
   }
 
   /**
