@@ -34,8 +34,7 @@ public class ExtensionConfig<T> {
       return activatedInstance;
     }
     if (Objects.nonNull(allSupportedExtensionNames)) {
-      String clsStr = allSupportedExtensionNames.get(dbType.toUpperCase(Locale.ENGLISH));
-      initInstance(clsStr, initializer, dbType);
+      initInstance(initializer, dbType);
     }
     else {
       String resourceLocation = MetaInfExtensionConfigLoader.META_INF_PREFIX + extensionConfigInterface.getName();
@@ -45,8 +44,7 @@ public class ExtensionConfig<T> {
       catch (IOException e) {
         throw new IllegalStateException("Error while parsing file: " + resourceLocation + ".\nCaused by: " + e, e);
       }
-      String clsStr = allSupportedExtensionNames.get(dbType.toUpperCase(Locale.ENGLISH));
-      initInstance(clsStr, initializer, dbType);
+      initInstance(initializer, dbType);
     }
     return activatedInstance;
   }
@@ -56,7 +54,8 @@ public class ExtensionConfig<T> {
   }
 
   @SuppressWarnings("unchecked")
-  private void initInstance(String clsStr, ExtensionConfigInitializer<T> initializer, String dbType) {
+  private void initInstance(ExtensionConfigInitializer<T> initializer, String dbType) {
+    String clsStr = allSupportedExtensionNames.get(dbType.toUpperCase(Locale.ENGLISH));
     if (Objects.isNull(clsStr)) {
       throw new IllegalStateException("Unsupported database type: " + dbType.toUpperCase(Locale.ENGLISH) + "\nThe currently supported database type is: " + allSupportedExtensionNames.keySet());
     }
