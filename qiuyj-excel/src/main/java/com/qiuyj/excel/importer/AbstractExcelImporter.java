@@ -83,23 +83,23 @@ public abstract class AbstractExcelImporter implements ExcelImporter {
     Sheet firstSheet = wb.getSheetAt(0);
     Row row = firstSheet.getRow(firstSheet.getFirstRowNum());
     int physicalNum = row.getPhysicalNumberOfCells(),
-        lastCellNo = row.getLastCellNum();
+        lastCellNo = row.getLastCellNum(),
+        idx = 0;
     TreeMap<Integer, String> headInfos = new TreeMap<>();
-    Integer i = 0;
     if (lastCellNo >= physicalNum) {
       // 表明列不连续
       do {
-        Cell cell = row.getCell(i, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
+        Cell cell = row.getCell(idx, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
         if (Objects.nonNull(cell)) {
-          headInfos.put(i, ExcelUtils.readExcelCellValueAsString(cell));
+          headInfos.put(idx, ExcelUtils.readExcelCellValueAsString(cell));
         }
       }
-      while (++i < physicalNum);
+      while (++idx < physicalNum);
     }
     else {
       // 表明所有列都是连续的
       for (Cell cell : row) {
-        headInfos.put(i++, ExcelUtils.readExcelCellValueAsString(cell));
+        headInfos.put(idx++, ExcelUtils.readExcelCellValueAsString(cell));
       }
     }
     return headInfos;
