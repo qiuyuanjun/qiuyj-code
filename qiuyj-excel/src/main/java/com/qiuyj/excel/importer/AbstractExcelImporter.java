@@ -1,6 +1,5 @@
 package com.qiuyj.excel.importer;
 
-import com.qiuyj.commons.StringUtils;
 import com.qiuyj.excel.ExcelUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -14,16 +13,19 @@ import java.util.*;
  * @since 2017/12/31
  */
 public abstract class AbstractExcelImporter implements ExcelImporter {
+
   private final Workbook workbook;
 
   /**
    * 导入excel的表头信息，按顺序
    */
-  private final List<String> excelHeadInfo;
+//  private final List<String> excelHeadInfo;
+
+  private final Map<Integer, String> excelHeadInfo;
 
   protected AbstractExcelImporter(Workbook wb) {
     this.workbook = Objects.requireNonNull(wb);
-    excelHeadInfo = Collections.unmodifiableList(getExcelHeadInfo(wb));
+    excelHeadInfo = Collections.unmodifiableMap(getExcelHeadInfo(wb));
   }
 
   @Override
@@ -46,6 +48,9 @@ public abstract class AbstractExcelImporter implements ExcelImporter {
           excelContent.add(mappingResult);
         }
         else {
+          if (closeWorkbook) {
+            ExcelUtils.closeExcelWorkbookQuietly(workbook);
+          }
           throw new IllegalArgumentException("Don't accept null element");
         }
       }
@@ -62,7 +67,7 @@ public abstract class AbstractExcelImporter implements ExcelImporter {
     return rowIt;
   }
 
-  protected List<String> getExcelHeadInfo() {
+  protected Map<Integer, String> getExcelHeadInfo() {
     return excelHeadInfo;
   }
 
@@ -74,19 +79,29 @@ public abstract class AbstractExcelImporter implements ExcelImporter {
   /**
    * 读取excel的头信息
    */
-  private static List<String> getExcelHeadInfo(Workbook wb) {
+  private static Map<Integer, String> getExcelHeadInfo(Workbook wb) {
     Sheet firstSheet = wb.getSheetAt(0);
     Row row = firstSheet.getRow(firstSheet.getFirstRowNum());
-    List<String> excelHeadInfo = new ArrayList<>(row.getLastCellNum() + 1);
-    for (Cell cell : row) {
-      String cellValue = ExcelUtils.readExcelCellValueAsString(cell);
-      if (StringUtils.isNotBlank(cellValue)) {
-        excelHeadInfo.add(cellValue);
+    int physicalNum = row.getPhysicalNumberOfCells(),
+        lastCellNo = row.getLastCellNum();
+    TreeMap<Integer, String> headInfos = new TreeMap<>();
+    Integer i = 0;
+    if (lastCellNo >= physicalNum) {
+      // 表明列不连续
+      do {
+        Cell cell = row.getCell(i, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
+        if (Objects.nonNull(cell)) {
+          headInfos.put(i, ExcelUtils.readExcelCellValueAsString(cell));
+        }
       }
-      else {
-        excelHeadInfo.add(ExcelImporter.EMPTY_HEAD_INFO);
+      while (++i < physicalNum);
+    }
+    else {
+      // 表明所有列都是连续的
+      for (Cell cell : row) {
+        headInfos.put(i++, ExcelUtils.readExcelCellValueAsString(cell));
       }
     }
-    return excelHeadInfo;
+    return headInfos;
   }
 }

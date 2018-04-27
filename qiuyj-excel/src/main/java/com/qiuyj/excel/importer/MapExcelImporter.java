@@ -6,8 +6,8 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author qiuyj
@@ -21,16 +21,17 @@ public class MapExcelImporter extends AbstractExcelImporter {
 
   @Override
   protected Object excelRowMapping(Row currRow) {
-    Map<String, String> map = new LinkedHashMap<>();
-    List<String> headInfo = getExcelHeadInfo();
-    int idx = 0;
-    for (Cell cell : currRow) {
-      String headTitle = headInfo.get(idx++);
-      if (headTitle == ExcelImporter.EMPTY_HEAD_INFO) {
-        continue;
+    Map<Integer, String> headInfo = getExcelHeadInfo();
+    Map<String, String> result = new LinkedHashMap<>(headInfo.size());
+    headInfo.forEach((idx, title) -> {
+      Cell cell = currRow.getCell(idx, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
+      if (Objects.nonNull(cell)) {
+        result.put(title, ExcelUtils.readExcelCellValueAsString(cell));
       }
-      map.put(headTitle, ExcelUtils.readExcelCellValueAsString(cell));
-    }
-    return map;
+      else {
+        result.put(title, null);
+      }
+    });
+    return result;
   }
 }
