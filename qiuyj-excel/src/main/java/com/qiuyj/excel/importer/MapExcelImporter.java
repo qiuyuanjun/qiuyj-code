@@ -29,7 +29,8 @@ public class MapExcelImporter extends AbstractExcelImporter {
         result.put(title, ExcelUtils.readExcelCellValueAsString(cell));
       }
       else {
-        result.put(title, null);
+//        result.put(title, null);
+        // no-op
       }
     });
     return result;

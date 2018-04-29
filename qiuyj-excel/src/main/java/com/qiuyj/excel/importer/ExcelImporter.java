@@ -9,8 +9,6 @@ import java.util.List;
  */
 public interface ExcelImporter {
 
-  String EMPTY_HEAD_INFO = null;
-
   /**
    * 导入excel，返回一个List
    */

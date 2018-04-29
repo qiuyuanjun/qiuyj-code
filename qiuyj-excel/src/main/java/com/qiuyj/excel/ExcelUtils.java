@@ -1,11 +1,13 @@
 package com.qiuyj.excel;
 
+import org.apache.poi.hssf.usermodel.HSSFDateUtil;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.util.Date;
 import java.util.Objects;
 
 /**
@@ -27,7 +29,14 @@ public abstract class ExcelUtils {
         strVal = cell.getStringCellValue();
         break;
       case NUMERIC:
-        strVal = DECIMAL_FORMAT.format(cell.getNumericCellValue());
+        if (HSSFDateUtil.isCellDateFormatted(cell)) {
+          // 表明是时间格式
+          Date date = cell.getDateCellValue();
+          strVal = DECIMAL_FORMAT.format(date.getTime());
+        }
+        else {
+          strVal = DECIMAL_FORMAT.format(cell.getNumericCellValue());
+        }
         /*
         double val = cell.getNumericCellValue();
         int intVal = (int) val;
