@@ -16,9 +16,9 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <junit.version>4.12</junit.version>
-    <mybatis.version>3.4.5</mybatis.version>
+    <mybatis.version>3.4.6</mybatis.version>
     <mysql.version>6.0.6</mysql.version>
-    <oracle.version>12.1.0</oracle.version>
+    <!--<oracle.version>12.1.0</oracle.version>-->
   </properties>
 
   <dependencies>
@@ -32,14 +32,27 @@
 
   <build>
     <plugins>
-    <plugin>
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.7.0</version>
         <configuration>
-          <source>1.8</source>
-          <target>1.8</target>
+          <source>10</source>
+          <target>10</target>
         </configuration>
+        <dependencies>
+          <dependency>
+            <groupId>org.ow2.asm</groupId>
+            <artifactId>asm</artifactId>
+            <version>6.1</version> <!-- Use newer version of ASM -->
+          </dependency>
+        </dependencies>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-install-plugin</artifactId>
+        <version>2.5.2</version>
       </plugin>
     </plugins>
   </build>

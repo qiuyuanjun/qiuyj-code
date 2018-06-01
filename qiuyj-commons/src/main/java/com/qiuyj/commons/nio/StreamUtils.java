@@ -51,7 +51,8 @@ public abstract class StreamUtils {
             out.write(b);
   //          buf.clear(); // 这里一定不能用clear，这样会将position重新置为0，导致一直重复读
           }
-        } else {
+        }
+        else {
           out = new ByteArrayOutputStream(last);
           b = new byte[last];
         }
@@ -60,7 +61,8 @@ public abstract class StreamUtils {
           out.write(b, 0, last);
         }
         b = out.toByteArray();
-      } finally {
+      }
+      finally {
         closeQuietly(in);
         closeQuietly(out);
       }
@@ -89,7 +91,8 @@ public abstract class StreamUtils {
         buf.clear(); // 这里一定要clear，具体原因参考javaAPI
       }
       b = out.toByteArray();
-    } finally {
+    }
+    finally {
       closeQuietly(out);
       if (close) {
         closeQuietly(inChannel);
@@ -105,7 +108,8 @@ public abstract class StreamUtils {
     if (Objects.nonNull(stream)) {
       try {
         stream.close();
-      } catch (IOException e) {
+      }
+      catch (IOException e) {
         // ignore
       }
     }

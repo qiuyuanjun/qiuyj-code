@@ -2,16 +2,14 @@ package com.qiuyj.commons;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.AnnotatedElement;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 /**
  * 注解工具类
  * @author qiuyj
  * @since 2017/11/18
  */
+@SuppressWarnings("unchecked")
 public abstract class AnnotationUtils {
 
   /**
@@ -36,7 +34,6 @@ public abstract class AnnotationUtils {
     return Optional.ofNullable(anno).map(ano -> findAnnotation(ae, ano, new HashSet<>())).orElse(null);
   }
 
-  @SuppressWarnings("unchecked")
   private static <A extends Annotation> A findAnnotation(AnnotatedElement ae, Class<A> anno, Set<Annotation> visited) {
     Annotation[] annos = ae.getDeclaredAnnotations();
     for (Annotation a : annos) {
@@ -76,5 +73,18 @@ public abstract class AnnotationUtils {
 
   private static boolean isJavaLangAnnotationPackage(Annotation a) {
     return "java.lang.annotation".equals(a.annotationType().getPackage().getName());
+  }
+
+  public static <A extends Annotation> List<A> findAnnotationAnnotatedBy(AnnotatedElement ae, Class<A> annotatedBy) {
+    Objects.requireNonNull(ae);
+    Annotation[] annotations = ae.getAnnotations();
+    List<A> result = new ArrayList<>();
+    for (Annotation anno : annotations) {
+      A annotation = findAnnotation(anno.annotationType(), annotatedBy);
+      if (Objects.nonNull(annotation)) {
+        result.add((A) anno);
+      }
+    }
+    return result;
   }
 }

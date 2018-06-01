@@ -71,6 +71,8 @@ public class BeanExampleResolver {
       callback.resolveNonNullField(fieldValue);
     }
   }
+
+  @SuppressWarnings("deprecation")
   private static Object invokeFieldGetter(Object obj, Field f) {
     if (!f.isAccessible()) {
       f.setAccessible(true);

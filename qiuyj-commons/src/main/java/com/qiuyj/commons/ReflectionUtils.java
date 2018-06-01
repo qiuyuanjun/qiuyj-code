@@ -299,6 +299,7 @@ public abstract class ReflectionUtils {
   /**
    * 设置当前Field对象屏蔽java语法检查
    */
+  @SuppressWarnings("deprecation")
   public static void makeAccessible(Field field) {
     if ((!Modifier.isPublic(field.getModifiers())
           || !Modifier.isPublic(field.getDeclaringClass().getModifiers()))
@@ -310,6 +311,7 @@ public abstract class ReflectionUtils {
   /**
    * 设置当前Method对象屏蔽java语法检查
    */
+  @SuppressWarnings("deprecation")
   public static void makeAccessible(Method method) {
     if ((!Modifier.isPublic(method.getModifiers())
           || !Modifier.isPublic(method.getDeclaringClass().getModifiers()))
