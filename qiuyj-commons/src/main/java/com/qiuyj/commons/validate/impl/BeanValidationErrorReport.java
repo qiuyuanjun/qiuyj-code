@@ -3,14 +3,12 @@ package com.qiuyj.commons.validate.impl;
 import com.qiuyj.commons.StringUtils;
 import com.qiuyj.commons.validate.ValidationErrorReport;
 import com.qiuyj.commons.validate.annotation.AnnotationBasedValidationRule;
+import com.qiuyj.commons.validate.annotation.CompositeAnnotationInstance;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.StringJoiner;
+import java.util.*;
 
 /**
  * @author qiuyj
@@ -46,27 +44,37 @@ public class BeanValidationErrorReport implements ValidationErrorReport {
     errorFields.put(field, annotation);
   }
 
-  private String getErrorMessage(Annotation annotation) {
-    Class<? extends Annotation> annotationType = annotation.annotationType();
-    Method errorMsgMethod = null;
-    try {
-      errorMsgMethod = annotationType.getDeclaredMethod(AnnotationBasedValidationRule.ERROR_MSG_METHODNAME_IN_ANNOTATION);
+  private String getErrorMessage(Annotation annotationInstance) {
+    List<Annotation> annotations;
+    if (annotationInstance instanceof CompositeAnnotationInstance.CompositeAnnotationImpl) {
+      annotations = ((CompositeAnnotationInstance.CompositeAnnotationImpl) annotationInstance).compositeAnnotation();
     }
-    catch (NoSuchMethodException e) {
-      // ignore
+    else {
+      annotations = Collections.singletonList(annotationInstance);
     }
-    String errorMsg = null;
-    if (Objects.nonNull(errorMsgMethod)) {
+    StringJoiner errorMsgJoiner = new StringJoiner(",");
+    for (Annotation annotation : annotations) {
+      Class<? extends Annotation> annotationType = annotation.annotationType();
+      Method errorMsgMethod = null;
       try {
-        errorMsg = (String) errorMsgMethod.invoke(annotation);
+        errorMsgMethod = annotationType.getDeclaredMethod(AnnotationBasedValidationRule.ERROR_MSG_METHODNAME_IN_ANNOTATION);
       }
-      catch (Exception e) {
+      catch (NoSuchMethodException e) {
         // ignore
       }
+      String errorMsg = null;
+      if (Objects.nonNull(errorMsgMethod)) {
+        try {
+          errorMsg = (String) errorMsgMethod.invoke(annotationInstance);
+        } catch (Exception e) {
+          // ignore
+        }
+      }
+      if (StringUtils.isBlank(errorMsg)) {
+        errorMsg = "does not meet the requirements of the annotation @" + annotationType.getName();
+      }
+      errorMsgJoiner.add(errorMsg);
     }
-    if (StringUtils.isBlank(errorMsg)) {
-      errorMsg = "Does not meet the requirements of the annotation @" + annotationType.getName();
-    }
-    return errorMsg;
+    return errorMsgJoiner.toString();
   }
 }

@@ -6,8 +6,15 @@ package com.qiuyj.commons.validate;
  */
 public class ValidationException extends Exception {
 
+  private final ValidationErrorReport errorReport;
+
   public ValidationException(ValidationErrorReport errorReport) {
     super(checkTypeAndGetErrorString(errorReport));
+    this.errorReport = errorReport;
+  }
+
+  public ValidationErrorReport getValidationErrorReport() {
+    return errorReport;
   }
 
   private static String checkTypeAndGetErrorString(ValidationErrorReport errorReport) {

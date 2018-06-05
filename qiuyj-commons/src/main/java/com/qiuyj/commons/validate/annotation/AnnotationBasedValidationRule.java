@@ -14,6 +14,9 @@ import java.util.Objects;
  */
 public abstract class AnnotationBasedValidationRule<A extends Annotation> implements ValidationRule, AnnotationInstanceCapable {
 
+  /**
+   * 获取错误信息的方法名
+   */
   public static final String ERROR_MSG_METHODNAME_IN_ANNOTATION = "message";
 
   private A annotation;

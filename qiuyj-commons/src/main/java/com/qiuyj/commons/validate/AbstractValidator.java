@@ -8,6 +8,9 @@ import java.util.Objects;
  */
 public abstract class AbstractValidator<T> implements Validator<T> {
 
+  /**
+   * 验证规则，不同的子类有不同的验证规则
+   */
   private final ValidationRule rule;
 
   protected AbstractValidator(ValidationRule rule) {

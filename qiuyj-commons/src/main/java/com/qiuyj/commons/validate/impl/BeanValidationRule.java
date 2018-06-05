@@ -23,9 +23,9 @@ public class BeanValidationRule implements ValidationRule {
   private static final String ANNOTATION_VALIDATIONRULE_SUFFIX = "ValidationRule";
 
   /**
-   * 当前bean对应的验证规则
+   * 当前bean所有所需要验证的字段{@code Field}所对应的{@code AnnotationBasedValidationRule}的映射map
    */
-  private Map<Field, AnnotationBasedValidationRule> beanValidationRules;
+  private Map<Field, AnnotationBasedValidationRule> fieldAnnotationBasedValidationRules;
 
   /**
    * 错误报告
@@ -40,18 +40,18 @@ public class BeanValidationRule implements ValidationRule {
 
   public BeanValidationRule(Class<?> beanClass) {
     this.beanClass = Objects.requireNonNull(beanClass);
-    this.beanValidationRules = parseBeanClass(beanClass);
+    this.fieldAnnotationBasedValidationRules = parseBeanClass(beanClass);
   }
 
   @Override
   public boolean matchAny(Object value) {
-    if (Objects.isNull(beanValidationRules) || beanValidationRules.isEmpty()) {
+    if (Objects.isNull(fieldAnnotationBasedValidationRules) || fieldAnnotationBasedValidationRules.isEmpty()) {
       return true;
     }
     else {
       if (Objects.nonNull(value)) {
         resetLocalErrorReport();  // 重置本地错误报告
-        for (Map.Entry<Field, AnnotationBasedValidationRule> me : beanValidationRules.entrySet()) {
+        for (Map.Entry<Field, AnnotationBasedValidationRule> me : fieldAnnotationBasedValidationRules.entrySet()) {
           Field field = me.getKey();
           if (!field.canAccess(value)) {
             if (!field.trySetAccessible()) {

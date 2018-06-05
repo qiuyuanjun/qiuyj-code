@@ -75,12 +75,12 @@ public abstract class AnnotationUtils {
     return "java.lang.annotation".equals(a.annotationType().getPackage().getName());
   }
 
-  public static <A extends Annotation> List<A> findAnnotationAnnotatedBy(AnnotatedElement ae, Class<A> annotatedBy) {
+  public static <A extends Annotation> List<A> findAnnotationAnnotatedBy(AnnotatedElement ae, Class<? extends Annotation> annotatedBy) {
     Objects.requireNonNull(ae);
-    Annotation[] annotations = ae.getAnnotations();
+    Annotation[] annotations = ae.getDeclaredAnnotations();
     List<A> result = new ArrayList<>();
     for (Annotation anno : annotations) {
-      A annotation = findAnnotation(anno.annotationType(), annotatedBy);
+      Annotation annotation = findAnnotation(anno.annotationType(), annotatedBy);
       if (Objects.nonNull(annotation)) {
         result.add((A) anno);
       }

@@ -1,6 +1,7 @@
 package com.qiuyj.commons.validate.annotation;
 
 import java.lang.annotation.Annotation;
+import java.util.Objects;
 
 /**
  * @author qiuyj
@@ -8,16 +9,19 @@ import java.lang.annotation.Annotation;
  */
 public class AnnotationInstance {
 
-  private final Annotation annotation;
+  private Annotation annotation;
 
   public AnnotationInstance(Annotation annotation) {
     if (annotation == AnnotationBasedCompositeValidationRule.CompositeValidationRuleAnnotationImpl.INSTANCE) {
       throw new IllegalArgumentException("");
     }
     else {
-      this.annotation = annotation;
+      this.annotation = Objects.requireNonNull(annotation);
     }
   }
+
+  // for CompositeAnnotationInstance constructor
+  AnnotationInstance() {}
 
   public Annotation getAnnotation() {
     return annotation;
