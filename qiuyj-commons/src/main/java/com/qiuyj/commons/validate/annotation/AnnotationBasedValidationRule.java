@@ -41,6 +41,9 @@ public abstract class AnnotationBasedValidationRule<A extends Annotation> implem
       return false;
     }
     else {
+      if (Objects.nonNull(value)) {
+        checkValueType(value);
+      }
       return doMatchAccordingtoAnnotation(value, annotation);
     }
   }
@@ -56,6 +59,13 @@ public abstract class AnnotationBasedValidationRule<A extends Annotation> implem
       annotationInstance = new AnnotationInstance(annotation);
     }
     return annotationInstance;
+  }
+
+  /**
+   * 检查值类型是否合法，交给子类实现
+   */
+  protected void checkValueType(Object value) {
+    // for subclass
   }
 
   /**
