@@ -45,7 +45,7 @@ public class AnnotationBasedCompositeValidationRule extends AnnotationBasedValid
   private void checkAndSetErrorAnnotation(AnnotationBasedValidationRule rule) {
     Annotation annotation = rule.getAnnotationInstance().getAnnotation();
     if (annotation instanceof CompositeAnnotationInstance.CompositeAnnotationImpl) {
-      throw new IllegalStateException("");
+      throw new IllegalStateException("Composite's sub item of validation rule cannot be a composite annotation");
     }
     else {
       // 记录错误信息
