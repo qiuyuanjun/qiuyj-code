@@ -27,7 +27,11 @@ public interface ValidationResult {
    * 是否验证有错误
    * @return 如果有错误，那么返回{@code true}，否则返回{@code false}
    */
-  boolean hasErrors();
+  default boolean hasErrors() {
+    // 由于在AbstractValidator里面已经判断了，如果返回了BeanValidationResult，那么表示一定有错误
+    // 所以这里直接返回true
+    return true;
+  }
 
   /**
    * 得到对应的错误报告

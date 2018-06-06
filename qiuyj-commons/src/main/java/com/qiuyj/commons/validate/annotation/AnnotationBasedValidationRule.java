@@ -50,7 +50,8 @@ public abstract class AnnotationBasedValidationRule<A extends Annotation> implem
 
   @Override
   public boolean matchAll(Object value) {
-    return false;
+    // 这里和matchAny一样
+    return matchAny(value);
   }
 
   @Override

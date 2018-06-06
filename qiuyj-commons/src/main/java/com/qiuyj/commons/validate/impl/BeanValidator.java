@@ -36,7 +36,8 @@ public class BeanValidator<T> extends AbstractValidator<T> {
 
   @Override
   protected ValidationResult doCreateValidationResult(ValidationErrorReport errorReport) {
-    return null;
+    BeanValidationErrorReport report = BeanValidationErrorReport.class.cast(errorReport);
+    return new BeanValidationResult(report);
   }
 
   private static BeanValidationRule init(Class<?> cls) {

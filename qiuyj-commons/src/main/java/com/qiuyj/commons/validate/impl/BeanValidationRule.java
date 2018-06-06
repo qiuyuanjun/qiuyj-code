@@ -45,42 +45,77 @@ public class BeanValidationRule implements ValidationRule {
 
   @Override
   public boolean matchAny(Object value) {
+    // 如果当前的bean没有任何注解，那么直接验证通过
     if (Objects.isNull(fieldAnnotationBasedValidationRules) || fieldAnnotationBasedValidationRules.isEmpty()) {
       return true;
     }
-    else {
-      if (Objects.nonNull(value)) {
-        resetLocalErrorReport();  // 重置本地错误报告
-        for (Map.Entry<Field, AnnotationBasedValidationRule> me : fieldAnnotationBasedValidationRules.entrySet()) {
-          Field field = me.getKey();
-          if (!field.canAccess(value)) {
-            if (!field.trySetAccessible()) {
-              throw new IllegalStateException("Can not access field: " + field.getName() + " in " + value.getClass());
-            }
-          }
-          Object fieldValue = null;
-          try {
-            fieldValue = field.get(value);
-          }
-          catch (IllegalAccessException e) {
-            // ignore, never get here
-          }
-          if (!me.getValue().matchAny(fieldValue)) {
-            createAndSetErrorReport(field, me.getValue());
-            return false;
+    else if (Objects.nonNull(value)) {
+      resetLocalErrorReport();  // 重置本地错误报告
+      for (Map.Entry<Field, AnnotationBasedValidationRule> me : fieldAnnotationBasedValidationRules.entrySet()) {
+        Field field = me.getKey();
+        if (!field.canAccess(value)) {
+          if (!field.trySetAccessible()) {
+            throw new IllegalStateException("Can not access field: " + field.getName() + " in " + value.getClass());
           }
         }
-        return true;
+        Object fieldValue = null;
+        try {
+          fieldValue = field.get(value);
+        }
+        catch (IllegalAccessException e) {
+          // ignore, never get here
+        }
+        if (!me.getValue().matchAny(fieldValue)) {
+          createAndSetErrorReport(field, me.getValue());
+          return false;
+        }
       }
-      else {
-        throw new IllegalStateException("The object to be verified is null");
-      }
+      return true;
+    }
+    else {
+      throw new IllegalStateException("The object to be verified is null");
     }
   }
 
   @Override
   public boolean matchAll(Object value) {
-    return false;
+    // 如果当前的bean没有任何注解，那么直接验证通过
+    if (Objects.isNull(fieldAnnotationBasedValidationRules) || fieldAnnotationBasedValidationRules.isEmpty()) {
+      return true;
+    }
+    else if (Objects.nonNull(value)) {
+      resetLocalErrorReport();  // 重置本地错误报告
+      Map<Field, AnnotationBasedValidationRule> validateFailed = new HashMap<>();
+      for (Map.Entry<Field, AnnotationBasedValidationRule> me : fieldAnnotationBasedValidationRules.entrySet()) {
+        Field field = me.getKey();
+        if (!field.canAccess(value)) {
+          if (!field.trySetAccessible()) {
+            throw new IllegalStateException("Can not access field: " + field.getName() + " in " + value.getClass());
+          }
+        }
+        Object fieldValue = null;
+        try {
+          fieldValue = field.get(value);
+        }
+        catch (IllegalAccessException e) {
+          // ignore, never get here
+        }
+        if (!me.getValue().matchAll(fieldValue)) {
+          validateFailed.put(field, me.getValue());
+        }
+      }
+      if (validateFailed.isEmpty()) {
+        return true;
+      }
+      else {
+        // 生成验证结果
+        createAndSetErrorReport(validateFailed);
+        return false;
+      }
+    }
+    else {
+      throw new IllegalStateException("The object to be verified is null");
+    }
   }
 
   private void resetLocalErrorReport() {
@@ -101,6 +136,22 @@ public class BeanValidationRule implements ValidationRule {
       errorReport.registerErrorField(field, annotationInstance.getAnnotation());
       localErrorReport.set(errorReport);
     }
+  }
+
+  private void createAndSetErrorReport(Map<Field, AnnotationBasedValidationRule> validateFailed) {
+    BeanValidationErrorReport errorReport = new BeanValidationErrorReport(beanClass);
+    validateFailed.forEach((field, validationRule) -> {
+      if (field.getDeclaringClass() != beanClass) {
+        throw new IllegalStateException("Illegal field: " + field.getName() + ", actual belong to " + field.getDeclaringClass() + ", but nedded " + beanClass);
+      }
+      else {
+        // 对errorReport做初始化
+        // annotationInstance可能是CompositeAnnotationInstance
+        AnnotationInstance annotationInstance = validationRule.getAnnotationInstance();
+        errorReport.registerErrorField(field, annotationInstance.getAnnotation());
+      }
+    });
+    localErrorReport.set(errorReport);
   }
 
   private static Map<Field, AnnotationBasedValidationRule> parseBeanClass(Class<?> beanClass) {

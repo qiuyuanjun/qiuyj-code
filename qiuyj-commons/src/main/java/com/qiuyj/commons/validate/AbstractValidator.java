@@ -71,5 +71,8 @@ public abstract class AbstractValidator<T> implements Validator<T> {
    */
   protected abstract ValidationErrorReport doGetValidationErrorReport();
 
+  /**
+   * 创建对应的验证结果，不同的实现类有不同的验证结果
+   */
   protected abstract ValidationResult doCreateValidationResult(ValidationErrorReport errorReport);
 }

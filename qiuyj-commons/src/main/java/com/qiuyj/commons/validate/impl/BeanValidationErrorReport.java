@@ -27,7 +27,7 @@ public class BeanValidationErrorReport implements ValidationErrorReport {
   @Override
   public String toString() {
     StringBuilder subErrors = new StringBuilder();
-    StringJoiner errorFieldsJoiner = new StringJoiner(",\n\t", ":[", "]");
+    StringJoiner errorFieldsJoiner = new StringJoiner(",\n ", ":\n[\n ", "\n]");
     errorFields.forEach((field, annotation) -> {
       subErrors.append("{")
           .append(field.getName())
@@ -40,7 +40,28 @@ public class BeanValidationErrorReport implements ValidationErrorReport {
     return "Errors in " + beanClass.getName() + errorFieldsJoiner.toString();
   }
 
-  public void registerErrorField(Field field, Annotation annotation) {
+  @Override
+  public void forEachError(ErrorConsumer errorConsumer) {
+    BeanValidationErrorConsumer beanValidationErrorConsumer = BeanValidationErrorConsumer.class.cast(errorConsumer);
+    for (Map.Entry<Field, Annotation> me : errorFields.entrySet()) {
+      Field errorField = me.getKey();
+      List<Annotation> annotations;
+      if (me.getValue() instanceof CompositeAnnotationInstance.CompositeAnnotationImpl) {
+        annotations = ((CompositeAnnotationInstance.CompositeAnnotationImpl) me.getValue()).compositeAnnotation();
+      }
+      else {
+        annotations = Collections.singletonList(me.getValue());
+      }
+      beanValidationErrorConsumer.consumer(errorField, annotations);
+    }
+  }
+
+  /**
+   * 注册错误字段
+   * @param field 错误的字段
+   * @param annotation 对应标注的注解
+   */
+  void registerErrorField(Field field, Annotation annotation) {
     errorFields.put(field, annotation);
   }
 
@@ -65,7 +86,7 @@ public class BeanValidationErrorReport implements ValidationErrorReport {
       String errorMsg = null;
       if (Objects.nonNull(errorMsgMethod)) {
         try {
-          errorMsg = (String) errorMsgMethod.invoke(annotationInstance);
+          errorMsg = (String) errorMsgMethod.invoke(annotation);
         } catch (Exception e) {
           // ignore
         }
@@ -76,5 +97,17 @@ public class BeanValidationErrorReport implements ValidationErrorReport {
       errorMsgJoiner.add(errorMsg);
     }
     return errorMsgJoiner.toString();
+  }
+
+  /**
+   * 专门针对BeanValidation的错误信息消费回调接口
+   */
+  @FunctionalInterface
+  public interface BeanValidationErrorConsumer extends ErrorConsumer {
+
+    /**
+     * 消费对应的错误字段和注解
+     */
+    void consumer(Field field, List<Annotation> annotations);
   }
 }
