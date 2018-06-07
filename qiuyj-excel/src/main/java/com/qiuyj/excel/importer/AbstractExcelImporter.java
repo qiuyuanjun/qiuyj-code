@@ -1,5 +1,6 @@
 package com.qiuyj.excel.importer;
 
+import com.qiuyj.commons.validate.ValidationException;
 import com.qiuyj.excel.ExcelUtils;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -19,13 +20,11 @@ public abstract class AbstractExcelImporter implements ExcelImporter {
   /**
    * 导入excel的表头信息，按顺序
    */
-//  private final List<String> excelHeadInfo;
-
-  private final Map<Integer, String> excelHeadInfo;
+  private Map<Integer, String> excelHeadInfo;
 
   protected AbstractExcelImporter(Workbook wb) {
     this.workbook = Objects.requireNonNull(wb);
-    excelHeadInfo = Collections.unmodifiableMap(getExcelHeadInfo(wb));
+    setExcelHeadInfo(getExcelHeadInfo(wb));
   }
 
   @Override
@@ -42,17 +41,24 @@ public abstract class AbstractExcelImporter implements ExcelImporter {
       }
       // 跳过头部
       Iterator<Row> rowIt = skipTopRow(sheet);
-      while (rowIt.hasNext()) {
-        Object mappingResult = excelRowMapping(rowIt.next());
-        if (Objects.nonNull(mappingResult)) {
-          excelContent.add(mappingResult);
-        }
-        else {
-          if (closeWorkbook) {
-            ExcelUtils.closeExcelWorkbookQuietly(workbook);
+      try {
+        while (rowIt.hasNext()) {
+          Object mappingResult = excelRowMapping(rowIt.next());
+          if (Objects.nonNull(mappingResult)) {
+            excelContent.add(mappingResult);
           }
-          throw new IllegalArgumentException("Don't accept null element");
+          else {
+            if (closeWorkbook) {
+              ExcelUtils.closeExcelWorkbookQuietly(workbook);
+            }
+            throw new IllegalArgumentException("Don't accept null element");
+          }
         }
+      }
+      catch (ValidationException e) {
+        // 如果验证未通过，那么直接抛出异常
+        ExcelUtils.closeExcelWorkbookQuietly(workbook);
+        throw new IllegalStateException(e);
       }
     }
     if (closeWorkbook) {
@@ -73,8 +79,11 @@ public abstract class AbstractExcelImporter implements ExcelImporter {
 
   /**
    * 映射excel的每一行，交给对应的子类实现
+   * @param currRow 当前的{@code Row}对象
+   * @return 对应的解析结果
+   * @throws ValidationException 每个解析结果都需要对其做验证，如果验证不通过，则抛出该异常
    */
-  protected abstract Object excelRowMapping(Row currRow);
+  protected abstract Object excelRowMapping(Row currRow) throws ValidationException;
 
   /**
    * 读取excel的头信息
@@ -103,5 +112,9 @@ public abstract class AbstractExcelImporter implements ExcelImporter {
       }
     }
     return headInfos;
+  }
+
+  void setExcelHeadInfo(Map<Integer, String> excelHeadInfo) {
+    this.excelHeadInfo = Collections.unmodifiableMap(excelHeadInfo);
   }
 }
