@@ -52,7 +52,7 @@ public class BeanValidationErrorReport implements ValidationErrorReport {
       else {
         annotations = Collections.singletonList(me.getValue());
       }
-      beanValidationErrorConsumer.consumer(errorField, annotations);
+      beanValidationErrorConsumer.consume(errorField, annotations);
     }
   }
 
@@ -100,7 +100,7 @@ public class BeanValidationErrorReport implements ValidationErrorReport {
   }
 
   /**
-   * 专门针对BeanValidation的错误信息消费回调接口
+   * 专门针对{@code BeanValidation}的错误信息消费回调接口
    */
   @FunctionalInterface
   public interface BeanValidationErrorConsumer extends ErrorConsumer {
@@ -108,6 +108,6 @@ public class BeanValidationErrorReport implements ValidationErrorReport {
     /**
      * 消费对应的错误字段和注解
      */
-    void consumer(Field field, List<Annotation> annotations);
+    void consume(Field field, List<Annotation> annotations);
   }
 }

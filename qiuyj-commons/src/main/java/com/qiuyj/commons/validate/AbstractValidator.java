@@ -1,5 +1,7 @@
 package com.qiuyj.commons.validate;
 
+import com.qiuyj.commons.validate.impl.DefaultValidationResult;
+
 import java.util.Objects;
 
 /**
@@ -74,5 +76,7 @@ public abstract class AbstractValidator<T> implements Validator<T> {
   /**
    * 创建对应的验证结果，不同的实现类有不同的验证结果
    */
-  protected abstract ValidationResult doCreateValidationResult(ValidationErrorReport errorReport);
+  protected ValidationResult doCreateValidationResult(ValidationErrorReport errorReport) {
+    return new DefaultValidationResult(errorReport);
+  }
 }

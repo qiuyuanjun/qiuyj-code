@@ -58,7 +58,9 @@ public class MapExcelImporter extends AbstractExcelImporter {
       }
     });
     // 对这个map进行验证
-    mapValidator.validateWithException(result);
+    if (Objects.nonNull(mapValidator)) {
+      mapValidator.validateWithException(result);
+    }
     return result;
   }
 

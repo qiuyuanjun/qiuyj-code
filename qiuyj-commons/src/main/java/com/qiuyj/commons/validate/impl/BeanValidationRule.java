@@ -18,7 +18,7 @@ import java.util.*;
  * @author qiuyj
  * @since 2018-05-29
  */
-public class BeanValidationRule implements ValidationRule {
+class BeanValidationRule implements ValidationRule {
 
   private static final String ANNOTATION_VALIDATIONRULE_SUFFIX = "ValidationRule";
 
