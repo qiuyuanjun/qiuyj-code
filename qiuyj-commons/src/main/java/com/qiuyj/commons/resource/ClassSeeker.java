@@ -6,6 +6,7 @@ import com.qiuyj.commons.StringUtils;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.FileSystemNotFoundException;
@@ -112,18 +113,30 @@ public final class ClassSeeker {
           }
         });
       }
+      else {
+        throw new IllegalStateException("Unknow protocol to handle: " + url.getProtocol());
+      }
     }
     return classes;
   }
 
   private static Path urlToPath(URL url) {
-    Path path;
+    Path path = null;
+    URI uri = null;
     try {
-      path = Paths.get(url.toURI());
+      uri = url.toURI();
     }
-    catch (URISyntaxException | FileSystemNotFoundException e) {
-      // 有可能是jar
-      path = Paths.get(url.getFile().substring(6));
+    catch (URISyntaxException e) {
+      // ignore, never happened
+    }
+    if (Objects.nonNull(uri)) {
+      try {
+        path = Paths.get(uri);
+      }
+      catch (FileSystemNotFoundException e) {
+        // 有可能是jar
+        path = Paths.get(url.getFile().substring(6));
+      }
     }
     return path;
   }

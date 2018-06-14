@@ -63,15 +63,11 @@ public interface ProtocolResourceHandler {
     public void resolveProtocolResourse(URL url, Consumer<Path> fileConsumer) {
       JarFile jarFile = getJarFileFromUrl(url);
       String basePackage = StringUtils.substringAfter(url.getFile(), JAR_PATH_SEPERATOR);
-      String jarPath = StringUtils.substringBefore(url.getFile(), JAR_PATH_SEPERATOR);
-      Enumeration<JarEntry> jarEnum = jarFile.entries();
-      while (jarEnum.hasMoreElements()) {
-        JarEntry jarEntry = jarEnum.nextElement();
-        String entryName = jarEntry.getName();
-        if (entryName.startsWith(basePackage) && entryName.endsWith(".class")) {
-          fileConsumer.accept(Paths.get((jarPath + JAR_PATH_SEPERATOR + entryName).substring(6)));
-        }
-      }
+      String jarPath = StringUtils.substringBefore(url.getFile(), JAR_PATH_SEPERATOR).substring(6);
+      jarFile.stream()
+          .filter(jarEntry -> jarEntry.getName().startsWith(basePackage) && jarEntry.getName().endsWith(".class") && !jarEntry.isDirectory())
+          .forEach(jarEntry ->
+            fileConsumer.accept(Paths.get(jarPath + JAR_PATH_SEPERATOR + jarEntry.getName())));
       try {
         jarFile.close();
       }
