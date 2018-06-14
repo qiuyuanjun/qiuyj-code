@@ -1,7 +1,6 @@
 package com.qiuyj.commons.resource;
 
 import com.qiuyj.commons.ClassUtils;
-import com.qiuyj.commons.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,7 +25,7 @@ public final class ClassSeeker {
 
   private static final Class<?>[] EMPTY_CLASSES = new Class<?>[0];
 
-  private static final String CLASSPATH_SEPERATOR = "/";
+  public static final String CLASSPATH_SEPERATOR = "/";
 
   public static final String JAR_PATH_SEPERATOR = "!/";
 
@@ -62,7 +61,8 @@ public final class ClassSeeker {
       catch (IOException e) {
         throw new IllegalStateException("Error while getting resources in classpath: " + resolvedPath + ".\nCaused by: " + e, e);
       }
-      Set<Class<?>> findedClasses = findClasses(resolvedPath.replace("/", ".") + ".", resourceUrls, loader, ifCondition);
+      String basePackage = "".equals(resolvedPath) ? "" : resolvedPath.replace(CLASSPATH_SEPERATOR, ".") + ".";
+      Set<Class<?>> findedClasses = findClasses(basePackage, resourceUrls, loader, ifCondition);
       return findedClasses.isEmpty() ? EMPTY_CLASSES : findedClasses.toArray(EMPTY_CLASSES);
     }
   }
@@ -106,7 +106,8 @@ public final class ClassSeeker {
       if (Objects.nonNull(handler)) {
         Path basePath = urlToPath(url);
         handler.resolveProtocolResourse(url, path -> {
-          String className = basePackage + StringUtils.substringBefore(basePath.relativize(path).toString().replace(File.separator, "."), ".class");
+          String classPathStr = basePath.relativize(path).toString().replace(File.separator, ".");
+          String className = basePackage + classPathStr.substring(0, classPathStr.length() - 6);
           Class<?> beanClass = ClassUtils.resolveClassName(className, loader);
           if (Objects.isNull(ifCondition) || ifCondition.test(beanClass)) {
             classes.add(beanClass);

@@ -21,4 +21,10 @@ public class ProtocolResourceHandlerFactory {
   public static ProtocolResourceHandler getProtocolResourceHandler(String protocol) {
     return Objects.isNull(protocol) ? null : CACHED_PROTOCOL_RESOURCE_HANDLER.get(protocol);
   }
+
+  public static void registProtocolResourceHandler(String protocol, ProtocolResourceHandler handler) {
+    Objects.requireNonNull(protocol);
+    Objects.requireNonNull(handler);
+    CACHED_PROTOCOL_RESOURCE_HANDLER.putIfAbsent(protocol, handler);
+  }
 }
