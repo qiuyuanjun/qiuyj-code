@@ -8,4 +8,8 @@ module qiuyj.commons {
   exports com.qiuyj.commons.cache;
   exports com.qiuyj.commons.cache.impl;
   exports com.qiuyj.commons.nio;
+  exports com.qiuyj.commons.resource;
+  exports com.qiuyj.commons.validate;
+  exports com.qiuyj.commons.validate.annotation;
+  exports com.qiuyj.commons.validate.impl;
 }

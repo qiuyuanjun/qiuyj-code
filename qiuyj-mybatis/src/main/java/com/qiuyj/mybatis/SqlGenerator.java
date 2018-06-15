@@ -2,6 +2,7 @@ package com.qiuyj.mybatis;
 
 import com.qiuyj.commons.ClassUtils;
 import com.qiuyj.commons.StringUtils;
+import com.qiuyj.commons.resource.ClassSeeker;
 import com.qiuyj.mybatis.config.MetaInfExtensionConfigLoader;
 import com.qiuyj.mybatis.config.SqlGeneratorConfig;
 import com.qiuyj.mybatis.engine.AbstractSqlGeneratorEngine;
@@ -10,13 +11,13 @@ import com.qiuyj.mybatis.mapper.Mapper;
 import com.qiuyj.mybatis.sqlbuild.SqlBuilder;
 import org.apache.ibatis.builder.annotation.ProviderSqlSource;
 import org.apache.ibatis.executor.Executor;
-import org.apache.ibatis.io.ResolverUtil;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.plugin.*;
 import org.apache.ibatis.session.ResultHandler;
 import org.apache.ibatis.session.RowBounds;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
@@ -29,6 +30,7 @@ import java.util.Set;
     @Signature(type = Executor.class, method = "update", args = {MappedStatement.class, Object.class}),
     @Signature(type = Executor.class, method = "query", args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class})
 })
+@SuppressWarnings("unchecked")
 public class SqlGenerator implements Interceptor {
 
   /**
@@ -42,7 +44,6 @@ public class SqlGenerator implements Interceptor {
   private SqlGeneratorEngine engine;
 
   @Override
-  @SuppressWarnings("unchecked")
   public Object intercept(Invocation invocation) throws Throwable {
     MappedStatement ms = (MappedStatement) invocation.getArgs()[0];
     /*
@@ -95,14 +96,11 @@ public class SqlGenerator implements Interceptor {
     // 如果设置了entityPackageScanPath，那么解析所有的实体类，得到对应的SqlInfo
     if (StringUtils.isNotBlank(config.getMapperPackageScanPath())) {
       String[] paths = StringUtils.delimiteToStringArray(config.getMapperPackageScanPath(), ", \t:;");
-      ResolverUtil.Test test = new MapperTest(config.getBaseMapperClass());
       Set<Class<? extends Mapper<?, ?>>> mapperClassSet = new HashSet<>();
-      ClassLoader cls = ClassUtils.getDefaultClassLoader();
+      ClassSeeker seeker = new ClassSeeker(ClassUtils.getDefaultClassLoader());
+      seeker.setIfCondition(new MapperTest(config.getBaseMapperClass()));
       for (String path : paths) {
-        // 使用mybatis封装好的类去获取所有class
-        ResolverUtil<? extends Mapper<?, ?>> ru = new ResolverUtil<>();
-        ru.setClassLoader(cls);
-        mapperClassSet.addAll(ru.find(test, path).getClasses());
+        mapperClassSet.addAll(Arrays.asList((Class<? extends Mapper>[]) seeker.seekClasses(path)));
       }
       ((AbstractSqlGeneratorEngine) engine).addSqlInfos(mapperClassSet);
     }
