@@ -102,7 +102,7 @@ public class SqlGenerator implements Interceptor {
       for (String path : paths) {
         mapperClassSet.addAll(Arrays.asList(seeker.seekClasses(path)));
       }
-      ((AbstractSqlGeneratorEngine) engine).addSqlInfos((Set<Class<? extends Mapper<?, ?>>>) mapperClassSet);
+      ((AbstractSqlGeneratorEngine) engine).addSqlInfos(mapperClassSet);
     }
   }
 }

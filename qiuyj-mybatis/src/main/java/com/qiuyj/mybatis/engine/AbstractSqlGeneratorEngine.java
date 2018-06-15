@@ -249,16 +249,17 @@ public abstract class AbstractSqlGeneratorEngine implements SqlGeneratorEngine {
     }
   }
 
-  public void addSqlInfos(Set<Class<? extends Mapper<?, ?>>> mapperClassSet) {
+  @SuppressWarnings("unchecked")
+  public void addSqlInfos(Set<Class<?>> mapperClassSet) {
     if (Objects.nonNull(mapperClassSet) && mapperClassSet.size() > 0) {
       if (Objects.isNull(sqlInfos)) {
         sqlInfos = new HashMap<>(mapperClassSet.size());
       }
-      for (Class<? extends Mapper<?, ?>> mapperClass : mapperClassSet) {
+      for (Class<?> mapperClass : mapperClassSet) {
         // 由于此时还无法获取到Mybatis的Configuration对象，所以这里暂时设置null
         // 后面运行阶段，一定要重新设置configuraiton为null的sqlInfo
-        SqlInfo currSqlInfo = new SqlInfo(mapperClass, chain, null);
-        addSqlInfo(mapperClass, currSqlInfo);
+        SqlInfo currSqlInfo = new SqlInfo((Class<? extends Mapper<?, ?>>) mapperClass, chain, null);
+        addSqlInfo((Class<? extends Mapper<?, ?>>) mapperClass, currSqlInfo);
         // 这里暂时无法获取resultMap，由于configuration为null
         // 所以获取对应的resultMap将放在运行的时候动态获取
 //        if (currSqlInfo.hasEnumField()) {
