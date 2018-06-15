@@ -96,13 +96,13 @@ public class SqlGenerator implements Interceptor {
     // 如果设置了entityPackageScanPath，那么解析所有的实体类，得到对应的SqlInfo
     if (StringUtils.isNotBlank(config.getMapperPackageScanPath())) {
       String[] paths = StringUtils.delimiteToStringArray(config.getMapperPackageScanPath(), ", \t:;");
-      Set<Class<? extends Mapper<?, ?>>> mapperClassSet = new HashSet<>();
+      Set<Class<?>> mapperClassSet = new HashSet<>();
       ClassSeeker seeker = new ClassSeeker(ClassUtils.getDefaultClassLoader());
       seeker.setIfCondition(new MapperTest(config.getBaseMapperClass()));
       for (String path : paths) {
-        mapperClassSet.addAll(Arrays.asList((Class<? extends Mapper>[]) seeker.seekClasses(path)));
+        mapperClassSet.addAll(Arrays.asList(seeker.seekClasses(path)));
       }
-      ((AbstractSqlGeneratorEngine) engine).addSqlInfos(mapperClassSet);
+      ((AbstractSqlGeneratorEngine) engine).addSqlInfos((Set<Class<? extends Mapper<?, ?>>>) mapperClassSet);
     }
   }
 }
