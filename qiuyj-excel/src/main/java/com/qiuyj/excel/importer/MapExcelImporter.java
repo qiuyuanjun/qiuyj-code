@@ -24,11 +24,9 @@ public class MapExcelImporter extends AbstractExcelImporter {
     TreeMap<Integer, String> excelHeadInfo = new TreeMap<>();
     // 需要验证的字段
     List<String> mustbeValidate = new ArrayList<>();
-    boolean resetExcelHeadInfo = false;
     // 遍历所有的head字段
     for (Map.Entry<Integer, String> me : getExcelHeadInfo().entrySet()) {
       if (me.getValue().startsWith(VALIDATE_FIELD_PREFIX)) {
-        resetExcelHeadInfo = true;
         String name = canonicName(me.getValue());
         excelHeadInfo.put(me.getKey(), name);
         mustbeValidate.add(name);
@@ -37,9 +35,8 @@ public class MapExcelImporter extends AbstractExcelImporter {
         excelHeadInfo.put(me.getKey(), me.getValue());
       }
     }
-    if (resetExcelHeadInfo) {
-      setExcelHeadInfo(excelHeadInfo);
-    }
+    // 重新设置头信息
+    setExcelHeadInfo(excelHeadInfo);
 
     // 生成MapValidator
     if (!mustbeValidate.isEmpty()) {
@@ -48,7 +45,7 @@ public class MapExcelImporter extends AbstractExcelImporter {
   }
 
   @Override
-  protected Object excelRowMapping(Row currRow) throws ValidationException {
+  protected Map excelRowMapping(Row currRow) throws ValidationException {
     Map<Integer, String> headInfo = getExcelHeadInfo();
     Map<String, String> result = new LinkedHashMap<>(headInfo.size());
     headInfo.forEach((idx, title) -> {
