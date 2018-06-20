@@ -51,14 +51,14 @@ public abstract class AbstractExcelImporter implements ExcelImporter {
             if (closeWorkbook) {
               ExcelUtils.closeExcelWorkbookQuietly(workbook);
             }
-            throw new IllegalArgumentException("Don't accept null element");
+            throw new IllegalArgumentException("Don't accept null element.");
           }
         }
       }
       catch (ValidationException e) {
         // 如果验证未通过，那么直接抛出异常
         ExcelUtils.closeExcelWorkbookQuietly(workbook);
-        throw new IllegalStateException(e);
+        throw new IllegalStateException(e.getValidationErrorReport().toString(), e);
       }
     }
     if (closeWorkbook) {
