@@ -86,18 +86,12 @@ public interface ProtocolResourceHandler {
       String basePackage = StringUtils.substringAfter(url.getFile(), JAR_PATH_SEPERATOR),
              jarPath = StringUtils.substringBefore(url.getFile(), JAR_PATH_SEPERATOR).substring(6);
       jarFile.stream().filter(jarEntry -> {
-            boolean firstCondition = jarEntry.getName().startsWith(basePackage)
+            if (jarEntry.getName().startsWith(basePackage)
                 && jarEntry.getName().endsWith(".class")
-                && !jarEntry.isDirectory();
-            if (firstCondition) {
+                && !jarEntry.isDirectory()) {
               int idx = jarEntry.getName().lastIndexOf(CLASSPATH_SEPERATOR);
-              if (idx > -1) {
-                String filename = jarEntry.getName().substring(idx + 1);
-                return !isModuleOrPackageInfoClassFile(filename);
-              }
-              else {
-                return true;
-              }
+              return idx <= -1
+                  || !isModuleOrPackageInfoClassFile(jarEntry.getName().substring(idx + 1));
             }
             else {
               return false;
