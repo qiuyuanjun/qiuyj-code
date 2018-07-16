@@ -32,7 +32,7 @@ public abstract class AbstractValidationRule implements ValidationRule {
   @Override
   public boolean matchAll(Object value) {
     resetLocalErrorReport(); // 重置本地错误报告
-    return false;
+    return doMatchAll(value);
   }
 
   /**
