@@ -1,7 +1,9 @@
 package com.qiuyj.commons;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.YearMonth;
 import java.time.chrono.IsoChronology;
 import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
@@ -85,7 +87,7 @@ public abstract class DateUtils {
   public static Map<String, LocalDate> getStartAndEndLocalDateOfWeekInMonth(int year, int month, int week) {
     YEAR.checkValidValue(year);
     MONTH_OF_YEAR.checkValidValue(month);
-    int dayNumber = getNumberOfDayInMonth(year, month),
+    int dayNumber = getMonthLength(year, month),
         end = week * 7,
         start = end - 6;
     if (end > dayNumber) {
@@ -104,7 +106,7 @@ public abstract class DateUtils {
    * @param month 月份
    * @return 天数
    */
-  public static int getNumberOfDayInMonth(int year, int month) {
+  public static int getMonthLength(int year, int month) {
     int day = 31;
     switch (month) {
       case 2:
@@ -162,6 +164,90 @@ public abstract class DateUtils {
     }
     sb.append(value);
     return sb.toString();
+  }
+
+  /**
+   * 根据给定的时间日期，判断是否是周末（包括星期六和星期日）
+   * @param dateTime 时间日期
+   * @return 如果是周末，返回{@code true}，否则返回{@code false}
+   */
+  public static boolean isWeekend(LocalDateTime dateTime) {
+    return isWeekend(dateTime.toLocalDate());
+  }
+
+  /**
+   * 根据给定的时间日期，判断是否是周末（包括星期六和星期日）
+   * @param date 时间日期
+   * @return 如果是周末，返回{@code true}，否则返回{@code false}
+   */
+  public static boolean isWeekend(LocalDate date) {
+    DayOfWeek dow = date.getDayOfWeek();
+    return dow == DayOfWeek.SATURDAY || dow == DayOfWeek.SUNDAY;
+  }
+
+  /**
+   * 根据给定的时间日期，判断是否是周末（包括星期六和星期日）
+   * @param date 时间日期
+   * @return 如果是周末，返回{@code true}，否则返回{@code false}
+   */
+  public static boolean isWeekend(Date date) {
+    Calendar c = Calendar.getInstance();
+    c.setTime(date);
+    int dow = c.get(Calendar.DAY_OF_WEEK);
+    return dow == Calendar.SATURDAY || dow == Calendar.SUNDAY;
+  }
+
+  /**
+   * 得到一个月的工作天数（不包括周六和周日的天数）
+   * @param yearMonth 月份所在年的对象
+   * @apiNote 没有考虑国家法定节假日（如果需要考虑国家法定节假日，一定不能使用该方法）
+   * @return 一个月的实际工作天数（不包括周六和周日的天数）
+   */
+  public static int getWorkingDaysOfMonth(YearMonth yearMonth) {
+    LocalDate date = yearMonth.atDay(1);
+    int days = yearMonth.lengthOfMonth(), unchangeDays = days,
+        weekDay = date.getDayOfWeek().getValue(),
+        workingDays = 0;
+    if (weekDay == 6) {
+      days -= 2;
+    }
+    else if (weekDay == 7) {
+      days -= 1;
+    }
+    else {
+      workingDays += (6 - weekDay);
+      days -= weekDay;
+    }
+    do {
+      workingDays += 5;
+      days -= 7;
+    }
+    while (days > 7);
+    if (days > 0) {
+      // 得到这个月的最后一天的LocalDate对象
+      date = LocalDate.of(yearMonth.getYear(), yearMonth.getMonthValue(), unchangeDays);
+      weekDay = date.getDayOfWeek().getValue();
+      if (weekDay == 7) {
+        days -= 1;
+      }
+      else if (weekDay == 6) {
+        days -= 2;
+      }
+      if (days > 0) {
+        workingDays += days;
+      }
+    }
+    return workingDays;
+  }
+
+  /**
+   * 得到一个月的工作天数
+   * @param year 年
+   * @param month 月
+   * @return 工作天数
+   */
+  public static int getWorkingDaysOfMonth(int year, int month) {
+    return getWorkingDaysOfMonth(YearMonth.of(year, month));
   }
 
 }
