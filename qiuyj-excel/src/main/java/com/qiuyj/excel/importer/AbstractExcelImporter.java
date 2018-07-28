@@ -15,6 +15,8 @@ import java.util.*;
  */
 public abstract class AbstractExcelImporter implements ExcelImporter {
 
+  protected static final Object SKIP = new Object();
+
   private final Workbook workbook;
 
   /**
@@ -45,7 +47,9 @@ public abstract class AbstractExcelImporter implements ExcelImporter {
         while (rowIt.hasNext()) {
           Object mappingResult = excelRowMapping(rowIt.next());
           if (Objects.nonNull(mappingResult)) {
-            excelContent.add(mappingResult);
+            if (mappingResult != SKIP) {
+              excelContent.add(mappingResult);
+            }
           }
           else {
             if (closeWorkbook) {

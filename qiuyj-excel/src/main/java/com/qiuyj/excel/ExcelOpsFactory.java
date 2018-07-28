@@ -22,6 +22,7 @@ public abstract class ExcelOpsFactory {
     return getExcelImporter(in, null);
   }
 
+  @SuppressWarnings("unchecked")
   public static ExcelImporter getExcelImporter(InputStream in, Class<?> beanCls) {
     Objects.requireNonNull(in);
     Workbook wb;

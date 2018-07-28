@@ -45,20 +45,32 @@ public class MapExcelImporter extends AbstractExcelImporter {
   }
 
   @Override
-  protected Map excelRowMapping(Row currRow) throws ValidationException {
+  protected Object excelRowMapping(Row currRow) throws ValidationException {
     Map<Integer, String> headInfo = getExcelHeadInfo();
     Map<String, String> result = new LinkedHashMap<>(headInfo.size());
-    headInfo.forEach((idx, title) -> {
-      Cell cell = currRow.getCell(idx, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
+    // 如果读取到的所有的列都是空的，那么这一行数据应该丢弃
+    int emptyCells = 0;
+    for (Map.Entry<Integer, String> me : headInfo.entrySet()) {
+      Cell cell = currRow.getCell(me.getKey(), Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
       if (Objects.nonNull(cell)) {
-        result.put(title, ExcelUtils.readExcelCellValueAsString(cell));
+        result.put(me.getValue(), ExcelUtils.readExcelCellValueAsString(cell));
       }
-    });
-    // 对这个map进行验证
-    if (Objects.nonNull(mapValidator)) {
-      mapValidator.validateWithException(result);
+      else {
+        emptyCells++;
+      }
     }
-    return result;
+    if (emptyCells == headInfo.size()) {
+      // 那么表明读取到的是一整行空行，应该丢弃这行数据
+      // 此时直接返回{@code SKIP}对象
+      return SKIP;
+    }
+    else {
+      // 对这个map进行验证
+      if (Objects.nonNull(mapValidator)) {
+        mapValidator.validateWithException(result);
+      }
+      return result;
+    }
   }
 
   private static String canonicName(String name) {
