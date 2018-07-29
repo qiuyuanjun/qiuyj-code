@@ -7,12 +7,12 @@ import java.util.List;
  * @author qiuyj
  * @since 2017/12/28
  */
-public interface ExcelImporter {
+public interface ExcelImporter<T> {
 
   /**
    * 导入excel，返回一个List
    */
-  List importExcel();
+  List<T> importExcel();
 
-  List importExcel(boolean closeWorkbook);
+  List<T> importExcel(boolean closeWorkbook);
 }

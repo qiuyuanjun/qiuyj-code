@@ -13,8 +13,9 @@ import java.util.*;
  * @author qiuyj
  * @since 2017/12/31
  */
-public abstract class AbstractExcelImporter implements ExcelImporter {
+public abstract class AbstractExcelImporter<T> implements ExcelImporter<T> {
 
+  /** 读取到空行的返回标志，如果返回是该对象，那么应该丢弃对应的数据 */
   protected static final Object SKIP = new Object();
 
   private final Workbook workbook;
@@ -30,13 +31,13 @@ public abstract class AbstractExcelImporter implements ExcelImporter {
   }
 
   @Override
-  public List importExcel() {
+  public List<T> importExcel() {
     return importExcel(true);
   }
 
   @SuppressWarnings("unchecked")
-  public List importExcel(boolean closeWorkbook) {
-    List excelContent = new ArrayList();
+  public List<T> importExcel(boolean closeWorkbook) {
+    List<T> excelContent = new ArrayList<>();
     for (Sheet sheet : workbook) {
       if (ExcelUtils.isEmptySheet(sheet)) {
         continue;
@@ -48,7 +49,7 @@ public abstract class AbstractExcelImporter implements ExcelImporter {
           Object mappingResult = excelRowMapping(rowIt.next());
           if (Objects.nonNull(mappingResult)) {
             if (mappingResult != SKIP) {
-              excelContent.add(mappingResult);
+              excelContent.add((T) mappingResult);
             }
           }
           else {

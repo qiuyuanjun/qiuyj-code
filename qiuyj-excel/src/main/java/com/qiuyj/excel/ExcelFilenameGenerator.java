@@ -15,9 +15,7 @@ public class ExcelFilenameGenerator {
    */
   public static String generateExportFilename(ExcelExportConfig config) {
     String exportFilename = config.getExportFilename();
-    if (StringUtils.isNotBlank(exportFilename)) {
-      exportFilename = DateUtils.getDateTimeString();
-    }
-    return exportFilename;
+    exportFilename = StringUtils.isBlank(exportFilename) ? DateUtils.getDateTimeString() : exportFilename;
+    return exportFilename + "." + config.getExcelType();
   }
 }

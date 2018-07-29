@@ -32,21 +32,19 @@ public abstract class ExcelUtils {
         if (HSSFDateUtil.isCellDateFormatted(cell)) {
           // 表明是时间格式
           Date date = cell.getDateCellValue();
-          strVal = DECIMAL_FORMAT.format(date.getTime());
+          strVal = String.valueOf(date.getTime());
         }
         else {
+//          double val = cell.getNumericCellValue();
+//          int intVal = (int) val;
+//          if (val - intVal < Double.MIN_VALUE) {
+//            strVal = Integer.toString(intVal);
+//          }
+//          else {
+//            strVal = Double.toString(val);
+//          }
           strVal = DECIMAL_FORMAT.format(cell.getNumericCellValue());
         }
-        /*
-        double val = cell.getNumericCellValue();
-        int intVal = (int) val;
-        if (val - intVal < Double.MIN_VALUE) {
-          strVal = Integer.toString(intVal);
-        }
-        else {
-          strVal = Double.toString(val);
-        }
-        */
         break;
       case BOOLEAN:
         strVal = cell.getBooleanCellValue() ? Boolean.TRUE.toString() : Boolean.FALSE.toString();
@@ -59,6 +57,40 @@ public abstract class ExcelUtils {
           throw new IllegalStateException("Error getting excel cell value");
     }
     return strVal;
+  }
+
+  /**
+   * 读取当前cell的实际类型的值
+   * @param cell 要读取的cell
+   * @return 对应的实际类型的值
+   */
+  public static Object getExcelCellValue(Cell cell) {
+    Object value;
+    switch (cell.getCellTypeEnum()) {
+      case STRING:
+        value = cell.getStringCellValue();
+        break;
+      case NUMERIC:
+        if (HSSFDateUtil.isCellDateFormatted(cell)) {
+          value = cell.getDateCellValue();
+        }
+        else {
+          double val = cell.getNumericCellValue();
+          int intVal = (int) val;
+          value = val - intVal < Double.MIN_VALUE ? intVal : val;
+        }
+        break;
+      case BOOLEAN:
+        value = cell.getBooleanCellValue() ? Boolean.TRUE : Boolean.FALSE;
+        break;
+      case FORMULA:
+        value = cell.getCellFormula();
+        break;
+      case ERROR:
+      default:
+        throw new IllegalStateException("Error getting excel cell value");
+    }
+    return value;
   }
 
   /**
@@ -78,4 +110,5 @@ public abstract class ExcelUtils {
       }
     }
   }
+
 }

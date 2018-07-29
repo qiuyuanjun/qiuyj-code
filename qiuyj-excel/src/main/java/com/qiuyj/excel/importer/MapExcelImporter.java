@@ -13,7 +13,7 @@ import java.util.*;
  * @author qiuyj
  * @since 2017/12/31
  */
-public class MapExcelImporter extends AbstractExcelImporter {
+public class MapExcelImporter extends AbstractExcelImporter<Map> {
 
   private static final String VALIDATE_FIELD_PREFIX = "*";
 

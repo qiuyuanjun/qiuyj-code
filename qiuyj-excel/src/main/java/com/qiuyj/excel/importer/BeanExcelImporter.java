@@ -11,7 +11,7 @@ import java.util.Objects;
  * @author qiuyj
  * @since 2017/12/31
  */
-public class BeanExcelImporter<T> extends AbstractExcelImporter {
+public class BeanExcelImporter<T> extends AbstractExcelImporter<T> {
 
   private final Class<T> beanCls;
 
