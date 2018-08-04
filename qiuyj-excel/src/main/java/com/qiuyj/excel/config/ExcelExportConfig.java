@@ -103,35 +103,14 @@ public class ExcelExportConfig {
     return rowLimits > 0 && size > rowLimits;
   }
 
-  /** Sheet配置，可以为null */
-  private CustomizedSheetConfigurer sheetConfig;
+  /** 自定义配置器，可以为null */
+  private ExcelCustomConfigurer customConfig;
 
-  public CustomizedSheetConfigurer getSheetConfig() {
-    return sheetConfig;
+  public ExcelCustomConfigurer getCustomConfig() {
+    return customConfig;
   }
 
-  public void setSheetConfig(CustomizedSheetConfigurer sheetConfig) {
-    this.sheetConfig = sheetConfig;
-  }
-
-  /** 字体名称 */
-  private String cellFontName = "Yu Gothic";
-
-  public String getCellFontName() {
-    return cellFontName;
-  }
-
-  public void setCellFontName(String cellFontName) {
-    this.cellFontName = cellFontName;
-  }
-
-  private boolean growWidthWithCharacterLength = true;
-
-  public boolean isGrowWidthWithCharacterLength() {
-    return growWidthWithCharacterLength;
-  }
-
-  public void setGrowWidthWithCharacterLength(boolean growWidthWithCharacterLength) {
-    this.growWidthWithCharacterLength = growWidthWithCharacterLength;
+  public void setCustomConfig(ExcelCustomConfigurer customConfig) {
+    this.customConfig = customConfig;
   }
 }

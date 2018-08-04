@@ -7,11 +7,11 @@ import java.util.List;
  * @author qiuyj
  * @since 2017/12/28
  */
-public interface ExcelExporter {
+public interface ExcelExporter<T> {
 
   /**
    * 导出excel
    * @param exportData 待导出的数据
    */
-  void exportExcel(List<?> exportData);
+  void exportExcel(List<T> exportData);
 }
